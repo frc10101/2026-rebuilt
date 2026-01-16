@@ -9,18 +9,18 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
 
 /** Add your docs here. */
 public class Helpers {
-    public static boolean isAllianceHubActive(){
-        String gameData;
-        Alliance alliance;
-        gameData = DriverStation.getGameSpecificMessage();
-        alliance = DriverStation.getAlliance().get();
-        if(gameData.length() > 0){
-            if(alliance == Alliance.Red){
-                return gameData.charAt(0) == 'R';
-            } else if (alliance == Alliance.Blue){
-                return gameData.charAt(0) == 'B';
-            }
-        }
-        return false;
+  public static boolean isAllianceHubActive() {
+    String gameData;
+    Alliance alliance;
+    gameData = DriverStation.getGameSpecificMessage();
+    alliance = DriverStation.getAlliance().get();
+    if (gameData.length() > 0) {
+      if (alliance == Alliance.Red) {
+        return gameData.charAt(0) == 'R';
+      } else if (alliance == Alliance.Blue) {
+        return gameData.charAt(0) == 'B';
+      }
     }
+    return false;
+  }
 }
