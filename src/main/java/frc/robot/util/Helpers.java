@@ -16,7 +16,7 @@ public class Helpers {
     if (matchTime == 0.0) { // If match time is 0, then there is no way your hub can be scored in
       return false;
     }
-    if (matchTime <= 30.0 || matchTime >= 130) { // If in Endgame, Auto, or transversal period
+    if (matchTime <= 30.0 || matchTime > 130) { // If in Endgame, Auto, or transversal period
       return true;
     }
 
