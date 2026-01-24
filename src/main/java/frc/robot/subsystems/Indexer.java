@@ -5,7 +5,8 @@
 package frc.robot.subsystems;
 
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-//Belt Dexter maybe called Clyde reffering to all of hopper
+// Belt Dexter maybe called Clyde reffering to all of hopper
+
 public class Indexer extends SubsystemBase {
   /** Creates a new Indexer. */
   public Indexer() {}

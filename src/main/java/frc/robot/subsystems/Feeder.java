@@ -5,7 +5,8 @@
 package frc.robot.subsystems;
 
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-//Network Switch in between RoboRio and Radio
+// Network Switch in between RoboRio and Radio
+
 public class Feeder extends SubsystemBase {
   /** Creates a new Feeder. */
   public Feeder() {}

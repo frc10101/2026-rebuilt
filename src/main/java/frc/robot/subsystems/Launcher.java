@@ -5,7 +5,8 @@
 package frc.robot.subsystems;
 
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-//Blinky
+// Blinky
+
 public class Launcher extends SubsystemBase {
   /** Creates a new Launcher. */
   public Launcher() {}
