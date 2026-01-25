@@ -7,9 +7,9 @@ package frc.robot.subsystems;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 /**
- * <p>This is the subsystem for moving fuel from outside the robot to the {@link Indexer}.</p>
+ * This is the subsystem for moving fuel from outside the robot to the {@link Indexer}.
  *
- * <p>It may also be referred to as <i>Pacman</i>.</p>
+ * <p>It may also be referred to as <i>Pacman</i>.
  */
 public class Intake extends SubsystemBase {
   /** Creates a new Intake. */

@@ -8,7 +8,11 @@
 package frc.robot;
 
 import static edu.wpi.first.units.Units.Amps;
+import static edu.wpi.first.units.Units.DegreesPerSecond;
+import static edu.wpi.first.units.Units.DegreesPerSecondPerSecond;
 
+import edu.wpi.first.units.measure.AngularAcceleration;
+import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.wpilibj.RobotBase;
 
@@ -42,5 +46,29 @@ public final class Constants {
     public static final int gearRatio = 1;
     /** Column Stall Current Limit */
     public static final Current currentLimit = Amps.of(60);
+
+    public final class Real {
+      public static final double kp = 50.0;
+      public static final double ki = 0.0;
+      public static final double kd = 0.0;
+      public static final AngularVelocity maxVelocity = DegreesPerSecond.of(90);
+      public static final AngularAcceleration maxAcceleration = DegreesPerSecondPerSecond.of(45);
+
+      public static final double ks = 0.0;
+      public static final double kg = 0.0;
+      public static final double kv = 0.0;
+    }
+
+    public final class Sim {
+      public static final double kp = 50.0;
+      public static final double ki = 0.0;
+      public static final double kd = 0.0;
+      public static final AngularVelocity maxVelocity = DegreesPerSecond.of(90);
+      public static final AngularAcceleration maxAcceleration = DegreesPerSecondPerSecond.of(45);
+
+      public static final double ks = 0.0;
+      public static final double kg = 0.0;
+      public static final double kv = 0.0;
+    }
   }
 }
