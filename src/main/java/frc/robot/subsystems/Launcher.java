@@ -7,6 +7,11 @@ package frc.robot.subsystems;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 // Blinky
 
+/**
+ * <p>This is the subsystem for delivering fuel by launching it from the robot.</p>
+ *
+ * <p>It may also be referred to as <i>Blinky</i>.</p>
+ */
 public class Launcher extends SubsystemBase {
   /** Creates a new Launcher. */
   public Launcher() {}

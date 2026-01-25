@@ -23,7 +23,11 @@ import yams.motorcontrollers.SmartMotorControllerConfig.MotorMode;
 import yams.motorcontrollers.SmartMotorControllerConfig.TelemetryVerbosity;
 import yams.motorcontrollers.local.SparkWrapper;
 
-// Pacman
+/**
+ * <p>This is the subsystem for moving fuel from outside the robot to the {@link Indexer}.</p>
+ *
+ * <p>It may also be referred to as <i>Pacman</i>.</p>
+ */
 public class Intake extends SubsystemBase {
 
   private SmartMotorControllerConfig SmartPivotMotorConfig =
