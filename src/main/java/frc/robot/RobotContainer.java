@@ -16,11 +16,13 @@ import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.DriveCommands;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.Intake;
+import frc.robot.subsystems.Feeder;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.GyroIO;
 import frc.robot.subsystems.drive.GyroIOPigeon2;
@@ -43,6 +45,18 @@ public class RobotContainer {
   // Controller
   private final CommandXboxController controller = new CommandXboxController(0);
   private final CommandXboxController intakeController = new CommandXboxController(1);
+  private final Feeder Column;
+
+  // Controller
+  private final CommandJoystick controller = new CommandJoystick(0);
+
+  // Buttons tehe
+  private final Trigger x = controller.button(1);
+  private final Trigger o = controller.button(2);
+  private final Trigger square = controller.button(3);
+  private final Trigger triangle = controller.button(4);
+  private final Trigger lbumper = controller.button(5);
+  private final Trigger rbumper = controller.button(6);
 
   // Dashboard inputs
   private final LoggedDashboardChooser<Command> autoChooser;
@@ -79,6 +93,7 @@ public class RobotContainer {
         // new ModuleIOTalonFXS(TunerConstants.FrontRight),
         // new ModuleIOTalonFXS(TunerConstants.BackLeft),
         // new ModuleIOTalonFXS(TunerConstants.BackRight));
+        Column = new Feeder();
         break;
 
       case SIM:
@@ -90,6 +105,7 @@ public class RobotContainer {
                 new ModuleIOSim(TunerConstants.FrontRight),
                 new ModuleIOSim(TunerConstants.BackLeft),
                 new ModuleIOSim(TunerConstants.BackRight));
+        Column = new Feeder();
         break;
 
       default:
@@ -101,6 +117,7 @@ public class RobotContainer {
                 new ModuleIO() {},
                 new ModuleIO() {},
                 new ModuleIO() {});
+        Column = new Feeder();
         break;
     }
 
@@ -140,9 +157,9 @@ public class RobotContainer {
     drive.setDefaultCommand(
         DriveCommands.joystickDrive(
             drive,
-            () -> -controller.getLeftY(),
-            () -> -controller.getLeftX(),
-            () -> -controller.getRightX()));
+            () -> -controller.getRawAxis(1),
+            () -> -controller.getRawAxis(0),
+            () -> -controller.getRawAxis(4)));
 
     // Lock to 0 degrees when A button is held
     controller
@@ -153,9 +170,16 @@ public class RobotContainer {
                 () -> -controller.getLeftY(),
                 () -> -controller.getLeftX(),
                 () -> Rotation2d.kZero));
+    // Lock to 0° when A button is held
+    x.whileTrue(
+        DriveCommands.joystickDriveAtAngle(
+            drive,
+            () -> -controller.getRawAxis(1),
+            () -> -controller.getRawAxis(0),
+            () -> Rotation2d.kZero));
 
     // Switch to X pattern when X button is pressed
-    controller.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
+    square.onTrue(Commands.runOnce(drive::stopWithX, drive));
 
     // Reset gyro to 0 degrees when B button is pressed
     controller
@@ -176,6 +200,16 @@ public class RobotContainer {
     intakeController.y().whileTrue(m_intake.set(-0.3));
     intakeController.rightBumper().whileTrue(m_intake.intake());
     intakeController.leftBumper().whileTrue(m_intake.outtake());
+    // Reset gyro to 0° when B button is pressed
+    o.onTrue(
+        Commands.runOnce(
+                () -> drive.setPose(new Pose2d(drive.getPose().getTranslation(), Rotation2d.kZero)),
+                drive)
+            .ignoringDisable(true));
+
+    lbumper.whileTrue(Column.IntakeFuel());
+    rbumper.whileTrue(Column.OuttakeFuel());
+    (lbumper.or(rbumper)).whileFalse(Column.NoFuel());
   }
 
   /**

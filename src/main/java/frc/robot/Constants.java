@@ -27,6 +27,12 @@ import edu.wpi.first.units.measure.Mass;
 import edu.wpi.first.units.measure.Time;
 import edu.wpi.first.units.measure.Velocity;
 import edu.wpi.first.units.measure.Voltage;
+import static edu.wpi.first.units.Units.DegreesPerSecond;
+import static edu.wpi.first.units.Units.DegreesPerSecondPerSecond;
+
+import edu.wpi.first.units.measure.AngularAcceleration;
+import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.wpilibj.RobotBase;
 
 /**
@@ -175,6 +181,42 @@ public final class Constants {
       // Roller speeds (duty cycle -1 to 1)
       public static final double intakeSpeed = 1.0;
       public static final double outtakeSpeed = -1.0;
+  public static final class SparkMaxCanIDs {
+    /** Column Can ID */
+    public static final int ColumnMotor = 10;
+  }
+
+  public static final class ColumnConstants {
+    /** Column Gear Ratio */
+    public static final int gearRatio = 1;
+    /** Column Stall Current Limit */
+    public static final Current currentLimit = Amps.of(60);
+
+    public static final double IntakeSpeed = 1.0;
+    public static final double OuttakeSpeed = -0.5;
+
+    public final class Real {
+      public static final double kp = 50.0;
+      public static final double ki = 0.0;
+      public static final double kd = 0.0;
+      public static final AngularVelocity maxVelocity = DegreesPerSecond.of(90);
+      public static final AngularAcceleration maxAcceleration = DegreesPerSecondPerSecond.of(45);
+
+      public static final double ks = 0.0;
+      public static final double kg = 0.0;
+      public static final double kv = 0.0;
+    }
+
+    public final class Sim {
+      public static final double kp = 50.0;
+      public static final double ki = 0.0;
+      public static final double kd = 0.0;
+      public static final AngularVelocity maxVelocity = DegreesPerSecond.of(90);
+      public static final AngularAcceleration maxAcceleration = DegreesPerSecondPerSecond.of(45);
+
+      public static final double ks = 0.0;
+      public static final double kg = 0.0;
+      public static final double kv = 0.0;
     }
   }
 }
