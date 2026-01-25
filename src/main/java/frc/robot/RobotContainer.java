@@ -15,7 +15,6 @@ import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
-import edu.wpi.first.wpilibj2.command.button.CommandPS4Controller;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.DriveCommands;
@@ -170,8 +169,8 @@ public class RobotContainer {
                 drive)
             .ignoringDisable(true));
 
-    lbumper.whileTrue(Column.IntakeFuel(1));
-    rbumper.whileTrue(Column.OuttakeFuel(1));
+    lbumper.whileTrue(Column.IntakeFuel());
+    rbumper.whileTrue(Column.OuttakeFuel());
     (lbumper.or(rbumper)).whileFalse(Column.NoFuel());
   }
 

@@ -94,6 +94,9 @@ public final class Constants {
     /** Column Stall Current Limit */
     public static final Current currentLimit = Amps.of(60);
 
+    public static final double IntakeSpeed = 1.0;
+    public static final double OuttakeSpeed = -0.5;
+
     public final class Real {
       public static final double kp = 50.0;
       public static final double ki = 0.0;

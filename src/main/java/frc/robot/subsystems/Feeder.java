@@ -57,12 +57,12 @@ public class Feeder extends SubsystemBase {
   /** Creates a new Feeder. */
   public Feeder() {}
 
-  public Command IntakeFuel(double speed) {
-    return runOnce(() -> m_motorspeed = speed);
+  public Command IntakeFuel() {
+    return runOnce(() -> m_motorspeed = ColumnConstants.IntakeSpeed);
   }
 
-  public Command OuttakeFuel(double speed) {
-    return runOnce(() -> m_motorspeed = -speed);
+  public Command OuttakeFuel() {
+    return runOnce(() -> m_motorspeed = ColumnConstants.OuttakeSpeed);
   }
 
   public Command NoFuel() {
