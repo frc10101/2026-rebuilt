@@ -4,6 +4,7 @@
 
 package frc.robot.subsystems;
 
+import com.ctre.phoenix6.hardware.TalonFX;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
 import edu.wpi.first.math.controller.ArmFeedforward;
@@ -23,6 +24,7 @@ import yams.motorcontrollers.SmartMotorControllerConfig.ControlMode;
 import yams.motorcontrollers.SmartMotorControllerConfig.MotorMode;
 import yams.motorcontrollers.SmartMotorControllerConfig.TelemetryVerbosity;
 import yams.motorcontrollers.local.SparkWrapper;
+import yams.motorcontrollers.remote.TalonFXWrapper;
 
 /**
  * This is the subsystem for moving fuel from outside the robot to the {@link Indexer}.
@@ -78,12 +80,12 @@ public class Intake extends SubsystemBase {
           .withClosedLoopRampRate(Constants.IntakeConstants.Roller.closedLoopRampRate)
           .withOpenLoopRampRate(Constants.IntakeConstants.Roller.openLoopRampRate);
 
-  private SparkMax pivot = new SparkMax(Constants.IDs.intakePivotMotor, MotorType.kBrushless);
+  private TalonFX pivot = new TalonFX(Constants.IDs.intakePivotMotor);
   private SparkMax roller = new SparkMax(Constants.IDs.intakeRollerMotor, MotorType.kBrushless);
 
   // create the smartMotorController
   private SmartMotorController pivotController =
-      new SparkWrapper(pivot, DCMotor.getKrakenX44(1), SmartPivotMotorConfig);
+      new TalonFXWrapper(pivot, DCMotor.getKrakenX60(1), SmartPivotMotorConfig);
 
   private SmartMotorController rollerController =
       new SparkWrapper(roller, DCMotor.getNEO(1), SmartRollerMotorConfig);
@@ -120,14 +122,6 @@ public class Intake extends SubsystemBase {
    */
   public Command set(double dutyCycle) {
     return intakePivot.set(dutyCycle);
-  }
-
-  /** Run sysId on the {&link intakePivot} */
-  public Command runSysId() {
-    return intakePivot.sysId(
-        Constants.IntakeConstants.Pivot.maxVoltage,
-        Constants.IntakeConstants.Pivot.stepVoltage,
-        Constants.IntakeConstants.Pivot.sysIdDuration);
   }
 
   // Roller Commands
@@ -178,12 +172,6 @@ public class Intake extends SubsystemBase {
   /** Creates a new Intake. */
   public Intake() {}
 
-  /** Closes the intake subsystem and releases hardware resources. */
-  public void close() {
-    pivot.close();
-    roller.close();
-  }
-
   @Override
   public void periodic() {
     intakePivot.updateTelemetry();
@@ -192,7 +180,7 @@ public class Intake extends SubsystemBase {
 
   @Override
   public void simulationPeriodic() {
-    intakePivot.simIterate();
+    pivotController.simIterate();
     rollerController.simIterate();
   }
 }
