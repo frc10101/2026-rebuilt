@@ -5,8 +5,11 @@
 package frc.robot.subsystems;
 
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-// Network Switch in between RoboRio and Radio
 
+/**
+ * <p>This is the subsystem for moving fuel between the {@link Indexer} and the {@link Launcher}.</p>
+ * <p>It may also be referred to as <i>Network Switch in between RoboRio and Radio</i>.
+ */
 public class Feeder extends SubsystemBase {
   /** Creates a new Feeder. */
   public Feeder() {}
