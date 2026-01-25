@@ -27,12 +27,6 @@ import edu.wpi.first.units.measure.Mass;
 import edu.wpi.first.units.measure.Time;
 import edu.wpi.first.units.measure.Velocity;
 import edu.wpi.first.units.measure.Voltage;
-import static edu.wpi.first.units.Units.DegreesPerSecond;
-import static edu.wpi.first.units.Units.DegreesPerSecondPerSecond;
-
-import edu.wpi.first.units.measure.AngularAcceleration;
-import edu.wpi.first.units.measure.AngularVelocity;
-import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.wpilibj.RobotBase;
 
 /**
@@ -137,8 +131,8 @@ public final class Constants {
       // Write down gear stages from motor to output
       // Example: 3:1 stage followed by 4:1 stage -> gearStages = {3, 4}
       // If you gear up instead, use fractions like 1/3.0
-      public static final int[] gearStages = {3, 4};
-      public static final int totalGear =
+      public static final double[] gearStages = {3, 4};
+      public static final double totalGear =
           java.util.Arrays.stream(gearStages).reduce(1, (a, b) -> a * b);
 
       // Motor properties from tutorial to prevent over currenting
@@ -170,8 +164,8 @@ public final class Constants {
       public static final double FF = 1.0 / 5767;
       public static final AngularVelocity maxVelocity = DegreesPerSecond.of(90);
       public static final AngularAcceleration maxAcceleration = DegreesPerSecondPerSecond.of(45);
-      public static final int[] gearStages = {1};
-      public static final int totalGear =
+      public static final double[] gearStages = {1};
+      public static final double totalGear =
           java.util.Arrays.stream(gearStages).reduce(1, (a, b) -> a * b);
 
       public static final Current currentLimit = Amps.of(40);
@@ -181,6 +175,9 @@ public final class Constants {
       // Roller speeds (duty cycle -1 to 1)
       public static final double intakeSpeed = 1.0;
       public static final double outtakeSpeed = -1.0;
+    }
+  }
+
   public static final class SparkMaxCanIDs {
     /** Column Can ID */
     public static final int ColumnMotor = 10;

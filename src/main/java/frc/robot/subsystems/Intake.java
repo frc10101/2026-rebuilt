@@ -60,8 +60,9 @@ public class Intake extends SubsystemBase {
                   Constants.IntakeConstants.Pivot.Sim.kv))
           .withTelemetry("IntakePivotMotor", TelemetryVerbosity.HIGH)
           // Gearing from motor rotor to final shaft
-          // GearBox.fromReductionStages(3, 4) is the same as "3:1" then "4:1" = 12:1 reduction
-          .withGearing(new MechanismGearing(GearBox.fromReductionStages(3, 4)))
+          .withGearing(
+              new MechanismGearing(
+                  GearBox.fromReductionStages(Constants.IntakeConstants.Pivot.totalGear)))
           // Motor properties from tutorial to prevent over currenting
           .withMotorInverted(false)
           .withIdleMode(MotorMode.BRAKE)
@@ -73,7 +74,9 @@ public class Intake extends SubsystemBase {
       new SmartMotorControllerConfig(this)
           .withControlMode(ControlMode.OPEN_LOOP)
           .withTelemetry("IntakeRollerMotor", TelemetryVerbosity.LOW)
-          .withGearing(new MechanismGearing(GearBox.fromReductionStages(1)))
+          .withGearing(
+              new MechanismGearing(
+                  GearBox.fromReductionStages(Constants.IntakeConstants.Roller.totalGear)))
           .withMotorInverted(false)
           .withIdleMode(MotorMode.COAST)
           .withStatorCurrentLimit(Constants.IntakeConstants.Roller.currentLimit)
