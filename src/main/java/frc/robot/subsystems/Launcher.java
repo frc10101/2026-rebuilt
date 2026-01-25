@@ -32,6 +32,11 @@ import yams.motorcontrollers.SmartMotorControllerConfig.MotorMode;
 import yams.motorcontrollers.SmartMotorControllerConfig.TelemetryVerbosity;
 import yams.motorcontrollers.remote.TalonFXWrapper;
 
+/**
+ * <p>This is the subsystem for delivering fuel by launching it from the robot.</p>
+ *
+ * <p>It may also be referred to as <i>Blinky</i>.</p>
+ */
 public class Launcher extends SubsystemBase {
   /** Creates a new Launcher. */
   private TalonFX FlywheelLead = new TalonFX(Constants.Launcher.MOTOR_ID_LEAD);
