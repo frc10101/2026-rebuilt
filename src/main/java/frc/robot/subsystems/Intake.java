@@ -12,6 +12,8 @@ import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
+import yams.gearing.GearBox;
+import yams.gearing.MechanismGearing;
 import yams.mechanisms.config.ArmConfig;
 import yams.mechanisms.positional.Arm;
 import yams.motorcontrollers.SmartMotorController;
@@ -24,58 +26,74 @@ import yams.motorcontrollers.local.SparkWrapper;
 // Pacman
 public class Intake extends SubsystemBase {
 
-  private SmartMotorControllerConfig pivotMotorConfig =
+  private SmartMotorControllerConfig SmartPivotMotorConfig =
       new SmartMotorControllerConfig(this)
           .withControlMode(ControlMode.CLOSED_LOOP)
           .withClosedLoopController(
-              Constants.IntakeConstants.Real.kp,
-              Constants.IntakeConstants.Real.ki,
-              Constants.IntakeConstants.Real.kd,
-              Constants.IntakeConstants.Real.maxVelocity,
-              Constants.IntakeConstants.Real.maxAcceleration)
+              Constants.IntakeConstants.Pivot.Real.kp,
+              Constants.IntakeConstants.Pivot.Real.ki,
+              Constants.IntakeConstants.Pivot.Real.kd,
+              Constants.IntakeConstants.Pivot.Real.maxVelocity,
+              Constants.IntakeConstants.Pivot.Real.maxAcceleration)
           .withSimClosedLoopController(
-              Constants.IntakeConstants.Sim.kp,
-              Constants.IntakeConstants.Sim.ki,
-              Constants.IntakeConstants.Sim.kd,
-              Constants.IntakeConstants.Sim.maxVelocity,
-              Constants.IntakeConstants.Sim.maxAcceleration)
+              Constants.IntakeConstants.Pivot.Sim.kp,
+              Constants.IntakeConstants.Pivot.Sim.ki,
+              Constants.IntakeConstants.Pivot.Sim.kd,
+              Constants.IntakeConstants.Pivot.Sim.maxVelocity,
+              Constants.IntakeConstants.Pivot.Sim.maxAcceleration)
           .withFeedforward(
               new ArmFeedforward(
-                  Constants.IntakeConstants.Real.ks,
-                  Constants.IntakeConstants.Real.kg,
-                  Constants.IntakeConstants.Real.kv))
+                  Constants.IntakeConstants.Pivot.Real.ks,
+                  Constants.IntakeConstants.Pivot.Real.kg,
+                  Constants.IntakeConstants.Pivot.Real.kv))
           .withSimFeedforward(
               new ArmFeedforward(
-                  Constants.IntakeConstants.Sim.ks,
-                  Constants.IntakeConstants.Sim.kg,
-                  Constants.IntakeConstants.Sim.kv))
+                  Constants.IntakeConstants.Pivot.Sim.ks,
+                  Constants.IntakeConstants.Pivot.Sim.kg,
+                  Constants.IntakeConstants.Pivot.Sim.kv))
           .withTelemetry("IntakePivotMotor", TelemetryVerbosity.HIGH)
           // Gearing from motor rotor to final shaft
-          // Uses the pre-calculated totalGear from Constants (product of all gear stages)
-          // If you need to gear up instead, change totalGear calculation in Constants
-          .withGearing(Constants.IntakeConstants.totalGear)
+          // GearBox.fromReductionStages(3, 4) is the same as "3:1" then "4:1" = 12:1 reduction
+          .withGearing(new MechanismGearing(GearBox.fromReductionStages(3, 4)))
           // Motor properties from tutorial to prevent over currenting
           .withMotorInverted(false)
           .withIdleMode(MotorMode.BRAKE)
-          .withStatorCurrentLimit(Constants.IntakeConstants.currentLimit)
-          .withClosedLoopRampRate(Constants.IntakeConstants.closedLoopRampRate)
-          .withOpenLoopRampRate(Constants.IntakeConstants.openLoopRampRate);
+          .withStatorCurrentLimit(Constants.IntakeConstants.Pivot.currentLimit)
+          .withClosedLoopRampRate(Constants.IntakeConstants.Pivot.closedLoopRampRate)
+          .withOpenLoopRampRate(Constants.IntakeConstants.Pivot.openLoopRampRate);
+
+  private SmartMotorControllerConfig SmartRollerMotorConfig =
+      new SmartMotorControllerConfig(this)
+          .withControlMode(ControlMode.OPEN_LOOP)
+          .withTelemetry("IntakeRollerMotor", TelemetryVerbosity.LOW)
+          .withGearing(new MechanismGearing(GearBox.fromReductionStages(1)))
+          .withMotorInverted(false)
+          .withIdleMode(MotorMode.COAST)
+          .withStatorCurrentLimit(Constants.IntakeConstants.Roller.currentLimit)
+          .withClosedLoopRampRate(Constants.IntakeConstants.Roller.closedLoopRampRate)
+          .withOpenLoopRampRate(Constants.IntakeConstants.Roller.openLoopRampRate);
 
   private SparkMax pivot = new SparkMax(Constants.IDs.intakePivotMotor, MotorType.kBrushless);
+  private SparkMax roller = new SparkMax(Constants.IDs.intakeRollerMotor, MotorType.kBrushless);
 
   // create the smartMotorController
   private SmartMotorController pivotController =
-      new SparkWrapper(pivot, DCMotor.getKrakenX44(1), pivotMotorConfig);
+      new SparkWrapper(pivot, DCMotor.getKrakenX44(1), SmartPivotMotorConfig);
+
+  private SmartMotorController rollerController =
+      new SparkWrapper(roller, DCMotor.getNEO(1), SmartRollerMotorConfig);
 
   private ArmConfig pivotConfig =
       new ArmConfig(pivotController)
           .withSoftLimits(
-              Constants.IntakeConstants.softLimitOne, Constants.IntakeConstants.softLimitTwo)
+              Constants.IntakeConstants.Pivot.softLimitOne,
+              Constants.IntakeConstants.Pivot.softLimitTwo)
           .withHardLimit(
-              Constants.IntakeConstants.hardLimitOne, Constants.IntakeConstants.hardLimitTwo)
-          .withStartingPosition(Constants.IntakeConstants.startingPostion)
-          .withLength(Constants.IntakeConstants.armLength)
-          .withMass(Constants.IntakeConstants.mass)
+              Constants.IntakeConstants.Pivot.hardLimitOne,
+              Constants.IntakeConstants.Pivot.hardLimitTwo)
+          .withStartingPosition(Constants.IntakeConstants.Pivot.startingPosition)
+          .withLength(Constants.IntakeConstants.Pivot.armLength)
+          .withMass(Constants.IntakeConstants.Pivot.mass)
           .withTelemetry("IntakePivot", TelemetryVerbosity.HIGH);
 
   private Arm intakePivot = new Arm(pivotConfig);
@@ -102,9 +120,36 @@ public class Intake extends SubsystemBase {
   /** Run sysId on the {&link intakePivot} */
   public Command runSysId() {
     return intakePivot.sysId(
-        Constants.IntakeConstants.maxVoltage,
-        Constants.IntakeConstants.stepVoltage,
-        Constants.IntakeConstants.sysIdDuration);
+        Constants.IntakeConstants.Pivot.maxVoltage,
+        Constants.IntakeConstants.Pivot.stepVoltage,
+        Constants.IntakeConstants.Pivot.sysIdDuration);
+  }
+
+  // Roller Commands
+
+  /**
+   * Set the roller to a specific duty cycle
+   *
+   * @param dutyCycle Duty cycle to set (-1 to 1)
+   */
+  public Command setRoller(double dutyCycle) {
+    return runEnd(
+        () -> rollerController.setDutyCycle(dutyCycle), () -> rollerController.setDutyCycle(0));
+  }
+
+  /** Run the roller to intake game pieces */
+  public Command intake() {
+    return setRoller(Constants.IntakeConstants.Roller.intakeSpeed);
+  }
+
+  /** Run the roller to outtake game pieces */
+  public Command outtake() {
+    return setRoller(Constants.IntakeConstants.Roller.outtakeSpeed);
+  }
+
+  /** Stop the roller */
+  public Command stopRoller() {
+    return runOnce(() -> rollerController.setDutyCycle(0));
   }
 
   /** Creates a new Intake. */
@@ -113,10 +158,12 @@ public class Intake extends SubsystemBase {
   @Override
   public void periodic() {
     intakePivot.updateTelemetry();
+    rollerController.updateTelemetry();
   }
 
   @Override
   public void simulationPeriodic() {
     intakePivot.simIterate();
+    rollerController.simIterate();
   }
 }

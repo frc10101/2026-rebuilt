@@ -174,6 +174,8 @@ public class RobotContainer {
     intakeController.b().whileTrue(m_intake.setAngle(Degrees.of(15)));
     intakeController.x().whileTrue(m_intake.set(0.3));
     intakeController.y().whileTrue(m_intake.set(-0.3));
+    intakeController.rightBumper().whileTrue(m_intake.intake());
+    intakeController.leftBumper().whileTrue(m_intake.outtake());
   }
 
   /**
