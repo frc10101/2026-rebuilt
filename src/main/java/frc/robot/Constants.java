@@ -49,8 +49,6 @@ public final class Constants {
     REPLAY
   }
 
-
-
   public final class IDs {
     public static final int intakePivotMotor = 100;
     public static final int intakeRollerMotor = 200;
@@ -102,7 +100,8 @@ public final class Constants {
     // Soft limits (RPM)
     public static final double SOFT_LIMIT_RPM = 5000.0;
   }
-      public final class IntakeConstants {
+
+  public final class IntakeConstants {
     public final class Pivot {
       public final class Real {
         public static final double kp = 50.0;

@@ -155,6 +155,14 @@ public class Intake extends SubsystemBase {
   public Command stopRoller() {
     return runOnce(() -> rollerController.setDutyCycle(0));
   }
+  
+  public Command getPivotAngle() {
+    return runOnce(() -> intakePivot.getAngle());
+  }
+
+  public Command getRollerVelocity() {
+    return runOnce(() -> rollerController.getMechanismVelocity());
+  }
 
   /** Creates a new Intake. */
   public Intake() {}
