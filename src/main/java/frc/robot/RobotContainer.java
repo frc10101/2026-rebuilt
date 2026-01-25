@@ -14,6 +14,7 @@ import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
 import edu.wpi.first.wpilibj2.command.button.CommandPS4Controller;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
@@ -40,7 +41,7 @@ public class RobotContainer {
   private final Feeder Column;
 
   // Controller
-  private final CommandPS4Controller controller = new CommandPS4Controller(0);
+  private final CommandJoystick controller = new CommandJoystick(0);
 
   // Buttons tehe
   private final Trigger x = controller.button(1);
@@ -147,16 +148,16 @@ public class RobotContainer {
     drive.setDefaultCommand(
         DriveCommands.joystickDrive(
             drive,
-            () -> -controller.getLeftY(),
-            () -> -controller.getLeftX(),
-            () -> -controller.getRightX()));
+            () -> -controller.getRawAxis(1),
+            () -> -controller.getRawAxis(0),
+            () -> -controller.getRawAxis(4)));
 
     // Lock to 0° when A button is held
     x.whileTrue(
         DriveCommands.joystickDriveAtAngle(
             drive,
-            () -> -controller.getLeftY(),
-            () -> -controller.getLeftX(),
+            () -> -controller.getRawAxis(1),
+            () -> -controller.getRawAxis(0),
             () -> Rotation2d.kZero));
 
     // Switch to X pattern when X button is pressed
