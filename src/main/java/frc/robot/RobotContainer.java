@@ -7,6 +7,8 @@
 
 package frc.robot;
 
+import static edu.wpi.first.units.Units.Degrees;
+
 import com.pathplanner.lib.auto.AutoBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -14,12 +16,13 @@ import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
+import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.DriveCommands;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.Feeder;
+import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.GyroIO;
 import frc.robot.subsystems.drive.GyroIOPigeon2;
@@ -37,10 +40,12 @@ import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 public class RobotContainer {
   // Subsystems
   private final Drive drive;
-  private final Feeder Column;
+  private final Intake m_intake = new Intake();
 
   // Controller
-  private final CommandJoystick controller = new CommandJoystick(0);
+  private final CommandXboxController controller = new CommandXboxController(0);
+  private final CommandXboxController intakeController = new CommandXboxController(1);
+  private final Feeder Column;
 
   // Buttons tehe
   private final Trigger x = controller.button(1);
@@ -134,6 +139,8 @@ public class RobotContainer {
 
     // Configure the button bindings
     configureButtonBindings();
+
+    m_intake.setDefaultCommand(m_intake.setAngle(Degrees.of(0)));
   }
 
   /**
@@ -151,6 +158,15 @@ public class RobotContainer {
             () -> -controller.getRawAxis(0),
             () -> -controller.getRawAxis(4)));
 
+    // Lock to 0 degrees when A button is held
+    controller
+        .a()
+        .whileTrue(
+            DriveCommands.joystickDriveAtAngle(
+                drive,
+                () -> -controller.getLeftY(),
+                () -> -controller.getLeftX(),
+                () -> Rotation2d.kZero));
     // Lock to 0° when A button is held
     x.whileTrue(
         DriveCommands.joystickDriveAtAngle(
@@ -162,6 +178,25 @@ public class RobotContainer {
     // Switch to X pattern when X button is pressed
     square.onTrue(Commands.runOnce(drive::stopWithX, drive));
 
+    // Reset gyro to 0 degrees when B button is pressed
+    controller
+        .b()
+        .onTrue(
+            Commands.runOnce(
+                    () ->
+                        drive.setPose(
+                            new Pose2d(drive.getPose().getTranslation(), Rotation2d.kZero)),
+                    drive)
+                .ignoringDisable(true));
+
+    // Intake Buttons
+    // schedule setAngle when b is pressed, cancelling on release
+    intakeController.a().whileTrue(m_intake.setAngle(Degrees.of(-5)));
+    intakeController.b().whileTrue(m_intake.setAngle(Degrees.of(15)));
+    intakeController.x().whileTrue(m_intake.set(0.3));
+    intakeController.y().whileTrue(m_intake.set(-0.3));
+    intakeController.rightBumper().whileTrue(m_intake.intake());
+    intakeController.leftBumper().whileTrue(m_intake.outtake());
     // Reset gyro to 0° when B button is pressed
     o.onTrue(
         Commands.runOnce(
