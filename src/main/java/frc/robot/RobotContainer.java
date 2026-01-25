@@ -16,6 +16,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+import frc.robot.subsystems.Intake;
 import frc.robot.commands.DriveCommands;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.drive.Drive;
@@ -24,6 +25,9 @@ import frc.robot.subsystems.drive.GyroIOPigeon2;
 import frc.robot.subsystems.drive.ModuleIO;
 import frc.robot.subsystems.drive.ModuleIOSim;
 import frc.robot.subsystems.drive.ModuleIOTalonFX;
+
+import static edu.wpi.first.units.Units.Degrees;
+
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 /**
@@ -35,9 +39,11 @@ import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 public class RobotContainer {
   // Subsystems
   private final Drive drive;
+  private final Intake m_intake = new Intake();
 
   // Controller
   private final CommandXboxController controller = new CommandXboxController(0);
+  private final CommandXboxController intakeController = new CommandXboxController(1);
 
   // Dashboard inputs
   private final LoggedDashboardChooser<Command> autoChooser;
@@ -120,6 +126,8 @@ public class RobotContainer {
 
     // Configure the button bindings
     configureButtonBindings();
+
+    m_intake.setDefaultCommand(m_intake.setAngle(Degrees.of(0)));
   }
 
   /**
@@ -160,6 +168,15 @@ public class RobotContainer {
                             new Pose2d(drive.getPose().getTranslation(), Rotation2d.kZero)),
                     drive)
                 .ignoringDisable(true));
+
+    //Intake Buttons
+    //schedule setAngle when b is pressed, cancelling on release
+    intakeController.a().whileTrue(m_intake.setAngle(Degrees.of(-5)));
+    intakeController.b().whileTrue(m_intake.setAngle(Degrees.of(15)));
+    intakeController.x().whileTrue(m_intake.set(0.3));
+    intakeController.y().whileTrue(m_intake.set(-0.3));
+
+
   }
 
   /**

@@ -29,34 +29,34 @@ public class Intake extends SubsystemBase {
         new SmartMotorControllerConfig(this)
             .withControlMode(ControlMode.CLOSED_LOOP)
             .withClosedLoopController(
-                Constants.Intake.Real.kp,
-                Constants.Intake.Real.ki,
-                Constants.Intake.Real.kd,
-                Constants.Intake.Real.maxVelocity,
-                Constants.Intake.Real.maxAcceleration)
+                Constants.IntakeConstants.Real.kp,
+                Constants.IntakeConstants.Real.ki,
+                Constants.IntakeConstants.Real.kd,
+                Constants.IntakeConstants.Real.maxVelocity,
+                Constants.IntakeConstants.Real.maxAcceleration)
             .withSimClosedLoopController(
-                Constants.Intake.Sim.kp,
-                Constants.Intake.Sim.ki,
-                Constants.Intake.Sim.kd,
-                Constants.Intake.Sim.maxVelocity,
-                Constants.Intake.Sim.maxAcceleration)
+                Constants.IntakeConstants.Sim.kp,
+                Constants.IntakeConstants.Sim.ki,
+                Constants.IntakeConstants.Sim.kd,
+                Constants.IntakeConstants.Sim.maxVelocity,
+                Constants.IntakeConstants.Sim.maxAcceleration)
             .withFeedforward(
                 new ArmFeedforward(
-                    Constants.Intake.Real.ks, Constants.Intake.Real.kg, Constants.Intake.Real.kv))
+                    Constants.IntakeConstants.Real.ks, Constants.IntakeConstants.Real.kg, Constants.IntakeConstants.Real.kv))
             .withSimFeedforward(
                 new ArmFeedforward(
-                    Constants.Intake.Sim.ks, Constants.Intake.Sim.kg, Constants.Intake.Sim.kv))
+                    Constants.IntakeConstants.Sim.ks, Constants.IntakeConstants.Sim.kg, Constants.IntakeConstants.Sim.kv))
             .withTelemetry("IntakePivotMotor", TelemetryVerbosity.HIGH)
             // Gearing from motor rotor to final shaft
             // Uses the pre-calculated totalGear from Constants (product of all gear stages)
             // If you need to gear up instead, change totalGear calculation in Constants
-            .withGearing(Constants.Intake.totalGear)
+            .withGearing(Constants.IntakeConstants.totalGear)
             // Motor properties from tutorial to prevent over currenting
             .withMotorInverted(false)
             .withIdleMode(MotorMode.BRAKE)
-            .withStatorCurrentLimit(Constants.Intake.currentLimit)
-            .withClosedLoopRampRate(Constants.Intake.closedLoopRampRate)
-            .withOpenLoopRampRate(Constants.Intake.openLoopRampRate);
+            .withStatorCurrentLimit(Constants.IntakeConstants.currentLimit)
+            .withClosedLoopRampRate(Constants.IntakeConstants.closedLoopRampRate)
+            .withOpenLoopRampRate(Constants.IntakeConstants.openLoopRampRate);
 
     private SparkMax pivot = new SparkMax(Constants.IDs.intakePivotMotor, MotorType.kBrushless);
 
@@ -64,11 +64,11 @@ public class Intake extends SubsystemBase {
     private SmartMotorController pivotController = new SparkWrapper(pivot, DCMotor.getKrakenX44(1), pivotMotorConfig);
 
     private ArmConfig pivotConfig = new ArmConfig(pivotController)
-    .withSoftLimits(Constants.Intake.softLimitOne, Constants.Intake.softLimitTwo)
-    .withHardLimit(Constants.Intake.hardLimitOne, Constants.Intake.hardLimitTwo)
-    .withStartingPosition(Constants.Intake.startingPostion)
-    .withLength(Constants.Intake.armLength)
-    .withMass(Constants.Intake.mass)
+    .withSoftLimits(Constants.IntakeConstants.softLimitOne, Constants.IntakeConstants.softLimitTwo)
+    .withHardLimit(Constants.IntakeConstants.hardLimitOne, Constants.IntakeConstants.hardLimitTwo)
+    .withStartingPosition(Constants.IntakeConstants.startingPostion)
+    .withLength(Constants.IntakeConstants.armLength)
+    .withMass(Constants.IntakeConstants.mass)
     .withTelemetry("IntakePivot", TelemetryVerbosity.HIGH);
 
     private Arm intakePivot = new Arm(pivotConfig);
@@ -94,7 +94,7 @@ public class Intake extends SubsystemBase {
      * Run sysId on the {&link intakePivot}
      */
     public Command runSysId() {
-        return intakePivot.sysId(Constants.Intake.maxVoltage, Constants.Intake.stepVoltage, Constants.Intake.sysIdDuration);
+        return intakePivot.sysId(Constants.IntakeConstants.maxVoltage, Constants.IntakeConstants.stepVoltage, Constants.IntakeConstants.sysIdDuration);
     }
 
   /** Creates a new Intake. */

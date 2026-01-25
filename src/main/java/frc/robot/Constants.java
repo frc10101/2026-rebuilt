@@ -49,7 +49,7 @@ public final class Constants {
     REPLAY
   }
 
-  public final class Intake {
+  public final class IntakeConstants {
     public final class Real {
       public static final double kp = 50.0;
       public static final double ki = 0.0;
