@@ -8,7 +8,9 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 /**
  * <p>This is the subsystem for moving fuel between the {@link Intake} and the {@link Feeder}.</p>
- * <p>It may also be referred to as <i>Belt Dexter</i> or <i>Clyde</i> (when referring to the hopper, as well).
+ *
+ * <p>It may also be referred to as <i>Belt Dexter</i> or <i>Clyde</i> (when referring to the
+ * hopper, as well).</p>
  */
 public class Indexer extends SubsystemBase {
   /** Creates a new Indexer. */
