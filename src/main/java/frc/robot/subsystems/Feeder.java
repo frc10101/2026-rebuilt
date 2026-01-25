@@ -17,6 +17,11 @@ import yams.motorcontrollers.SmartMotorControllerConfig.MotorMode;
 import yams.motorcontrollers.SmartMotorControllerConfig.TelemetryVerbosity;
 import yams.motorcontrollers.local.SparkWrapper;
 
+/**
+ * <p>This is the subsystem for moving fuel between the {@link Indexer} and the {@link Launcher}.</p>
+ *
+ * <p>It may also be referred to as <i>Network Switch in between RoboRio and Radio</i>.</p>
+ */
 public class Feeder extends SubsystemBase {
   private double m_motorspeed = 0.0;
   private SmartMotorControllerConfig MotorConfig =

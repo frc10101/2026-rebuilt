@@ -5,8 +5,12 @@
 package frc.robot.subsystems;
 
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-// Level Up
 
+/**
+ * <p>This is the subsystem for completing climbs.</p>
+ *
+ * <p>It may also be referred to as <i>Level Up</i>.</p>
+ */
 public class Climb extends SubsystemBase {
   /** Creates a new Climb. */
   public Climb() {}
