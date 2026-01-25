@@ -7,6 +7,9 @@
 
 package frc.robot;
 
+import static edu.wpi.first.units.Units.Amps;
+
+import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.wpilibj.RobotBase;
 
 /**
@@ -27,5 +30,17 @@ public final class Constants {
 
     /** Replaying from a log file. */
     REPLAY
+  }
+
+  public static final class SparkMaxCanIDs {
+    /** Column Can ID */
+    public static final int ColumnMotor = 10;
+  }
+
+  public static final class ColumnConstants {
+    /** Column Gear Ratio */
+    public static final int gearRatio = 1;
+    /** Column Stall Current Limit */
+    public static final Current currentLimit = Amps.of(60);
   }
 }
