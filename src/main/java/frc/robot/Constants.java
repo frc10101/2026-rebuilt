@@ -89,7 +89,7 @@ public final class Constants {
     public static final double BumperWidthXInch = 31.75;
     public static final double BumperWidthYInch = 31;
   }
-  
+
   public static final class SparkMaxCanIDs {
     /** Column Can ID */
     public static final int ColumnMotor = 10;

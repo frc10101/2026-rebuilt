@@ -23,11 +23,13 @@ import frc.robot.subsystems.Feeder;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.GyroIO;
 import frc.robot.subsystems.drive.GyroIOPigeon2;
+import frc.robot.subsystems.drive.GyroIOSim;
 import frc.robot.subsystems.drive.ModuleIO;
-import frc.robot.subsystems.drive.ModuleIOSim;
 import frc.robot.subsystems.drive.ModuleIOTalonFX;
-
+import frc.robot.subsystems.drive.ModuleIOTalonFXSim;
+import org.ironmaple.simulation.SimulatedArena;
 import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
+import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 /**
@@ -41,8 +43,7 @@ public class RobotContainer {
   private final Drive drive;
   private final Feeder Column;
 
-    private SwerveDriveSimulation driveSimulation = null;
-
+  private SwerveDriveSimulation driveSimulation = null;
 
   // Controller
   private final CommandJoystick controller = new CommandJoystick(0);
@@ -54,6 +55,7 @@ public class RobotContainer {
   private final Trigger triangle = controller.button(4);
   private final Trigger lbumper = controller.button(5);
   private final Trigger rbumper = controller.button(6);
+  private final Trigger onConnected = new Trigger(() -> controller.isConnected());
 
   // Dashboard inputs
   private final LoggedDashboardChooser<Command> autoChooser;
@@ -96,13 +98,16 @@ public class RobotContainer {
 
       case SIM:
         // Sim robot, instantiate physics sim IO implementations
+        driveSimulation =
+            new SwerveDriveSimulation(Drive.mapleSimConfig, new Pose2d(3, 3, new Rotation2d()));
+        SimulatedArena.getInstance().addDriveTrainSimulation(driveSimulation);
         drive =
             new Drive(
-                new GyroIO() {},
-                new ModuleIOSim(TunerConstants.FrontLeft),
-                new ModuleIOSim(TunerConstants.FrontRight),
-                new ModuleIOSim(TunerConstants.BackLeft),
-                new ModuleIOSim(TunerConstants.BackRight),
+                new GyroIOSim(driveSimulation.getGyroSimulation()),
+                new ModuleIOTalonFXSim(TunerConstants.FrontLeft, driveSimulation.getModules()[0]),
+                new ModuleIOTalonFXSim(TunerConstants.FrontRight, driveSimulation.getModules()[1]),
+                new ModuleIOTalonFXSim(TunerConstants.BackLeft, driveSimulation.getModules()[2]),
+                new ModuleIOTalonFXSim(TunerConstants.BackRight, driveSimulation.getModules()[3]),
                 driveSimulation::setSimulationWorldPose);
         Column = new Feeder();
         break;
@@ -157,7 +162,7 @@ public class RobotContainer {
             drive,
             () -> -controller.getRawAxis(1),
             () -> -controller.getRawAxis(0),
-            () -> -controller.getRawAxis(4)));
+            () -> -controller.getRawAxis(2)));
 
     // Lock to 0° when A button is held
     x.whileTrue(
@@ -180,6 +185,17 @@ public class RobotContainer {
     lbumper.whileTrue(Column.IntakeFuel());
     rbumper.whileTrue(Column.OuttakeFuel());
     (lbumper.or(rbumper)).whileFalse(Column.NoFuel());
+    final Runnable resetGyro =
+        Constants.currentMode == Constants.Mode.SIM
+            ? () ->
+                drive.setPose(
+                    driveSimulation
+                        .getSimulatedDriveTrainPose()) // reset odometry to actual robot pose during
+            // simulation
+            : () ->
+                drive.setPose(
+                    new Pose2d(drive.getPose().getTranslation(), new Rotation2d())); // zero gyro
+    onConnected.onTrue(Commands.runOnce(resetGyro, drive).ignoringDisable(true));
   }
 
   /**
@@ -189,5 +205,22 @@ public class RobotContainer {
    */
   public Command getAutonomousCommand() {
     return autoChooser.get();
+  }
+
+  public void resetSimulationField() {
+    if (Constants.currentMode != Constants.Mode.SIM) return;
+
+    driveSimulation.setSimulationWorldPose(new Pose2d(3, 3, new Rotation2d()));
+    SimulatedArena.getInstance().resetFieldForAuto();
+  }
+
+  public void updateSimulation() {
+    if (Constants.currentMode != Constants.Mode.SIM) return;
+
+    SimulatedArena.getInstance().simulationPeriodic();
+    Logger.recordOutput(
+        "FieldSimulation/RobotPosition", driveSimulation.getSimulatedDriveTrainPose());
+    Logger.recordOutput(
+        "FieldSimulation/Fuel", SimulatedArena.getInstance().getGamePiecesArrayByType("Fuel"));
   }
 }
