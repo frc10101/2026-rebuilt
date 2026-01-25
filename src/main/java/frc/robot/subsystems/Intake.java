@@ -9,6 +9,7 @@ import com.revrobotics.spark.SparkMax;
 import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
@@ -155,17 +156,33 @@ public class Intake extends SubsystemBase {
   public Command stopRoller() {
     return runOnce(() -> rollerController.setDutyCycle(0));
   }
-  
-  public Command getPivotAngle() {
-    return runOnce(() -> intakePivot.getAngle());
+
+  /**
+   * Get the current pivot angle
+   *
+   * @return The current angle of the pivot
+   */
+  public Angle getPivotAngle() {
+    return intakePivot.getAngle();
   }
 
-  public Command getRollerVelocity() {
-    return runOnce(() -> rollerController.getMechanismVelocity());
+  /**
+   * Get the current roller velocity
+   *
+   * @return The current velocity of the roller
+   */
+  public AngularVelocity getRollerVelocity() {
+    return rollerController.getMechanismVelocity();
   }
 
   /** Creates a new Intake. */
   public Intake() {}
+
+  /** Closes the intake subsystem and releases hardware resources. */
+  public void close() {
+    pivot.close();
+    roller.close();
+  }
 
   @Override
   public void periodic() {
