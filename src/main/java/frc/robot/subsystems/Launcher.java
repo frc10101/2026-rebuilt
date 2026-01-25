@@ -32,9 +32,9 @@ import yams.motorcontrollers.SmartMotorControllerConfig.TelemetryVerbosity;
 import yams.motorcontrollers.remote.TalonFXWrapper;
 
 /**
- * <p>This is the subsystem for delivering fuel by launching it from the robot.</p>
+ * This is the subsystem for delivering fuel by launching it from the robot.
  *
- * <p>It may also be referred to as <i>Blinky</i>.</p>
+ * <p>It may also be referred to as <i>Blinky</i>.
  */
 public class Launcher extends SubsystemBase {
   /** Creates a new Launcher. */
