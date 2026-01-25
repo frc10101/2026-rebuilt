@@ -4,9 +4,8 @@
 
 package frc.robot.subsystems;
 
-import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
-
+import com.revrobotics.spark.SparkMax;
 import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.Angle;
@@ -25,77 +24,88 @@ import yams.motorcontrollers.local.SparkWrapper;
 // Pacman
 public class Intake extends SubsystemBase {
 
-    private SmartMotorControllerConfig pivotMotorConfig =
-        new SmartMotorControllerConfig(this)
-            .withControlMode(ControlMode.CLOSED_LOOP)
-            .withClosedLoopController(
-                Constants.IntakeConstants.Real.kp,
-                Constants.IntakeConstants.Real.ki,
-                Constants.IntakeConstants.Real.kd,
-                Constants.IntakeConstants.Real.maxVelocity,
-                Constants.IntakeConstants.Real.maxAcceleration)
-            .withSimClosedLoopController(
-                Constants.IntakeConstants.Sim.kp,
-                Constants.IntakeConstants.Sim.ki,
-                Constants.IntakeConstants.Sim.kd,
-                Constants.IntakeConstants.Sim.maxVelocity,
-                Constants.IntakeConstants.Sim.maxAcceleration)
-            .withFeedforward(
-                new ArmFeedforward(
-                    Constants.IntakeConstants.Real.ks, Constants.IntakeConstants.Real.kg, Constants.IntakeConstants.Real.kv))
-            .withSimFeedforward(
-                new ArmFeedforward(
-                    Constants.IntakeConstants.Sim.ks, Constants.IntakeConstants.Sim.kg, Constants.IntakeConstants.Sim.kv))
-            .withTelemetry("IntakePivotMotor", TelemetryVerbosity.HIGH)
-            // Gearing from motor rotor to final shaft
-            // Uses the pre-calculated totalGear from Constants (product of all gear stages)
-            // If you need to gear up instead, change totalGear calculation in Constants
-            .withGearing(Constants.IntakeConstants.totalGear)
-            // Motor properties from tutorial to prevent over currenting
-            .withMotorInverted(false)
-            .withIdleMode(MotorMode.BRAKE)
-            .withStatorCurrentLimit(Constants.IntakeConstants.currentLimit)
-            .withClosedLoopRampRate(Constants.IntakeConstants.closedLoopRampRate)
-            .withOpenLoopRampRate(Constants.IntakeConstants.openLoopRampRate);
+  private SmartMotorControllerConfig pivotMotorConfig =
+      new SmartMotorControllerConfig(this)
+          .withControlMode(ControlMode.CLOSED_LOOP)
+          .withClosedLoopController(
+              Constants.IntakeConstants.Real.kp,
+              Constants.IntakeConstants.Real.ki,
+              Constants.IntakeConstants.Real.kd,
+              Constants.IntakeConstants.Real.maxVelocity,
+              Constants.IntakeConstants.Real.maxAcceleration)
+          .withSimClosedLoopController(
+              Constants.IntakeConstants.Sim.kp,
+              Constants.IntakeConstants.Sim.ki,
+              Constants.IntakeConstants.Sim.kd,
+              Constants.IntakeConstants.Sim.maxVelocity,
+              Constants.IntakeConstants.Sim.maxAcceleration)
+          .withFeedforward(
+              new ArmFeedforward(
+                  Constants.IntakeConstants.Real.ks,
+                  Constants.IntakeConstants.Real.kg,
+                  Constants.IntakeConstants.Real.kv))
+          .withSimFeedforward(
+              new ArmFeedforward(
+                  Constants.IntakeConstants.Sim.ks,
+                  Constants.IntakeConstants.Sim.kg,
+                  Constants.IntakeConstants.Sim.kv))
+          .withTelemetry("IntakePivotMotor", TelemetryVerbosity.HIGH)
+          // Gearing from motor rotor to final shaft
+          // Uses the pre-calculated totalGear from Constants (product of all gear stages)
+          // If you need to gear up instead, change totalGear calculation in Constants
+          .withGearing(Constants.IntakeConstants.totalGear)
+          // Motor properties from tutorial to prevent over currenting
+          .withMotorInverted(false)
+          .withIdleMode(MotorMode.BRAKE)
+          .withStatorCurrentLimit(Constants.IntakeConstants.currentLimit)
+          .withClosedLoopRampRate(Constants.IntakeConstants.closedLoopRampRate)
+          .withOpenLoopRampRate(Constants.IntakeConstants.openLoopRampRate);
 
-    private SparkMax pivot = new SparkMax(Constants.IDs.intakePivotMotor, MotorType.kBrushless);
+  private SparkMax pivot = new SparkMax(Constants.IDs.intakePivotMotor, MotorType.kBrushless);
 
-    //create the smartMotorController
-    private SmartMotorController pivotController = new SparkWrapper(pivot, DCMotor.getKrakenX44(1), pivotMotorConfig);
+  // create the smartMotorController
+  private SmartMotorController pivotController =
+      new SparkWrapper(pivot, DCMotor.getKrakenX44(1), pivotMotorConfig);
 
-    private ArmConfig pivotConfig = new ArmConfig(pivotController)
-    .withSoftLimits(Constants.IntakeConstants.softLimitOne, Constants.IntakeConstants.softLimitTwo)
-    .withHardLimit(Constants.IntakeConstants.hardLimitOne, Constants.IntakeConstants.hardLimitTwo)
-    .withStartingPosition(Constants.IntakeConstants.startingPostion)
-    .withLength(Constants.IntakeConstants.armLength)
-    .withMass(Constants.IntakeConstants.mass)
-    .withTelemetry("IntakePivot", TelemetryVerbosity.HIGH);
+  private ArmConfig pivotConfig =
+      new ArmConfig(pivotController)
+          .withSoftLimits(
+              Constants.IntakeConstants.softLimitOne, Constants.IntakeConstants.softLimitTwo)
+          .withHardLimit(
+              Constants.IntakeConstants.hardLimitOne, Constants.IntakeConstants.hardLimitTwo)
+          .withStartingPosition(Constants.IntakeConstants.startingPostion)
+          .withLength(Constants.IntakeConstants.armLength)
+          .withMass(Constants.IntakeConstants.mass)
+          .withTelemetry("IntakePivot", TelemetryVerbosity.HIGH);
 
-    private Arm intakePivot = new Arm(pivotConfig);
-    
-    //Commands
-    /**
-     * Set the angle of arm
-     * @param angle Angle to go to
-     */
-    public Command setAngle(Angle angle) {
-        return intakePivot.setAngle(angle);
-    }
+  private Arm intakePivot = new Arm(pivotConfig);
 
-    /**
-     * Move the arm up and down
-     * @param dutyCycle Duty cycle to set (-1 to 1)
-     */
-    public Command set(double dutyCycle) {
-        return intakePivot.set(dutyCycle);
-    }
+  // Commands
+  /**
+   * Set the angle of arm
+   *
+   * @param angle Angle to go to
+   */
+  public Command setAngle(Angle angle) {
+    return intakePivot.setAngle(angle);
+  }
 
-    /**
-     * Run sysId on the {&link intakePivot}
-     */
-    public Command runSysId() {
-        return intakePivot.sysId(Constants.IntakeConstants.maxVoltage, Constants.IntakeConstants.stepVoltage, Constants.IntakeConstants.sysIdDuration);
-    }
+  /**
+   * Move the arm up and down
+   *
+   * @param dutyCycle Duty cycle to set (-1 to 1)
+   */
+  public Command set(double dutyCycle) {
+    return intakePivot.set(dutyCycle);
+  }
+
+  /** Run sysId on the {&link intakePivot} */
+  public Command runSysId() {
+    return intakePivot.sysId(
+        Constants.IntakeConstants.maxVoltage,
+        Constants.IntakeConstants.stepVoltage,
+        Constants.IntakeConstants.sysIdDuration);
+  }
 
   /** Creates a new Intake. */
   public Intake() {}

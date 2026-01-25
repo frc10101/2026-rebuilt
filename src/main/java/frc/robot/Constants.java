@@ -87,20 +87,19 @@ public final class Constants {
     public static final Time closedLoopRampRate = Seconds.of(0.);
     public static final Time openLoopRampRate = Seconds.of(0.25);
 
-    //Pivot mechanism constraints
+    // Pivot mechanism constraints
     public static final Angle softLimitOne = Degrees.of(-20);
     public static final Angle softLimitTwo = Degrees.of(10);
     public static final Angle hardLimitOne = Degrees.of(-30);
     public static final Angle hardLimitTwo = Degrees.of(40);
     public static final Angle startingPostion = Degrees.of(-5);
     public static final Distance armLength = Feet.of(3);
-    public static final Mass  mass = Pounds.of(1);
+    public static final Mass mass = Pounds.of(1);
 
-    //sys Id stuff
+    // sys Id stuff
     public static final Voltage maxVoltage = Volts.of(7);
-    public static final Velocity<VoltageUnit>  stepVoltage = Volts.of(2).per(Second);
+    public static final Velocity<VoltageUnit> stepVoltage = Volts.of(2).per(Second);
     public static final Time sysIdDuration = Seconds.of(4);
-
   }
 
   public final class IDs {

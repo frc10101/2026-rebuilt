@@ -7,6 +7,8 @@
 
 package frc.robot;
 
+import static edu.wpi.first.units.Units.Degrees;
+
 import com.pathplanner.lib.auto.AutoBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -16,18 +18,15 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
-import frc.robot.subsystems.Intake;
 import frc.robot.commands.DriveCommands;
 import frc.robot.generated.TunerConstants;
+import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.GyroIO;
 import frc.robot.subsystems.drive.GyroIOPigeon2;
 import frc.robot.subsystems.drive.ModuleIO;
 import frc.robot.subsystems.drive.ModuleIOSim;
 import frc.robot.subsystems.drive.ModuleIOTalonFX;
-
-import static edu.wpi.first.units.Units.Degrees;
-
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 /**
@@ -169,14 +168,12 @@ public class RobotContainer {
                     drive)
                 .ignoringDisable(true));
 
-    //Intake Buttons
-    //schedule setAngle when b is pressed, cancelling on release
+    // Intake Buttons
+    // schedule setAngle when b is pressed, cancelling on release
     intakeController.a().whileTrue(m_intake.setAngle(Degrees.of(-5)));
     intakeController.b().whileTrue(m_intake.setAngle(Degrees.of(15)));
     intakeController.x().whileTrue(m_intake.set(0.3));
     intakeController.y().whileTrue(m_intake.set(-0.3));
-
-
   }
 
   /**
