@@ -23,6 +23,7 @@ public class OrchestraTesting extends TimedRobot {
     private final String PAC_SIREN   = "Pac_Man_Siren.chrp";
     private final String PAC_LEVELUP = "Pac_Man_LevelUp.chrp";
     private final String PAC_INTRO   = "Pac_Man_Intro.chrp";
+    private final String PAC_THEME   = "Pac_Man_Theme.chrp";
 
     @Override
     public void robotInit() {
@@ -61,6 +62,11 @@ public class OrchestraTesting extends TimedRobot {
         if (joystick.getRawButtonPressed(6)) {
             orchestra.stop();
             orchestra.loadMusic(PAC_INTRO);
+            orchestra.play();
+        }
+        if (joystick.getRawButtonPressed(7)) {
+            orchestra.stop();
+            orchestra.loadMusic(PAC_THEME);
             orchestra.play();
         }
     }
