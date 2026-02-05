@@ -84,8 +84,7 @@ public class Launcher extends SubsystemBase {
           .withMOI(MomentOfInertia.ofBaseUnits(LauncherConstants.MOI_KG_M2, KilogramSquareMeters))
           .withTelemetry(LauncherConstants.MECH_TELEMETRY_NAME, TelemetryVerbosity.HIGH)
           .withSoftLimit(
-              RPM.of(-LauncherConstants.SOFT_LIMIT_RPM),
-              RPM.of(LauncherConstants.SOFT_LIMIT_RPM));
+              RPM.of(-LauncherConstants.SOFT_LIMIT_RPM), RPM.of(LauncherConstants.SOFT_LIMIT_RPM));
 
   private FlyWheel Launcher = new FlyWheel(LauncherConfig);
 

@@ -263,8 +263,8 @@ public final class Constants {
       public static final double kv = 0.0;
     }
   }
-  
-   public static final class BeltDexterConstants {
+
+  public static final class BeltDexterConstants {
     /** Column Gear Ratio */
     public static final int gearRatio = 1;
     /** Column Stall Current Limit */
