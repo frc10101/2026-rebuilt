@@ -20,7 +20,7 @@ import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.MomentOfInertia;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.Constants;
+import frc.robot.Constants.LauncherConstants;
 import yams.gearing.MechanismGearing;
 import yams.mechanisms.config.FlyWheelConfig;
 import yams.mechanisms.velocity.FlyWheel;
@@ -38,56 +38,56 @@ import yams.motorcontrollers.remote.TalonFXWrapper;
  */
 public class Launcher extends SubsystemBase {
   /** Creates a new Launcher. */
-  private TalonFX FlywheelLead = new TalonFX(Constants.Launcher.MOTOR_ID_LEAD);
+  private TalonFX FlywheelLead = new TalonFX(LauncherConstants.MOTOR_ID_LEAD);
 
-  private TalonFX FlywheelFollow = new TalonFX(Constants.Launcher.MOTOR_ID_FOLLOW);
+  private TalonFX FlywheelFollow = new TalonFX(LauncherConstants.MOTOR_ID_FOLLOW);
   private SmartMotorControllerConfig smcConfig =
       new SmartMotorControllerConfig(this)
           .withControlMode(ControlMode.CLOSED_LOOP)
           // Feedback Constants (PID Constants)
           .withClosedLoopController(
-              Constants.Launcher.REAL_kP,
-              Constants.Launcher.REAL_kI,
-              Constants.Launcher.REAL_kD,
-              DegreesPerSecond.of(Constants.Launcher.MAX_VELOCITY_DPS),
-              DegreesPerSecondPerSecond.of(Constants.Launcher.MAX_ACCEL_DPS2))
+              LauncherConstants.REAL_kP,
+              LauncherConstants.REAL_kI,
+              LauncherConstants.REAL_kD,
+              DegreesPerSecond.of(LauncherConstants.MAX_VELOCITY_DPS),
+              DegreesPerSecondPerSecond.of(LauncherConstants.MAX_ACCEL_DPS2))
           .withSimClosedLoopController(
-              Constants.Launcher.SIM_kP,
-              Constants.Launcher.SIM_kI,
-              Constants.Launcher.SIM_kD,
-              DegreesPerSecond.of(Constants.Launcher.MAX_VELOCITY_DPS),
-              DegreesPerSecondPerSecond.of(Constants.Launcher.MAX_ACCEL_DPS2))
+              LauncherConstants.SIM_kP,
+              LauncherConstants.SIM_kI,
+              LauncherConstants.SIM_kD,
+              DegreesPerSecond.of(LauncherConstants.MAX_VELOCITY_DPS),
+              DegreesPerSecondPerSecond.of(LauncherConstants.MAX_ACCEL_DPS2))
           // Feedforward Constants
           .withFeedforward(
               new SimpleMotorFeedforward(
-                  Constants.Launcher.FFW_kS, Constants.Launcher.FFW_kV, Constants.Launcher.FFW_kA))
+                  LauncherConstants.FFW_kS, LauncherConstants.FFW_kV, LauncherConstants.FFW_kA))
           .withSimFeedforward(
               new SimpleMotorFeedforward(
-                  Constants.Launcher.FFW_kS, Constants.Launcher.FFW_kV, Constants.Launcher.FFW_kA))
+                  LauncherConstants.FFW_kS, LauncherConstants.FFW_kV, LauncherConstants.FFW_kA))
           // Telemetry name and verbosity level
-          .withTelemetry(Constants.Launcher.MOTOR_TELEMETRY_NAME, TelemetryVerbosity.HIGH)
-          .withGearing(new MechanismGearing(Constants.Launcher.GEARING))
+          .withTelemetry(LauncherConstants.MOTOR_TELEMETRY_NAME, TelemetryVerbosity.HIGH)
+          .withGearing(new MechanismGearing(LauncherConstants.GEARING))
           // Motor properties to prevent over currenting.
-          .withMotorInverted(Constants.Launcher.MOTOR_INVERTED)
+          .withMotorInverted(LauncherConstants.MOTOR_INVERTED)
           .withIdleMode(MotorMode.COAST)
-          .withFollowers(Pair.of(FlywheelFollow, Constants.Launcher.FOLLOWER_INVERTED))
-          .withStatorCurrentLimit(Amps.of(Constants.Launcher.STATOR_CURRENT_LIMIT_AMPS));
+          .withFollowers(Pair.of(FlywheelFollow, LauncherConstants.FOLLOWER_INVERTED))
+          .withStatorCurrentLimit(Amps.of(LauncherConstants.STATOR_CURRENT_LIMIT_AMPS));
 
   private SmartMotorController shooterMotors =
       new TalonFXWrapper(
-          FlywheelLead, DCMotor.getKrakenX60Foc(Constants.Launcher.MOTOR_COUNT), smcConfig);
+          FlywheelLead, DCMotor.getKrakenX60Foc(LauncherConstants.MOTOR_COUNT), smcConfig);
 
-  private final FlyWheelConfig launcherConfig =
+  private final FlyWheelConfig LauncherConfig =
       new FlyWheelConfig(shooterMotors)
-          .withDiameter(Inches.of(Constants.Launcher.DIAMETER_INCH))
-          .withMass(Grams.of(Constants.Launcher.MASS_GRAMS))
-          .withMOI(MomentOfInertia.ofBaseUnits(Constants.Launcher.MOI_KG_M2, KilogramSquareMeters))
-          .withTelemetry(Constants.Launcher.MECH_TELEMETRY_NAME, TelemetryVerbosity.HIGH)
+          .withDiameter(Inches.of(LauncherConstants.DIAMETER_INCH))
+          .withMass(Grams.of(LauncherConstants.MASS_GRAMS))
+          .withMOI(MomentOfInertia.ofBaseUnits(LauncherConstants.MOI_KG_M2, KilogramSquareMeters))
+          .withTelemetry(LauncherConstants.MECH_TELEMETRY_NAME, TelemetryVerbosity.HIGH)
           .withSoftLimit(
-              RPM.of(-Constants.Launcher.SOFT_LIMIT_RPM),
-              RPM.of(Constants.Launcher.SOFT_LIMIT_RPM));
+              RPM.of(-LauncherConstants.SOFT_LIMIT_RPM),
+              RPM.of(LauncherConstants.SOFT_LIMIT_RPM));
 
-  private FlyWheel Launcher = new FlyWheel(launcherConfig);
+  private FlyWheel Launcher = new FlyWheel(LauncherConfig);
 
   /**
    * Gets the current velocity of the shooter.
