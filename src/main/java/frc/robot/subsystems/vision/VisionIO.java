@@ -4,14 +4,13 @@
 
 package frc.robot.subsystems.vision;
 
-import org.littletonrobotics.junction.AutoLog;
-
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import org.littletonrobotics.junction.AutoLog;
 
 /** Add your docs here. */
 public interface VisionIO {
- @AutoLog
+  @AutoLog
   class VisionIOInputs {
     public boolean connected = false;
     public TargetObservation latestTargetObservation =
@@ -39,5 +38,4 @@ public interface VisionIO {
   }
 
   default void updateInputs(VisionIOInputs inputs) {}
-    
-} 
+}

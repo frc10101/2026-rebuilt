@@ -14,12 +14,15 @@ import edu.wpi.first.math.geometry.Transform3d;
 
 /** Add your docs here. */
 public class VisionConstants {
-    // AprilTag layout
+  // AprilTag layout
   public static AprilTagFieldLayout aprilTagLayout =
       AprilTagFieldLayout.loadField(AprilTagFields.kDefaultField);
 
   // Camera names, must match names configured on coprocessor
-  public static String camera0Name = "johnny";
+  public static String camera0Name = "cherry";
+  public static String camera1Name = "orange";
+  public static String camera2Name = "grape";
+  public static String camera3Name = "strawberry";
 
   // Robot to camera transforms
   // (Not used by Limelight, configure in web UI instead)
@@ -27,6 +30,24 @@ public class VisionConstants {
       new Transform3d(
           Inches.of(0.123),
           Inches.of(4.230),
+          Inches.of(11.007),
+          new Rotation3d(Degrees.of(0), Degrees.of(0), Degrees.of(180)));
+  public static Transform3d robotToCamera1 =
+      new Transform3d(
+          Inches.of(0.123),
+          Inches.of(-4.230),
+          Inches.of(11.007),
+          new Rotation3d(Degrees.of(0), Degrees.of(0), Degrees.of(180)));
+  public static Transform3d robotToCamera2 =
+      new Transform3d(
+          Inches.of(0.123),
+          Inches.of(8.230),
+          Inches.of(11.007),
+          new Rotation3d(Degrees.of(0), Degrees.of(0), Degrees.of(180)));
+  public static Transform3d robotToCamera3 =
+      new Transform3d(
+          Inches.of(0.123),
+          Inches.of(-8.230),
           Inches.of(11.007),
           new Rotation3d(Degrees.of(0), Degrees.of(0), Degrees.of(180)));
 

@@ -48,7 +48,6 @@ public class RobotContainer {
   // Controller
   private final CommandXboxController controller = new CommandXboxController(0);
   private final CommandXboxController intakeController = new CommandXboxController(1);
-  
 
   // Buttons tehe
   private final Trigger x = controller.button(1);

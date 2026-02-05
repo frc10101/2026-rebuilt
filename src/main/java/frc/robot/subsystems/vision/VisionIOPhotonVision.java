@@ -16,8 +16,8 @@ import java.util.Set;
 import org.photonvision.PhotonCamera;
 
 /** Add your docs here. */
-public class VisionIOPhotonVision implements VisionIO{
-    protected final PhotonCamera camera;
+public class VisionIOPhotonVision implements VisionIO {
+  protected final PhotonCamera camera;
   protected final Transform3d robotToCamera;
 
   /**
@@ -29,6 +29,40 @@ public class VisionIOPhotonVision implements VisionIO{
   public VisionIOPhotonVision(String name, Transform3d robotToCamera) {
     camera = new PhotonCamera(name);
     this.robotToCamera = robotToCamera;
+  }
+
+  /**
+   * Convenience constructor that selects one of the predefined cameras and transforms from {@link
+   * VisionConstants} using an index 0-3.
+   *
+   * @param cameraIndex index of the camera (0..3)
+   */
+  public VisionIOPhotonVision(int cameraIndex) {
+    String name;
+    Transform3d transform;
+    switch (cameraIndex) {
+      case 0:
+        name = camera0Name;
+        transform = robotToCamera0;
+        break;
+      case 1:
+        name = camera1Name;
+        transform = robotToCamera1;
+        break;
+      case 2:
+        name = camera2Name;
+        transform = robotToCamera2;
+        break;
+      case 3:
+        name = camera3Name;
+        transform = robotToCamera3;
+        break;
+      default:
+        throw new IllegalArgumentException("cameraIndex must be between 0 and 3 inclusive");
+    }
+
+    camera = new PhotonCamera(name);
+    this.robotToCamera = transform;
   }
 
   @Override
