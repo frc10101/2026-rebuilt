@@ -147,9 +147,6 @@ public class Climb extends SubsystemBase {
   }
 
   public void close() {
-    leftMotorController.close();
-    rightMotorController.close();
-
     m_left_motor.close();
     m_right_motor.close();
   }
