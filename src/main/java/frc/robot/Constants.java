@@ -12,6 +12,8 @@ import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.DegreesPerSecond;
 import static edu.wpi.first.units.Units.DegreesPerSecondPerSecond;
 import static edu.wpi.first.units.Units.Feet;
+import static edu.wpi.first.units.Units.Inches;
+import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.Pounds;
 import static edu.wpi.first.units.Units.Second;
 import static edu.wpi.first.units.Units.Seconds;
@@ -181,6 +183,11 @@ public final class Constants {
   public static final class SparkMaxCanIDs {
     /** Column Can ID */
     public static final int ColumnMotor = 10;
+
+    /** Climb Can IDs */
+    public static final int ClimbLeftMotor = 11;
+
+    public static final int ClimbRightMotor = 12;
   }
 
   public static final class ColumnConstants {
@@ -191,6 +198,45 @@ public final class Constants {
 
     public static final double IntakeSpeed = 1.0;
     public static final double OuttakeSpeed = -0.5;
+
+    public final class Real {
+      public static final double kp = 50.0;
+      public static final double ki = 0.0;
+      public static final double kd = 0.0;
+      public static final AngularVelocity maxVelocity = DegreesPerSecond.of(90);
+      public static final AngularAcceleration maxAcceleration = DegreesPerSecondPerSecond.of(45);
+
+      public static final double ks = 0.0;
+      public static final double kg = 0.0;
+      public static final double kv = 0.0;
+    }
+
+    public final class Sim {
+      public static final double kp = 50.0;
+      public static final double ki = 0.0;
+      public static final double kd = 0.0;
+      public static final AngularVelocity maxVelocity = DegreesPerSecond.of(90);
+      public static final AngularAcceleration maxAcceleration = DegreesPerSecondPerSecond.of(45);
+
+      public static final double ks = 0.0;
+      public static final double kg = 0.0;
+      public static final double kv = 0.0;
+    }
+  }
+
+  public static final class ClimbConstants {
+    /** Column Gear Ratio */
+    public static final int gearRatio = 1;
+    /** Column Stall Current Limit */
+    public static final Current currentLimit = Amps.of(60);
+
+    public static final Distance PreHangExtension = Inches.of(0);
+    public static final Distance HangDistance = Inches.of(0);
+    public static final Distance ReleaseDistance = Inches.of(0);
+    public static final Distance RestDistance = Inches.of(0);
+
+    public static final Distance MechanismCircumference =
+        Meters.of(Inches.of(0.25).in(Meters) * 22);
 
     public final class Real {
       public static final double kp = 50.0;
