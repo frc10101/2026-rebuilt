@@ -185,9 +185,7 @@ public final class Constants {
     public static final int ColumnMotor = 10;
 
     /** Climb Can IDs */
-    public static final int ClimbLeftMotor = 11;
-
-    public static final int ClimbRightMotor = 12;
+    public static final int ClimbMotor = 11;
   }
 
   public static final class ColumnConstants {
