@@ -20,6 +20,20 @@ public class VisionIOPhotonVision implements VisionIO {
   protected final PhotonCamera camera;
   protected final Transform3d robotToCamera;
 
+  /** Creates IO instances for all predefined cameras (indices 0-3). */
+  public static VisionIOPhotonVision[] createAllCameras() {
+    return createCameras(0, 1, 2, 3);
+  }
+
+  /** Creates IO instances for the provided camera indices. */
+  public static VisionIOPhotonVision[] createCameras(int... cameraIndices) {
+    VisionIOPhotonVision[] cameras = new VisionIOPhotonVision[cameraIndices.length];
+    for (int i = 0; i < cameraIndices.length; i++) {
+      cameras[i] = new VisionIOPhotonVision(cameraIndices[i]);
+    }
+    return cameras;
+  }
+
   /**
    * Creates a new VisionIOPhotonVision.
    *

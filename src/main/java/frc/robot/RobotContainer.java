@@ -25,12 +25,16 @@ import frc.robot.subsystems.Climb;
 import frc.robot.subsystems.Feeder;
 import frc.robot.subsystems.Indexer;
 import frc.robot.subsystems.Intake;
+import frc.robot.subsystems.Launcher;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.GyroIO;
 import frc.robot.subsystems.drive.GyroIOPigeon2;
 import frc.robot.subsystems.drive.ModuleIO;
 import frc.robot.subsystems.drive.ModuleIOSim;
 import frc.robot.subsystems.drive.ModuleIOTalonFX;
+import frc.robot.subsystems.vision.Vision;
+import frc.robot.subsystems.vision.VisionIOPhotonVision;
+import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 /**
@@ -42,6 +46,8 @@ import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 public class RobotContainer {
   // Subsystems
   private final Drive drive;
+  private final Vision vision;
+  private final Launcher launcher;
   private final Intake m_intake = new Intake();
   private final Feeder Column;
   private final Indexer BeltDexter;
@@ -97,6 +103,8 @@ public class RobotContainer {
         Column = new Feeder();
         BeltDexter = new Indexer();
         climb = new Climb();
+        launcher = new Launcher();
+        vision = new Vision(drive::addVisionMeasurement, VisionIOPhotonVision.createAllCameras());
         break;
 
       case SIM:
@@ -111,6 +119,11 @@ public class RobotContainer {
         Column = new Feeder();
         BeltDexter = new Indexer();
         climb = new Climb();
+        launcher = new Launcher();
+        vision =
+            new Vision(
+                drive::addVisionMeasurement,
+                VisionIOPhotonVisionSim.createAllSimCameras(drive::getPose));
         break;
 
       default:
@@ -125,6 +138,8 @@ public class RobotContainer {
         Column = new Feeder();
         BeltDexter = new Indexer();
         climb = new Climb();
+        launcher = new Launcher();
+        vision = new Vision(drive::addVisionMeasurement);
         break;
     }
 
