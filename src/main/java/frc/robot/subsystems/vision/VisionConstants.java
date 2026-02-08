@@ -28,27 +28,27 @@ public class VisionConstants {
   // (Not used by Limelight, configure in web UI instead)
   public static Transform3d robotToCamera0 =
       new Transform3d(
-          Inches.of(0.123),
-          Inches.of(4.230),
-          Inches.of(11.007),
-          new Rotation3d(Degrees.of(0), Degrees.of(0), Degrees.of(180)));
+          Inches.of(12.25),
+          Inches.of(12.504),
+          Inches.of(13.5),
+          new Rotation3d(Degrees.of(0), Degrees.of(0), Degrees.of(0)));
   public static Transform3d robotToCamera1 =
       new Transform3d(
-          Inches.of(0.123),
-          Inches.of(-4.230),
-          Inches.of(11.007),
-          new Rotation3d(Degrees.of(0), Degrees.of(0), Degrees.of(180)));
+          Inches.of(12.25),
+          Inches.of(-12.504),
+          Inches.of(13.5),
+          new Rotation3d(Degrees.of(0), Degrees.of(0), Degrees.of(0)));
   public static Transform3d robotToCamera2 =
       new Transform3d(
-          Inches.of(0.123),
-          Inches.of(8.230),
-          Inches.of(11.007),
+          Inches.of(-8.425),
+          Inches.of(11),
+          Inches.of(7.495),
           new Rotation3d(Degrees.of(0), Degrees.of(0), Degrees.of(180)));
   public static Transform3d robotToCamera3 =
       new Transform3d(
-          Inches.of(0.123),
-          Inches.of(-8.230),
-          Inches.of(11.007),
+          Inches.of(-8.425),
+          Inches.of(-11),
+          Inches.of(7.495),
           new Rotation3d(Degrees.of(0), Degrees.of(0), Degrees.of(180)));
 
   // Basic filtering thresholds

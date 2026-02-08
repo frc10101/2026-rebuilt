@@ -101,7 +101,7 @@ public class VisionIOPhotonVisionSim extends VisionIOPhotonVision {
     PhotonCameraSim camSim3 = new PhotonCameraSim(cam3, cameraProperties);
     camSim3.enableDrawWireframe(true);
     visionSim.addCamera(camSim3, VisionConstants.robotToCamera3);
-    
+
     // Optional: schedule visionSim updates elsewhere using the supplied poseSupplier. We keep
     // the poseSupplier parameter to mirror the instance update path, but this static method only
     // registers cameras. The caller may still call visionSim.update(pose) as needed.
