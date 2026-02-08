@@ -21,6 +21,7 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.DriveCommands;
 import frc.robot.generated.TunerConstants;
+import frc.robot.subsystems.Climb;
 import frc.robot.subsystems.Feeder;
 import frc.robot.subsystems.Indexer;
 import frc.robot.subsystems.Intake;
@@ -44,6 +45,7 @@ public class RobotContainer {
   private final Intake m_intake = new Intake();
   private final Feeder Column;
   private final Indexer BeltDexter;
+  private final Climb climb;
 
   // Controller
   private final CommandXboxController controller = new CommandXboxController(0);
@@ -94,6 +96,7 @@ public class RobotContainer {
         // new ModuleIOTalonFXS(TunerConstants.BackRight));
         Column = new Feeder();
         BeltDexter = new Indexer();
+        climb = new Climb();
         break;
 
       case SIM:
@@ -107,6 +110,7 @@ public class RobotContainer {
                 new ModuleIOSim(TunerConstants.BackRight));
         Column = new Feeder();
         BeltDexter = new Indexer();
+        climb = new Climb();
         break;
 
       default:
@@ -120,6 +124,7 @@ public class RobotContainer {
                 new ModuleIO() {});
         Column = new Feeder();
         BeltDexter = new Indexer();
+        climb = new Climb();
         break;
     }
 
