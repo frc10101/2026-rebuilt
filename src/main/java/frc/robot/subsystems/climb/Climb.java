@@ -85,6 +85,11 @@ public class Climb extends SubsystemBase {
   /** Creates a new Climb. */
   public Climb() {}
 
+  /**
+   * Brings climb arm(s) to height specified for prepping hang
+   *
+   * @param climbType Arms to move (LEFT, RIGHT, BOTH)
+   */
   public Command GoToPreHangHeight(ClimbType climbType) {
     return runOnce(
         () -> {
@@ -95,6 +100,11 @@ public class Climb extends SubsystemBase {
         });
   }
 
+  /**
+   * Brings climb arm(s) to height specified for clamping
+   *
+   * @param climbType Arms to move (LEFT, RIGHT, BOTH)
+   */
   public Command GoToHangHeight(ClimbType climbType) {
     return runOnce(
         () -> {
@@ -105,6 +115,11 @@ public class Climb extends SubsystemBase {
         });
   }
 
+  /**
+   * Brings climb arm(s) to height specified for releasing from hang
+   *
+   * @param climbType Arms to move (LEFT, RIGHT, BOTH)
+   */
   public Command GoToReleaseHeight(ClimbType climbType) {
     return runOnce(
         () -> {
@@ -115,6 +130,11 @@ public class Climb extends SubsystemBase {
         });
   }
 
+  /**
+   * Brings climb arm(s) to height specified for resting
+   *
+   * @param climbType Arms to move (LEFT, RIGHT, BOTH)
+   */
   public Command GoToRestHeight(ClimbType climbType) {
     return runOnce(
         () -> {
@@ -125,10 +145,20 @@ public class Climb extends SubsystemBase {
         });
   }
 
+  /** 
+   * Get the current height of left climb arm 
+   * 
+   * @return The current height of left climb arm
+   */
   public Distance getLeftHeight() {
     return leftMotorController.getMeasurementPosition();
   }
 
+  /** 
+   * Get the current height of right climb arm 
+   * 
+   * @return The current height of right climb arm
+   */
   public Distance getRightHeight() {
     return rightMotorController.getMeasurementPosition();
   }
