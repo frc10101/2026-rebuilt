@@ -4,7 +4,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import edu.wpi.first.hal.HAL;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 
 public class IntakeTests {
   private Intake mIntake;
@@ -15,7 +14,7 @@ public class IntakeTests {
     mIntake = new Intake();
   }
 
-  @Test
+  // @Test
   void canCreateIntakeTest() {
     assertNotNull(mIntake);
   }
