@@ -102,6 +102,7 @@ public final class Constants {
     // Soft limits (RPM)
     public static final double SOFT_LIMIT_RPM = 5000.0;
   }
+
   public static class Drive {
     public static final double TrackWidthXInch = 25.5;
     public static final double TrackWidthYInch = 25.5;

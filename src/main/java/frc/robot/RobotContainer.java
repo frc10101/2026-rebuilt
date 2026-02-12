@@ -7,7 +7,7 @@
 
 package frc.robot;
 
-import static edu.wpi.first.units.Units.Degrees;
+import static edu.wpi.first.units.Units.DegreesPerSecond;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -24,7 +24,6 @@ import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.Climb;
 import frc.robot.subsystems.Feeder;
 import frc.robot.subsystems.Indexer;
-import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Launcher;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.GyroIO;
@@ -33,6 +32,10 @@ import frc.robot.subsystems.drive.GyroIOSim;
 import frc.robot.subsystems.drive.ModuleIO;
 import frc.robot.subsystems.drive.ModuleIOTalonFX;
 import frc.robot.subsystems.drive.ModuleIOTalonFXSim;
+import frc.robot.subsystems.vision.Vision;
+import frc.robot.subsystems.vision.VisionConstants;
+import frc.robot.subsystems.vision.VisionIOPhotonVision;
+import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
 import org.ironmaple.simulation.SimulatedArena;
 import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
 import org.littletonrobotics.junction.Logger;
@@ -49,10 +52,12 @@ public class RobotContainer {
   private final Drive drive;
   private final Vision vision;
   private final Launcher launcher;
-  private final Intake m_intake = new Intake();
+  //   private final Intake m_intake = new Intake();
   private final Feeder Column;
+  private final Indexer BeltDexter;
+  private final Climb climb;
 
-  private SwerveDriveSimulation driveSimulation = null;
+  private SwerveDriveSimulation driveSimulation;
 
   // Controller
   private final CommandXboxController controller = new CommandXboxController(0);
@@ -107,7 +112,17 @@ public class RobotContainer {
         BeltDexter = new Indexer();
         climb = new Climb();
         launcher = new Launcher();
-        vision = new Vision(drive::addVisionMeasurement, VisionIOPhotonVision.createAllCameras());
+        vision =
+            new Vision(
+                drive::addVisionMeasurement,
+                new VisionIOPhotonVision(
+                    VisionConstants.camera0Name, VisionConstants.robotToCamera0),
+                new VisionIOPhotonVision(
+                    VisionConstants.camera1Name, VisionConstants.robotToCamera1),
+                new VisionIOPhotonVision(
+                    VisionConstants.camera2Name, VisionConstants.robotToCamera2),
+                new VisionIOPhotonVision(
+                    VisionConstants.camera3Name, VisionConstants.robotToCamera3));
         break;
 
       case SIM:
@@ -130,7 +145,22 @@ public class RobotContainer {
         vision =
             new Vision(
                 drive::addVisionMeasurement,
-                VisionIOPhotonVisionSim.createAllSimCameras(drive::getPose));
+                new VisionIOPhotonVisionSim(
+                    VisionConstants.camera0Name,
+                    VisionConstants.robotToCamera0,
+                    driveSimulation::getSimulatedDriveTrainPose),
+                new VisionIOPhotonVisionSim(
+                    VisionConstants.camera1Name,
+                    VisionConstants.robotToCamera1,
+                    driveSimulation::getSimulatedDriveTrainPose),
+                new VisionIOPhotonVisionSim(
+                    VisionConstants.camera2Name,
+                    VisionConstants.robotToCamera2,
+                    driveSimulation::getSimulatedDriveTrainPose),
+                new VisionIOPhotonVisionSim(
+                    VisionConstants.camera3Name,
+                    VisionConstants.robotToCamera3,
+                    driveSimulation::getSimulatedDriveTrainPose));
         break;
 
       default:
@@ -173,7 +203,8 @@ public class RobotContainer {
     // Configure the button bindings
     configureButtonBindings();
 
-    m_intake.setDefaultCommand(m_intake.setAngle(Degrees.of(0)));
+    // m_intake.setDefaultCommand(m_intake.setAngle(Degrees.of(0)));
+    launcher.setDefaultCommand(launcher.setVelocity(DegreesPerSecond.of(0)));
   }
 
   /**
@@ -224,12 +255,12 @@ public class RobotContainer {
 
     // Intake Buttons
     // schedule setAngle when b is pressed, cancelling on release
-    intakeController.a().whileTrue(m_intake.setAngle(Degrees.of(-5)));
-    intakeController.b().whileTrue(m_intake.setAngle(Degrees.of(15)));
-    intakeController.x().whileTrue(m_intake.set(0.3));
-    intakeController.y().whileTrue(m_intake.set(-0.3));
-    intakeController.rightBumper().whileTrue(m_intake.intake());
-    intakeController.leftBumper().whileTrue(m_intake.outtake());
+    // intakeController.a().whileTrue(m_intake.setAngle(Degrees.of(-5)));
+    // intakeController.b().whileTrue(m_intake.setAngle(Degrees.of(15)));
+    // intakeController.x().whileTrue(m_intake.set(0.3));
+    // intakeController.y().whileTrue(m_intake.set(-0.3));
+    // intakeController.rightBumper().whileTrue(m_intake.intake());
+    // intakeController.leftBumper().whileTrue(m_intake.outtake());
     // Reset gyro to 0° when B button is pressed
     o.onTrue(
         Commands.runOnce(
