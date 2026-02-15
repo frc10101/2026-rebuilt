@@ -58,8 +58,8 @@ public final class Constants {
 
   public static class LauncherConstants {
 
-    public static final int MOTOR_ID_LEAD = 10;
-    public static final int MOTOR_ID_FOLLOW = 11;
+    public static final int MOTOR_ID_LEAD = 7;
+    public static final int MOTOR_ID_FOLLOW = 9;
 
     // Closed-loop gains (real robot)
     public static final double REAL_kP = 0.0;
