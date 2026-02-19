@@ -188,7 +188,7 @@ public class Intake extends SubsystemBase {
 
   @Override
   public void simulationPeriodic() {
-    pivotController.simIterate();
+    intakePivot.simIterate();
     rollerController.simIterate();
   }
 }
