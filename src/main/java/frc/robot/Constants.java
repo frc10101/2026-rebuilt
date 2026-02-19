@@ -52,8 +52,8 @@ public final class Constants {
   }
 
   public final class IDs {
-    public static final int intakePivotMotor = 100;
-    public static final int intakeRollerMotor = 200;
+    public static final int intakePivotMotor = 50;
+    public static final int intakeRollerMotor = 51;
   }
 
   public static class LauncherConstants {
@@ -229,7 +229,7 @@ public final class Constants {
 
   public static final class ClimbConstants {
     /** Column Gear Ratio */
-    public static final int gearRatio = 1;
+    public static final int gearRatio = 5;
     /** Column Stall Current Limit */
     public static final Current currentLimit = Amps.of(60);
 

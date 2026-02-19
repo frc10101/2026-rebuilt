@@ -83,8 +83,8 @@ public class Intake extends SubsystemBase {
           .withClosedLoopRampRate(Constants.IntakeConstants.Roller.closedLoopRampRate)
           .withOpenLoopRampRate(Constants.IntakeConstants.Roller.openLoopRampRate);
 
-  private TalonFX pivot = new TalonFX(Constants.IDs.intakePivotMotor);  // ToDo Initialize in constructor instead through a pass-in
-  private SparkMax roller = new SparkMax(Constants.IDs.intakeRollerMotor, MotorType.kBrushless);  // ToDo Initialize in constructor instead through a pass-in
+  private TalonFX pivot = new TalonFX(Constants.IDs.intakePivotMotor);
+  private SparkMax roller = new SparkMax(Constants.IDs.intakeRollerMotor, MotorType.kBrushless);
 
   // create the smartMotorController
   private SmartMotorController pivotController =
@@ -172,8 +172,13 @@ public class Intake extends SubsystemBase {
     return rollerController.getMechanismVelocity();
   }
 
+  public void close() {
+    pivot.close();
+    roller.close();
+  }
+
   /** Creates a new Intake. */
-  public Intake() {} // ToDo add pass in values for the talon and sparkmax
+  public Intake() {}
 
   @Override
   public void periodic() {

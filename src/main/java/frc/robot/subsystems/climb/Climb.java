@@ -145,18 +145,18 @@ public class Climb extends SubsystemBase {
         });
   }
 
-  /** 
-   * Get the current height of left climb arm 
-   * 
+  /**
+   * Get the current height of left climb arm
+   *
    * @return The current height of left climb arm
    */
   public Distance getLeftHeight() {
     return leftMotorController.getMeasurementPosition();
   }
 
-  /** 
-   * Get the current height of right climb arm 
-   * 
+  /**
+   * Get the current height of right climb arm
+   *
    * @return The current height of right climb arm
    */
   public Distance getRightHeight() {
