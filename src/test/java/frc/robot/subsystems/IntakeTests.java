@@ -7,22 +7,30 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import edu.wpi.first.hal.HAL;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj2.command.Command;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
+import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class IntakeTests {
-  private Intake mIntake;
+  private static Intake mIntake;
+  private static CommandScheduler scheduler = null;
 
-  @BeforeEach
-  void setup() {
+  @BeforeAll
+  static void setup() {
     assert HAL.initialize(500, 0);
     mIntake = new Intake();
+
+    scheduler = CommandScheduler.getInstance();
   }
 
-  @AfterEach
-  void teardown() {
-    mIntake.close();
+  @AfterAll
+  static void teardown() {
+    // mIntake.close();
+    CommandScheduler.getInstance().cancelAll();
+    // CommandScheduler.getInstance().run();
   }
 
   @Test
@@ -30,12 +38,21 @@ public class IntakeTests {
     assertNotNull(mIntake);
   }
 
-  // @Test
+  //@Test
   void setAngleTest() {
-    Angle simAngle = Degrees.of(45);
+    Angle simAngle = Degrees.of(5);
     Command cmd = mIntake.setAngle(simAngle);
     assertNotNull(cmd);
-    System.out.print(mIntake.getPivotAngle());
-    assertEquals(simAngle, mIntake.getPivotAngle());
+    mIntake.setDefaultCommand(cmd);
+    for (int i = 0; i < 50; i++) {
+      // CommandScheduler.getInstance().schedule(cmd);
+      // CommandScheduler.getInstance().run();
+      // mIntake.simulationPeriodic();
+      // mIntake.setAngle(simAngle);
+      scheduler.schedule(cmd);
+      scheduler.run();
+      System.out.println("god hlep us " + mIntake.getPivotAngle().in(Degrees));
+    }
+    assertEquals(simAngle.in(Degrees), mIntake.getPivotAngle().in(Degrees), 0.5);
   }
 }

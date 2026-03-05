@@ -118,14 +118,14 @@ public final class Constants {
       }
 
       public final class Sim {
-        public static final double kp = 1.0;
+        public static final double kp = 450.0;
         public static final double ki = 0.75;
-        public static final double kd = 0.25;
+        public static final double kd = 0.05;
         public static final AngularVelocity maxVelocity = DegreesPerSecond.of(90);
         public static final AngularAcceleration maxAcceleration = DegreesPerSecondPerSecond.of(45);
 
         public static final double ks = 0.01;
-        public static final double kg = 0.5; // Gravity compensation for arm
+        public static final double kg = 2147483647; // Gravity compensation for arm
         public static final double kv = 0.1;
       }
 
@@ -177,6 +177,7 @@ public final class Constants {
       // Roller speeds (duty cycle -1 to 1)
       public static final double intakeSpeed = 1.0;
       public static final double outtakeSpeed = -1.0;
+      public static final double stopSpeed = 0.0;
     }
   }
 

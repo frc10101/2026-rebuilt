@@ -24,6 +24,7 @@ import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.Feeder;
 import frc.robot.subsystems.Indexer;
 import frc.robot.subsystems.Intake;
+import frc.robot.subsystems.Launcher;
 import frc.robot.subsystems.climb.Climb;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.GyroIO;
@@ -31,6 +32,8 @@ import frc.robot.subsystems.drive.GyroIOPigeon2;
 import frc.robot.subsystems.drive.ModuleIO;
 import frc.robot.subsystems.drive.ModuleIOSim;
 import frc.robot.subsystems.drive.ModuleIOTalonFX;
+import yams.mechanisms.velocity.FlyWheel;
+
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 /**
@@ -46,6 +49,7 @@ public class RobotContainer {
   private final Feeder Column;
   private final Indexer BeltDexter;
   private final Climb climb;
+  private final Launcher flywheel;
 
   // Controller
   private final CommandXboxController controller = new CommandXboxController(0);
@@ -97,6 +101,7 @@ public class RobotContainer {
         Column = new Feeder();
         BeltDexter = new Indexer();
         climb = new Climb();
+        flywheel = new Launcher();
         break;
 
       case SIM:
@@ -111,6 +116,7 @@ public class RobotContainer {
         Column = new Feeder();
         BeltDexter = new Indexer();
         climb = new Climb();
+        flywheel = new Launcher();
         break;
 
       default:
@@ -125,6 +131,7 @@ public class RobotContainer {
         Column = new Feeder();
         BeltDexter = new Indexer();
         climb = new Climb();
+        flywheel = new Launcher();
         break;
     }
 

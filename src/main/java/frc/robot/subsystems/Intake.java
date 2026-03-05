@@ -4,6 +4,8 @@
 
 package frc.robot.subsystems;
 
+import static edu.wpi.first.units.Units.Degrees;
+
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
@@ -108,6 +110,9 @@ public class Intake extends SubsystemBase {
 
   private Arm intakePivot = new Arm(pivotConfig);
 
+  private Angle intakePivotAngle = Degrees.of(0);
+  private double rollerDutyCycle = 0;
+
   // Commands
   /**
    * Set the angle of arm
@@ -115,7 +120,7 @@ public class Intake extends SubsystemBase {
    * @param angle Angle to go to
    */
   public Command setAngle(Angle angle) {
-    return intakePivot.setAngle(angle);
+    return runOnce(() -> intakePivotAngle = angle);
   }
 
   /**
@@ -135,23 +140,22 @@ public class Intake extends SubsystemBase {
    * @param dutyCycle Duty cycle to set (-1 to 1)
    */
   public Command setRoller(double dutyCycle) {
-    return runEnd(
-        () -> rollerController.setDutyCycle(dutyCycle), () -> rollerController.setDutyCycle(0));
+    return runEnd(() -> rollerController.setDutyCycle(dutyCycle), () -> rollerController.setDutyCycle(0));
   }
 
   /** Run the roller to intake game pieces */
   public Command intake() {
-    return setRoller(Constants.IntakeConstants.Roller.intakeSpeed);
+    return runOnce(() -> rollerDutyCycle = Constants.IntakeConstants.Roller.intakeSpeed); 
   }
 
   /** Run the roller to outtake game pieces */
   public Command outtake() {
-    return setRoller(Constants.IntakeConstants.Roller.outtakeSpeed);
+    return runOnce(() -> rollerDutyCycle = Constants.IntakeConstants.Roller.outtakeSpeed); 
   }
 
   /** Stop the roller */
   public Command stopRoller() {
-    return runOnce(() -> rollerController.setDutyCycle(0));
+    return runOnce(() -> rollerDutyCycle = Constants.IntakeConstants.Roller.stopSpeed); 
   }
 
   /**
@@ -182,6 +186,9 @@ public class Intake extends SubsystemBase {
 
   @Override
   public void periodic() {
+    intakePivot.setAngle(intakePivotAngle);
+    setRoller(rollerDutyCycle);
+
     intakePivot.updateTelemetry();
     rollerController.updateTelemetry();
   }

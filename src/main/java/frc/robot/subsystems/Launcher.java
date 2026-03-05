@@ -20,6 +20,7 @@ import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.MomentOfInertia;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.LauncherConstants;
 import yams.gearing.MechanismGearing;
 import yams.mechanisms.config.FlyWheelConfig;
@@ -88,6 +89,8 @@ public class Launcher extends SubsystemBase {
 
   private FlyWheel Launcher = new FlyWheel(LauncherConfig);
 
+  private AngularVelocity launcherVelocity = RPM.of(0);
+
   /**
    * Gets the current velocity of the shooter.
    *
@@ -104,7 +107,7 @@ public class Launcher extends SubsystemBase {
    * @return {@link edu.wpi.first.wpilibj2.command.RunCommand}
    */
   public Command setVelocity(AngularVelocity speed) {
-    return Launcher.setSpeed(speed);
+    return runOnce(() -> launcherVelocity = speed);
   }
 
   /**
@@ -119,9 +122,15 @@ public class Launcher extends SubsystemBase {
 
   public Launcher() {}
 
+  public Trigger isFlyWheelAtSpeed(){
+      return new Trigger(() -> getVelocity().in(RPM) >= launcherVelocity.in(RPM));
+  }
+
   @Override
   public void periodic() {
     // This method will be called once per scheduler run
+    Launcher.setSpeed(launcherVelocity);
+
     Launcher.updateTelemetry();
   }
 
@@ -130,4 +139,5 @@ public class Launcher extends SubsystemBase {
     // This method will be called once per scheduler run during simulation
     Launcher.simIterate();
   }
+
 }
