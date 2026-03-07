@@ -7,8 +7,6 @@
 
 package frc.robot;
 
-import static edu.wpi.first.units.Units.Degrees;
-
 import com.pathplanner.lib.auto.AutoBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -21,10 +19,6 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.DriveCommands;
 import frc.robot.generated.TunerConstants;
-import frc.robot.subsystems.Feeder;
-import frc.robot.subsystems.Indexer;
-import frc.robot.subsystems.Intake;
-import frc.robot.subsystems.climb.Climb;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.GyroIO;
 import frc.robot.subsystems.drive.GyroIOPigeon2;
@@ -42,10 +36,10 @@ import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 public class RobotContainer {
   // Subsystems
   private final Drive drive;
-  private final Intake m_intake = new Intake();
-  private final Feeder Column;
-  private final Indexer BeltDexter;
-  private final Climb climb;
+  // private final Intake m_intake = new Intake();
+  // private final Feeder Column;
+  // private final Indexer BeltDexter;
+  // private final Climb climb;
 
   // Controller
   private final CommandXboxController controller = new CommandXboxController(0);
@@ -94,9 +88,9 @@ public class RobotContainer {
         // new ModuleIOTalonFXS(TunerConstants.FrontRight),
         // new ModuleIOTalonFXS(TunerConstants.BackLeft),
         // new ModuleIOTalonFXS(TunerConstants.BackRight));
-        Column = new Feeder();
-        BeltDexter = new Indexer();
-        climb = new Climb();
+        // Column = new Feeder();
+        // BeltDexter = new Indexer();
+        // climb = new Climb();
         break;
 
       case SIM:
@@ -108,9 +102,9 @@ public class RobotContainer {
                 new ModuleIOSim(TunerConstants.FrontRight),
                 new ModuleIOSim(TunerConstants.BackLeft),
                 new ModuleIOSim(TunerConstants.BackRight));
-        Column = new Feeder();
-        BeltDexter = new Indexer();
-        climb = new Climb();
+        // Column = new Feeder();
+        // BeltDexter = new Indexer();
+        // climb = new Climb();
         break;
 
       default:
@@ -122,9 +116,9 @@ public class RobotContainer {
                 new ModuleIO() {},
                 new ModuleIO() {},
                 new ModuleIO() {});
-        Column = new Feeder();
-        BeltDexter = new Indexer();
-        climb = new Climb();
+        // Column = new Feeder();
+        // BeltDexter = new Indexer();
+        // climb = new Climb();
         break;
     }
 
@@ -150,7 +144,7 @@ public class RobotContainer {
     // Configure the button bindings
     configureButtonBindings();
 
-    m_intake.setDefaultCommand(m_intake.setAngle(Degrees.of(0)));
+    // m_intake.setDefaultCommand(m_intake.setAngle(Degrees.of(0)));
   }
 
   /**
@@ -201,12 +195,13 @@ public class RobotContainer {
 
     // Intake Buttons
     // schedule setAngle when b is pressed, cancelling on release
-    intakeController.a().whileTrue(m_intake.setAngle(Degrees.of(-5)));
+    /*intakeController.a().whileTrue(m_intake.setAngle(Degrees.of(-5)));
     intakeController.b().whileTrue(m_intake.setAngle(Degrees.of(15)));
     intakeController.x().whileTrue(m_intake.set(0.3));
     intakeController.y().whileTrue(m_intake.set(-0.3));
     intakeController.rightBumper().whileTrue(m_intake.intake());
     intakeController.leftBumper().whileTrue(m_intake.outtake());
+    */
     // Reset gyro to 0° when B button is pressed
     o.onTrue(
         Commands.runOnce(
@@ -214,9 +209,9 @@ public class RobotContainer {
                 drive)
             .ignoringDisable(true));
 
-    lbumper.whileTrue(Column.IntakeFuel());
-    rbumper.whileTrue(Column.OuttakeFuel());
-    (lbumper.or(rbumper)).whileFalse(Column.NoFuel());
+    // lbumper.whileTrue(Column.IntakeFuel());
+    // rbumper.whileTrue(Column.OuttakeFuel());
+    // (lbumper.or(rbumper)).whileFalse(Column.NoFuel());
   }
 
   /**
