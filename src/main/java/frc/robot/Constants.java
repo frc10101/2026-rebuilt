@@ -51,11 +51,6 @@ public final class Constants {
     REPLAY
   }
 
-  public final class IDs {
-    public static final int intakePivotMotor = 22;
-    public static final int intakeRollerMotor = 13;
-  }
-
   public static class LauncherConstants {
 
     public static final int MOTOR_ID_LEAD = 20;
@@ -129,7 +124,7 @@ public final class Constants {
         public static final double kv = 0.0;
       }
 
-      public static final int intakePivotID = 50;
+      public static final int intakePivotID = 22;
 
       // Gears
       // Write down gear stages from motor to output
@@ -162,7 +157,7 @@ public final class Constants {
     }
 
     public final class Roller {
-      public static final int rollerMotorID = 51;
+      public static final int rollerMotorID = 13;
       public static final double rollerRatio = 1; // feet per second
       public static final double smartCurrentLimit = 50;
       public static final double kp = 0;
