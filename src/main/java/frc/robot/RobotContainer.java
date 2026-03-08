@@ -229,7 +229,9 @@ public class RobotContainer {
                 drive)
             .ignoringDisable(true));
 
-    lbumper.whileTrue(Column.IntakeFuel());
+    lbumper.whileTrue(Column.IntakeFuel().alongWith(BeltDexter.IntakeFuel()));
+    triangle.whileTrue(launcher.set(-0.6));
+    square.whileTrue(launcher.set(-0.3));
     rbumper.whileTrue(Column.OuttakeFuel());
     (lbumper.or(rbumper)).whileFalse(Column.NoFuel());
   }
