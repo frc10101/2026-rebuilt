@@ -19,6 +19,9 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.DriveCommands;
 import frc.robot.generated.TunerConstants;
+import frc.robot.subsystems.Feeder;
+import frc.robot.subsystems.Indexer;
+import frc.robot.subsystems.Launcher;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.GyroIO;
 import frc.robot.subsystems.drive.GyroIOPigeon2;
@@ -37,8 +40,9 @@ public class RobotContainer {
   // Subsystems
   private final Drive drive;
   // private final Intake m_intake = new Intake();
-  // private final Feeder Column;
-  // private final Indexer BeltDexter;
+  private final Feeder Column;
+  private final Indexer BeltDexter;
+  private final Launcher Launcher;
   // private final Climb climb;
 
   // Controller
@@ -88,8 +92,9 @@ public class RobotContainer {
         // new ModuleIOTalonFXS(TunerConstants.FrontRight),
         // new ModuleIOTalonFXS(TunerConstants.BackLeft),
         // new ModuleIOTalonFXS(TunerConstants.BackRight));
-        // Column = new Feeder();
-        // BeltDexter = new Indexer();
+        Column = new Feeder();
+        BeltDexter = new Indexer();
+        Launcher = new Launcher();
         // climb = new Climb();
         break;
 
@@ -102,8 +107,9 @@ public class RobotContainer {
                 new ModuleIOSim(TunerConstants.FrontRight),
                 new ModuleIOSim(TunerConstants.BackLeft),
                 new ModuleIOSim(TunerConstants.BackRight));
-        // Column = new Feeder();
-        // BeltDexter = new Indexer();
+        Column = new Feeder();
+        BeltDexter = new Indexer();
+        Launcher = new Launcher();
         // climb = new Climb();
         break;
 
@@ -116,8 +122,9 @@ public class RobotContainer {
                 new ModuleIO() {},
                 new ModuleIO() {},
                 new ModuleIO() {});
-        // Column = new Feeder();
-        // BeltDexter = new Indexer();
+        Column = new Feeder();
+        BeltDexter = new Indexer();
+        Launcher = new Launcher();
         // climb = new Climb();
         break;
     }
@@ -209,9 +216,13 @@ public class RobotContainer {
                 drive)
             .ignoringDisable(true));
 
-    // lbumper.whileTrue(Column.IntakeFuel());
-    // rbumper.whileTrue(Column.OuttakeFuel());
-    // (lbumper.or(rbumper)).whileFalse(Column.NoFuel());
+    lbumper.whileTrue(Column.IntakeFuel().alongWith(BeltDexter.IntakeFuel()));
+    triangle.whileTrue(Launcher.set(-0.6));
+    square.whileTrue(Launcher.set(-0.4));
+    rbumper.whileTrue(Column.OuttakeFuel());
+    (lbumper.or(rbumper)).whileFalse(Column.NoFuel().alongWith(BeltDexter.NoFuel()));
+    triangle.whileFalse(Launcher.set(0));
+    square.whileFalse(Launcher.set(0));
   }
 
   /**
