@@ -53,7 +53,7 @@ public final class Constants {
 
   public final class IDs {
     public static final int intakePivotMotor = 22;
-    public static final int intakeRollerMotor = 200;
+    public static final int intakeRollerMotor = 13;
   }
 
   public static class LauncherConstants {
