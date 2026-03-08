@@ -52,18 +52,18 @@ public final class Constants {
   }
 
   public final class IDs {
-    public static final int intakePivotMotor = 50;
-    public static final int intakeRollerMotor = 51;
+    public static final int intakePivotMotor = 22;
+    public static final int intakeRollerMotor = 13;
   }
 
   public static class LauncherConstants {
 
-    public static final int MOTOR_ID_LEAD = 13;
-    public static final int MOTOR_ID_FOLLOW = 9;
+    public static final int MOTOR_ID_LEAD = 20;
+    public static final int MOTOR_ID_FOLLOW = 21;
 
     // Closed-loop gains (real robot)
-    public static final double REAL_kP = 0.0;
-    public static final double REAL_kI = 0.0;
+    public static final double REAL_kP = 0.91;
+    public static final double REAL_kI = 0.1;
     public static final double REAL_kD = 0.0;
 
     // Closed-loop gains (sim)
@@ -182,15 +182,15 @@ public final class Constants {
 
   public static final class SparkMaxCanIDs {
     /** Column Can ID */
-    public static final int ColumnMotor = 10;
+    public static final int ColumnMotor = 4;
 
     /** Climb Can IDs */
-    public static final int ClimbLeftMotor = 11;
+    public static final int ClimbLeftMotor = 18;
 
-    public static final int ClimbRightMotor = 12;
+    public static final int ClimbRightMotor = 8;
 
     /** BeltDexter Can ID */
-    public static final int BeltDexterMotor = 8;
+    public static final int BeltDexterMotor = 15;
   }
 
   public static final class ColumnConstants {
@@ -199,8 +199,8 @@ public final class Constants {
     /** Column Stall Current Limit */
     public static final Current currentLimit = Amps.of(60);
 
-    public static final double IntakeSpeed = 1.0;
-    public static final double OuttakeSpeed = -0.5;
+    public static final double IntakeSpeed = 0.3;
+    public static final double OuttakeSpeed = -0.3;
 
     public final class Real {
       public static final double kp = 50.0;
@@ -268,12 +268,12 @@ public final class Constants {
 
   public static final class BeltDexterConstants {
     /** Column Gear Ratio */
-    public static final int gearRatio = 1;
+    public static final int gearRatio = 2;
     /** Column Stall Current Limit */
     public static final Current currentLimit = Amps.of(60);
 
-    public static final double IntakeSpeed = 1.0;
-    public static final double OuttakeSpeed = -0.5;
+    public static final double IntakeSpeed = 0.3;
+    public static final double OuttakeSpeed = -0.3;
 
     public final class Real {
       public static final double kp = 50.0;
