@@ -5,8 +5,6 @@
 package frc.robot.subsystems;
 
 import com.ctre.phoenix6.hardware.TalonFX;
-import com.revrobotics.spark.SparkLowLevel.MotorType;
-import com.revrobotics.spark.SparkMax;
 import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.Angle;
@@ -23,7 +21,6 @@ import yams.motorcontrollers.SmartMotorControllerConfig;
 import yams.motorcontrollers.SmartMotorControllerConfig.ControlMode;
 import yams.motorcontrollers.SmartMotorControllerConfig.MotorMode;
 import yams.motorcontrollers.SmartMotorControllerConfig.TelemetryVerbosity;
-import yams.motorcontrollers.local.SparkWrapper;
 import yams.motorcontrollers.remote.TalonFXWrapper;
 
 /**
@@ -65,7 +62,7 @@ public class Intake extends SubsystemBase {
                   GearBox.fromReductionStages(Constants.IntakeConstants.Pivot.totalGear)))
           // Motor properties from tutorial to prevent over currenting
           .withMotorInverted(false)
-          .withIdleMode(MotorMode.BRAKE)
+          .withIdleMode(MotorMode.COAST)
           .withStatorCurrentLimit(Constants.IntakeConstants.Pivot.currentLimit)
           .withClosedLoopRampRate(Constants.IntakeConstants.Pivot.closedLoopRampRate)
           .withOpenLoopRampRate(Constants.IntakeConstants.Pivot.openLoopRampRate);
@@ -78,20 +75,20 @@ public class Intake extends SubsystemBase {
               new MechanismGearing(
                   GearBox.fromReductionStages(Constants.IntakeConstants.Roller.totalGear)))
           .withMotorInverted(false)
-          .withIdleMode(MotorMode.COAST)
+          .withIdleMode(MotorMode.BRAKE)
           .withStatorCurrentLimit(Constants.IntakeConstants.Roller.currentLimit)
           .withClosedLoopRampRate(Constants.IntakeConstants.Roller.closedLoopRampRate)
           .withOpenLoopRampRate(Constants.IntakeConstants.Roller.openLoopRampRate);
 
-  private TalonFX pivot = new TalonFX(Constants.IDs.intakePivotMotor);
-  private SparkMax roller = new SparkMax(Constants.IDs.intakeRollerMotor, MotorType.kBrushless);
+  private TalonFX pivot = new TalonFX(Constants.IntakeConstants.Pivot.intakePivotID);
+  private TalonFX roller = new TalonFX(Constants.IntakeConstants.Roller.rollerMotorID);
 
   // create the smartMotorController
   private SmartMotorController pivotController =
       new TalonFXWrapper(pivot, DCMotor.getKrakenX60(1), SmartPivotMotorConfig);
 
   private SmartMotorController rollerController =
-      new SparkWrapper(roller, DCMotor.getNEO(1), SmartRollerMotorConfig);
+      new TalonFXWrapper(roller, DCMotor.getKrakenX60(1), SmartRollerMotorConfig);
 
   private ArmConfig pivotConfig =
       new ArmConfig(pivotController)
@@ -114,6 +111,7 @@ public class Intake extends SubsystemBase {
    *
    * @param angle Angle to go to
    */
+  /** public Command setAngle(Angle angle) { return runOnce(() -> setAngle = angle); } */
   public Command setAngle(Angle angle) {
     return intakePivot.setAngle(angle);
   }
@@ -125,6 +123,10 @@ public class Intake extends SubsystemBase {
    */
   public Command set(double dutyCycle) {
     return intakePivot.set(dutyCycle);
+  }
+
+  public Command goToIntakePosition() {
+    return setAngle(Constants.IntakeConstants.Pivot.intakePosition).andThen(intakePivot.set(0.0));
   }
 
   // Roller Commands

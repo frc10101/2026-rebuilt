@@ -21,7 +21,9 @@ import frc.robot.commands.DriveCommands;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.Feeder;
 import frc.robot.subsystems.Indexer;
+import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Launcher;
+import frc.robot.subsystems.climb.Climb;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.GyroIO;
 import frc.robot.subsystems.drive.GyroIOPigeon2;
@@ -39,8 +41,9 @@ import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 public class RobotContainer {
   // Subsystems
   private final Drive drive;
-  // private final Intake m_intake = new Intake();
+  private final Intake m_intake;
   private final Feeder Column;
+  private final Climb climb;
   private final Indexer BeltDexter;
   private final Launcher Launcher;
   // private final Climb climb;
@@ -94,8 +97,9 @@ public class RobotContainer {
         // new ModuleIOTalonFXS(TunerConstants.BackRight));
         Column = new Feeder();
         BeltDexter = new Indexer();
+        climb = new Climb();
         Launcher = new Launcher();
-        // climb = new Climb();
+        m_intake = new Intake();
         break;
 
       case SIM:
@@ -109,8 +113,9 @@ public class RobotContainer {
                 new ModuleIOSim(TunerConstants.BackRight));
         Column = new Feeder();
         BeltDexter = new Indexer();
+        climb = new Climb();
+        m_intake = new Intake();
         Launcher = new Launcher();
-        // climb = new Climb();
         break;
 
       default:
@@ -124,8 +129,9 @@ public class RobotContainer {
                 new ModuleIO() {});
         Column = new Feeder();
         BeltDexter = new Indexer();
+        climb = new Climb();
         Launcher = new Launcher();
-        // climb = new Climb();
+        m_intake = new Intake();
         break;
     }
 
@@ -150,8 +156,6 @@ public class RobotContainer {
 
     // Configure the button bindings
     configureButtonBindings();
-
-    // m_intake.setDefaultCommand(m_intake.setAngle(Degrees.of(0)));
   }
 
   /**
@@ -161,6 +165,8 @@ public class RobotContainer {
    * edu.wpi.first.wpilibj2.command.button.JoystickButton}.
    */
   private void configureButtonBindings() {
+    // m_intake.setDefaultCommand(m_intake.setAngle(Degrees.of(90)));
+
     // Default command, normal field-relative drive
     drive.setDefaultCommand(
         DriveCommands.joystickDrive(
@@ -202,13 +208,12 @@ public class RobotContainer {
 
     // Intake Buttons
     // schedule setAngle when b is pressed, cancelling on release
-    /*intakeController.a().whileTrue(m_intake.setAngle(Degrees.of(-5)));
-    intakeController.b().whileTrue(m_intake.setAngle(Degrees.of(15)));
-    intakeController.x().whileTrue(m_intake.set(0.3));
-    intakeController.y().whileTrue(m_intake.set(-0.3));
+    intakeController
+        .button(1)
+        .onTrue(((m_intake.setAngle(Constants.IntakeConstants.Pivot.stowedPosition))));
+    intakeController.button(2).onTrue(((m_intake.goToIntakePosition())));
     intakeController.rightBumper().whileTrue(m_intake.intake());
     intakeController.leftBumper().whileTrue(m_intake.outtake());
-    */
     // Reset gyro to 0° when B button is pressed
     o.onTrue(
         Commands.runOnce(
