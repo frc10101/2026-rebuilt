@@ -172,6 +172,11 @@ public class Intake extends SubsystemBase {
     return rollerController.getMechanismVelocity();
   }
 
+  public void close() {
+    pivot.close();
+    roller.close();
+  }
+
   /** Creates a new Intake. */
   public Intake() {}
 
@@ -183,7 +188,7 @@ public class Intake extends SubsystemBase {
 
   @Override
   public void simulationPeriodic() {
-    pivotController.simIterate();
+    intakePivot.simIterate();
     rollerController.simIterate();
   }
 }

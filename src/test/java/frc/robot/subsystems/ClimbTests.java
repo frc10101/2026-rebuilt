@@ -76,13 +76,13 @@ public class ClimbTests {
   @Test
   void getLeftHeightReturnsPositionTest() {
     Distance LeftHeightTestVariable = mClimb.getLeftHeight();
-    assertEquals(LeftHeightTestVariable, ClimbConstants.RestDistance);
+    assertEquals(ClimbConstants.RestDistance, LeftHeightTestVariable);
   }
 
   @Test
   void getRightHeightReturnsPositionTest() {
     Distance RightHeightTestVariable = mClimb.getRightHeight();
-    assertEquals(RightHeightTestVariable, ClimbConstants.RestDistance);
+    assertEquals(ClimbConstants.RestDistance, RightHeightTestVariable);
   }
 
   @Test
