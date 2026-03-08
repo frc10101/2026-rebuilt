@@ -52,14 +52,14 @@ public final class Constants {
   }
 
   public final class IDs {
-    public static final int intakePivotMotor = 100;
-    public static final int intakeRollerMotor = 200;
+    public static final int intakePivotMotor = 50;
+    public static final int intakeRollerMotor = 51;
   }
 
   public static class LauncherConstants {
 
-    public static final int MOTOR_ID_LEAD = 10;
-    public static final int MOTOR_ID_FOLLOW = 11;
+    public static final int MOTOR_ID_LEAD = 13;
+    public static final int MOTOR_ID_FOLLOW = 9;
 
     // Closed-loop gains (real robot)
     public static final double REAL_kP = 0.0;
@@ -185,7 +185,9 @@ public final class Constants {
     public static final int ColumnMotor = 10;
 
     /** Climb Can IDs */
-    public static final int ClimbMotor = 11;
+    public static final int ClimbLeftMotor = 11;
+
+    public static final int ClimbRightMotor = 12;
 
     /** BeltDexter Can ID */
     public static final int BeltDexterMotor = 8;
