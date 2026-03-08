@@ -52,7 +52,7 @@ public final class Constants {
   }
 
   public final class IDs {
-    public static final int intakePivotMotor = 100;
+    public static final int intakePivotMotor = 22;
     public static final int intakeRollerMotor = 200;
   }
 
