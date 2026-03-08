@@ -3,6 +3,7 @@
   "robotLength": 0.9,
   "holonomicMode": true,
   "pathFolders": [
+<<<<<<< HEAD
     "Neutral",
     "New Folder",
     "Start-Depot",
@@ -20,6 +21,13 @@
     "Neutral-Top-Depot-Launch-Hang",
     "Neutral-Top-Launch-Hang",
     "Bottom2"
+=======
+    "Start-Chute"
+  ],
+  "autoFolders": [
+    "New Folder",
+    "Chute"
+>>>>>>> 46ee8baaeeb92e4fd6985110396ec56cf2cf2b66
   ],
   "defaultMaxVel": 3.0,
   "defaultMaxAccel": 3.0,
