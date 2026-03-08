@@ -7,8 +7,6 @@
 
 package frc.robot;
 
-import static edu.wpi.first.units.Units.Degrees;
-
 import com.pathplanner.lib.auto.AutoBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -42,7 +40,7 @@ import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 public class RobotContainer {
   // Subsystems
   private final Drive drive;
-  private final Intake m_intake = new Intake();
+  private final Intake m_intake;
   private final Feeder Column;
   private final Indexer BeltDexter;
   private final Climb climb;
@@ -97,6 +95,7 @@ public class RobotContainer {
         Column = new Feeder();
         BeltDexter = new Indexer();
         climb = new Climb();
+        m_intake = new Intake();
         break;
 
       case SIM:
@@ -111,6 +110,7 @@ public class RobotContainer {
         Column = new Feeder();
         BeltDexter = new Indexer();
         climb = new Climb();
+        m_intake = new Intake();
         break;
 
       default:
@@ -125,6 +125,7 @@ public class RobotContainer {
         Column = new Feeder();
         BeltDexter = new Indexer();
         climb = new Climb();
+        m_intake = new Intake();
         break;
     }
 
@@ -158,7 +159,7 @@ public class RobotContainer {
    * edu.wpi.first.wpilibj2.command.button.JoystickButton}.
    */
   private void configureButtonBindings() {
-    m_intake.setDefaultCommand(m_intake.setAngle(Degrees.of(90)));
+    // m_intake.setDefaultCommand(m_intake.setAngle(Degrees.of(90)));
 
     // Default command, normal field-relative drive
     drive.setDefaultCommand(
@@ -202,11 +203,9 @@ public class RobotContainer {
     // Intake Buttons
     // schedule setAngle when b is pressed, cancelling on release
     intakeController
-        .a()
-        .whileTrue(m_intake.setAngle(Constants.IntakeConstants.Pivot.intakePosition));
-    intakeController
-        .b()
-        .whileTrue(m_intake.setAngle(Constants.IntakeConstants.Pivot.stowedPosition));
+        .button(1)
+        .onTrue(((m_intake.setAngle(Constants.IntakeConstants.Pivot.stowedPosition))));
+    intakeController.button(2).onTrue(((m_intake.goToIntakePosition())));
     intakeController.rightBumper().whileTrue(m_intake.intake());
     intakeController.leftBumper().whileTrue(m_intake.outtake());
     // Reset gyro to 0° when B button is pressed

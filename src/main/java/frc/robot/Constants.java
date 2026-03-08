@@ -106,7 +106,7 @@ public final class Constants {
   public final class IntakeConstants {
     public final class Pivot {
       public final class Real {
-        public static final double kp = 0.1;
+        public static final double kp = 50;
         public static final double ki = 0.0;
         public static final double kd = 0.0;
         public static final AngularVelocity maxVelocity = DegreesPerSecond.of(90);
@@ -118,7 +118,7 @@ public final class Constants {
       }
 
       public final class Sim {
-        public static final double kp = 0.1;
+        public static final double kp = 50;
         public static final double ki = 0.0;
         public static final double kd = 0.0;
         public static final AngularVelocity maxVelocity = DegreesPerSecond.of(90);
@@ -128,6 +128,8 @@ public final class Constants {
         public static final double kg = 0.0; // Gravity compensation for arm
         public static final double kv = 0.0;
       }
+
+      public static final int intakePivotID = 50;
 
       // Gears
       // Write down gear stages from motor to output
@@ -139,14 +141,14 @@ public final class Constants {
 
       // Motor properties from tutorial to prevent over currenting
       public static final Current currentLimit = Amps.of(40);
-      public static final Time closedLoopRampRate = Seconds.of(0);
+      public static final Time closedLoopRampRate = Seconds.of(0.01);
       public static final Time openLoopRampRate = Seconds.of(0.25);
 
       // Pivot mechanism constraints
-      public static final Angle softLimitOne = Degrees.of(105);
-      public static final Angle softLimitTwo = Degrees.of(-3);
-      public static final Angle hardLimitOne = Degrees.of(107);
-      public static final Angle hardLimitTwo = Degrees.of(-5);
+      public static final Angle softLimitOne = Degrees.of(-3);
+      public static final Angle softLimitTwo = Degrees.of(105);
+      public static final Angle hardLimitOne = Degrees.of(-5);
+      public static final Angle hardLimitTwo = Degrees.of(107);
       public static final Angle startingPosition = Degrees.of(100);
       public static final Angle stowedPosition = Degrees.of(100);
       public static final Angle intakePosition = Degrees.of(0);
@@ -160,6 +162,7 @@ public final class Constants {
     }
 
     public final class Roller {
+      public static final int rollerMotorID = 51;
       public static final double rollerRatio = 1; // feet per second
       public static final double smartCurrentLimit = 50;
       public static final double kp = 0;
@@ -173,12 +176,12 @@ public final class Constants {
           java.util.Arrays.stream(gearStages).reduce(1, (a, b) -> a * b);
 
       public static final Current currentLimit = Amps.of(40);
-      public static final Time closedLoopRampRate = Seconds.of(0);
+      public static final Time closedLoopRampRate = Seconds.of(0.1);
       public static final Time openLoopRampRate = Seconds.of(0.25);
 
       // Roller speeds (duty cycle -1 to 1)
-      public static final double intakeSpeed = 1.0;
-      public static final double outtakeSpeed = -1.0;
+      public static final double intakeSpeed = 0.65;
+      public static final double outtakeSpeed = 0.3;
     }
   }
 
