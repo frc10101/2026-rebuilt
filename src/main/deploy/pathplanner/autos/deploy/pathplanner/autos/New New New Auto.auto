@@ -7,7 +7,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Start-Neutral-Top-Middle"
+            "pathName": "Start-Neutral-Top-Top"
           }
         },
         {
@@ -38,6 +38,24 @@
           "type": "path",
           "data": {
             "pathName": "Bottom-Multiple-Launch"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Bottom-Pass"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Bottom-Neutral-Realign"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Bottom-Neutral-Second-Intake"
           }
         }
       ]

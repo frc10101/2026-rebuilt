@@ -7,25 +7,37 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Start-Neutral-Top-Bottom"
+            "pathName": "Start-Neutral-Bottom-Top"
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "Neutral-Top-Depot"
+            "pathName": "mukt"
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "Depot-Launch"
+            "pathName": "Top-Pass"
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "Launch-Hang"
+            "pathName": "New New Path"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "New Path"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "mukt"
           }
         }
       ]

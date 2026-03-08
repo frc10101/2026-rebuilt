@@ -26,6 +26,6 @@
     }
   },
   "resetOdom": true,
-  "folder": "Depot-Launch-Hang",
+  "folder": null,
   "choreoAuto": false
 }
