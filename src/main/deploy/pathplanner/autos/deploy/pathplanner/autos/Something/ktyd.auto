@@ -39,11 +39,17 @@
           "data": {
             "pathName": "Neutral-Top-Launch"
           }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Launch-Hang"
+          }
         }
       ]
     }
   },
   "resetOdom": true,
-  "folder": "Bottom2",
+  "folder": null,
   "choreoAuto": false
 }

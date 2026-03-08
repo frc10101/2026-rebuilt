@@ -26,6 +26,6 @@
     }
   },
   "resetOdom": true,
-  "folder": "Chute",
+  "folder": null,
   "choreoAuto": false
 }

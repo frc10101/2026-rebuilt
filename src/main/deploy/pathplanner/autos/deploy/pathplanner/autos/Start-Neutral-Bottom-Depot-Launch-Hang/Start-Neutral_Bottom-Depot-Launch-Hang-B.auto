@@ -32,6 +32,6 @@
     }
   },
   "resetOdom": true,
-  "folder": "Neutral-Bottom-Depot-Launch-Hang",
+  "folder": null,
   "choreoAuto": false
 }
