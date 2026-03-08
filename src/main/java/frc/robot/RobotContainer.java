@@ -21,7 +21,9 @@ import frc.robot.commands.DriveCommands;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.Feeder;
 import frc.robot.subsystems.Indexer;
+import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Launcher;
+import frc.robot.subsystems.climb.Climb;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.GyroIO;
 import frc.robot.subsystems.drive.GyroIOPigeon2;
@@ -41,6 +43,7 @@ public class RobotContainer {
   private final Drive drive;
   private final Intake m_intake;
   private final Feeder Column;
+  private final Climb climb;
   private final Indexer BeltDexter;
   private final Launcher Launcher;
   // private final Climb climb;
@@ -95,6 +98,7 @@ public class RobotContainer {
         Column = new Feeder();
         BeltDexter = new Indexer();
         climb = new Climb();
+        Launcher = new Launcher();
         m_intake = new Intake();
         break;
 
@@ -111,6 +115,7 @@ public class RobotContainer {
         BeltDexter = new Indexer();
         climb = new Climb();
         m_intake = new Intake();
+        Launcher = new Launcher();
         break;
 
       default:
@@ -125,6 +130,7 @@ public class RobotContainer {
         Column = new Feeder();
         BeltDexter = new Indexer();
         climb = new Climb();
+        Launcher = new Launcher();
         m_intake = new Intake();
         break;
     }
@@ -208,7 +214,6 @@ public class RobotContainer {
     intakeController.button(2).onTrue(((m_intake.goToIntakePosition())));
     intakeController.rightBumper().whileTrue(m_intake.intake());
     intakeController.leftBumper().whileTrue(m_intake.outtake());
-    */
     // Reset gyro to 0° when B button is pressed
     o.onTrue(
         Commands.runOnce(
