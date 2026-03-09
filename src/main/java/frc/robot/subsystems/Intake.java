@@ -136,19 +136,18 @@ public class Intake extends SubsystemBase {
    *
    * @param dutyCycle Duty cycle to set (-1 to 1)
    */
-  public Command setRoller(double dutyCycle) {
-    return runEnd(
-        () -> rollerController.setDutyCycle(dutyCycle), () -> rollerController.setDutyCycle(0));
+  public Command setRollerSpeed(AngularVelocity vel) {
+    return runEnd(() -> rollerController.setVelocity(vel), () -> rollerController.setDutyCycle(0));
   }
 
   /** Run the roller to intake game pieces */
   public Command intake() {
-    return setRoller(Constants.IntakeConstants.Roller.intakeSpeed);
+    return setRollerSpeed(Constants.IntakeConstants.Roller.intakeSpeed);
   }
 
   /** Run the roller to outtake game pieces */
   public Command outtake() {
-    return setRoller(Constants.IntakeConstants.Roller.outtakeSpeed);
+    return setRollerSpeed(Constants.IntakeConstants.Roller.outtakeSpeed);
   }
 
   /** Stop the roller */
