@@ -4,12 +4,14 @@
 
 package frc.robot.subsystems.vision;
 
-import static frc.robot.subsystems.vision.VisionConstants.aprilTagLayout;
+import static frc.robot.Constants.VisionConstants.*;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.wpilibj.Timer;
+import frc.robot.Constants;
+
 import java.util.function.Supplier;
 import org.photonvision.PhotonCamera;
 import org.photonvision.simulation.PhotonCameraSim;
@@ -71,7 +73,7 @@ public class VisionIOPhotonVisionSim extends VisionIOPhotonVision {
     // Add sim camera
     var cameraProperties =
         new SimCameraProperties()
-            .setCalibration(1280, 800, Rotation2d.fromDegrees(92.4))
+            .setCalibration(resWidth, resHeight, fovDiag)
             .setFPS(100);
     var sim = new PhotonCameraSim(camera, cameraProperties);
     sim.enableDrawWireframe(true);
@@ -118,32 +120,32 @@ public class VisionIOPhotonVisionSim extends VisionIOPhotonVision {
     // Common camera properties
     var cameraProperties =
         new SimCameraProperties()
-            .setCalibration(1280, 800, Rotation2d.fromDegrees(92.4))
+            .setCalibration(resWidth, resHeight, fovDiag)
             .setFPS(100);
 
     // Camera 0
-    PhotonCamera cam0 = new PhotonCamera(VisionConstants.camera0Name);
+    PhotonCamera cam0 = new PhotonCamera(Constants.VisionConstants.camera0Name);
     PhotonCameraSim camSim0 = new PhotonCameraSim(cam0, cameraProperties);
     camSim0.enableDrawWireframe(true);
-    visionSim.addCamera(camSim0, VisionConstants.robotToCamera0);
+    visionSim.addCamera(camSim0, Constants.VisionConstants.robotToCamera0);
 
     // Camera 1
-    PhotonCamera cam1 = new PhotonCamera(VisionConstants.camera1Name);
+    PhotonCamera cam1 = new PhotonCamera(Constants.VisionConstants.camera1Name);
     PhotonCameraSim camSim1 = new PhotonCameraSim(cam1, cameraProperties);
     camSim1.enableDrawWireframe(true);
-    visionSim.addCamera(camSim1, VisionConstants.robotToCamera1);
+    visionSim.addCamera(camSim1, Constants.VisionConstants.robotToCamera1);
 
     // Camera 2
-    PhotonCamera cam2 = new PhotonCamera(VisionConstants.camera2Name);
+    PhotonCamera cam2 = new PhotonCamera(Constants.VisionConstants.camera2Name);
     PhotonCameraSim camSim2 = new PhotonCameraSim(cam2, cameraProperties);
     camSim2.enableDrawWireframe(true);
-    visionSim.addCamera(camSim2, VisionConstants.robotToCamera2);
+    visionSim.addCamera(camSim2, Constants.VisionConstants.robotToCamera2);
 
     // Camera 3
-    PhotonCamera cam3 = new PhotonCamera(VisionConstants.camera3Name);
+    PhotonCamera cam3 = new PhotonCamera(Constants.VisionConstants.camera3Name);
     PhotonCameraSim camSim3 = new PhotonCameraSim(cam3, cameraProperties);
     camSim3.enableDrawWireframe(true);
-    visionSim.addCamera(camSim3, VisionConstants.robotToCamera3);
+    visionSim.addCamera(camSim3, Constants.VisionConstants.robotToCamera3);
 
     // Optional: schedule visionSim updates elsewhere using the supplied poseSupplier. We keep
     // the poseSupplier parameter to mirror the instance update path, but this static method only

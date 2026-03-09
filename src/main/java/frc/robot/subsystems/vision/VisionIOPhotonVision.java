@@ -4,7 +4,7 @@
 
 package frc.robot.subsystems.vision;
 
-import static frc.robot.subsystems.vision.VisionConstants.*;
+import static frc.robot.Constants.VisionConstants.*;
 
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -12,6 +12,7 @@ import edu.wpi.first.math.geometry.Transform3d;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import org.photonvision.PhotonCamera;
 
@@ -89,12 +90,13 @@ public class VisionIOPhotonVision implements VisionIO {
     for (var result : camera.getAllUnreadResults()) {
       // Update latest target observation
       if (result.hasTargets()) {
-        inputs.latestTargetObservation =
-            new TargetObservation(
+        Optional<TargetObservation> YesId = Optional.of(new TargetObservation(
                 Rotation2d.fromDegrees(result.getBestTarget().getYaw()),
-                Rotation2d.fromDegrees(result.getBestTarget().getPitch()));
+                Rotation2d.fromDegrees(result.getBestTarget().getPitch())));
+        inputs.latestTargetObservation = YesId;
       } else {
-        inputs.latestTargetObservation = new TargetObservation(new Rotation2d(), new Rotation2d());
+        Optional<TargetObservation> NoId = Optional.empty();
+        inputs.latestTargetObservation = NoId;
       }
 
       // Add pose observation
