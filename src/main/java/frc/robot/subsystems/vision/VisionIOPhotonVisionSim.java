@@ -7,11 +7,9 @@ package frc.robot.subsystems.vision;
 import static frc.robot.Constants.VisionConstants.*;
 
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.wpilibj.Timer;
 import frc.robot.Constants;
-
 import java.util.function.Supplier;
 import org.photonvision.PhotonCamera;
 import org.photonvision.simulation.PhotonCameraSim;
@@ -72,9 +70,7 @@ public class VisionIOPhotonVisionSim extends VisionIOPhotonVision {
 
     // Add sim camera
     var cameraProperties =
-        new SimCameraProperties()
-            .setCalibration(resWidth, resHeight, fovDiag)
-            .setFPS(100);
+        new SimCameraProperties().setCalibration(resWidth, resHeight, fovDiag).setFPS(100);
     var sim = new PhotonCameraSim(camera, cameraProperties);
     sim.enableDrawWireframe(true);
     visionSim.addCamera(sim, robotToCamera);
@@ -119,9 +115,7 @@ public class VisionIOPhotonVisionSim extends VisionIOPhotonVision {
 
     // Common camera properties
     var cameraProperties =
-        new SimCameraProperties()
-            .setCalibration(resWidth, resHeight, fovDiag)
-            .setFPS(100);
+        new SimCameraProperties().setCalibration(resWidth, resHeight, fovDiag).setFPS(100);
 
     // Camera 0
     PhotonCamera cam0 = new PhotonCamera(Constants.VisionConstants.camera0Name);

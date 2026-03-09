@@ -20,7 +20,6 @@ import frc.robot.subsystems.vision.VisionIO.PoseObservationType;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
-
 import org.littletonrobotics.junction.Logger;
 
 public class Vision extends SubsystemBase {
@@ -57,7 +56,7 @@ public class Vision extends SubsystemBase {
     if (cameraIndex > 3 || cameraIndex < 0) {
       return null;
     }
-    return inputs[cameraIndex].latestTargetObservation.map(obs -> obs.tx()).orElse(null);
+    return inputs[cameraIndex].latestTargetObservation.tx();
   }
 
   public double getFiducialID(int cameraIndex) {
@@ -101,11 +100,11 @@ public class Vision extends SubsystemBase {
     if (cameraIndex > 3 || cameraIndex < 0) {
       return null;
     }
-    
-    
+
     // Check if there are any tag IDs available
     if (inputs[cameraIndex].tagIds.length == 0) {
-      //return new double[] {0.0, 0.0, 0.0, 0.0, 0.0, 0.0}; // Return zero array if no tag is detected
+      // return new double[] {0.0, 0.0, 0.0, 0.0, 0.0, 0.0}; // Return zero array if no tag is
+      // detected
       return WrongTag;
     }
 
@@ -141,7 +140,7 @@ public class Vision extends SubsystemBase {
     Optional<double[]> RightTag = Optional.of(new double[] {tx, ty, tz, pitch, yaw, roll});
 
     // Return the result as an array
-    //return new double[] {tx, ty, tz, pitch, yaw, roll};
+    // return new double[] {tx, ty, tz, pitch, yaw, roll};
     return RightTag;
   }
 

@@ -12,7 +12,6 @@ import edu.wpi.first.math.geometry.Transform3d;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import org.photonvision.PhotonCamera;
 
@@ -90,13 +89,14 @@ public class VisionIOPhotonVision implements VisionIO {
     for (var result : camera.getAllUnreadResults()) {
       // Update latest target observation
       if (result.hasTargets()) {
-        Optional<TargetObservation> YesId = Optional.of(new TargetObservation(
+
+        inputs.latestTargetObservation =
+            new TargetObservation(
                 Rotation2d.fromDegrees(result.getBestTarget().getYaw()),
-                Rotation2d.fromDegrees(result.getBestTarget().getPitch())));
-        inputs.latestTargetObservation = YesId;
+                Rotation2d.fromDegrees(result.getBestTarget().getPitch()));
+        ;
       } else {
-        Optional<TargetObservation> NoId = Optional.empty();
-        inputs.latestTargetObservation = NoId;
+        inputs.latestTargetObservation = null;
       }
 
       // Add pose observation

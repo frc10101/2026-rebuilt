@@ -50,7 +50,6 @@ public class RobotContainer {
   private final Launcher launcher;
   private final Intake m_intake;
   private final Feeder Column;
-  private final Climb climb;
   private final Indexer BeltDexter;
   private final Climb climb;
 
