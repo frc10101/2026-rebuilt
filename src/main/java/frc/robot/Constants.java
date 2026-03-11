@@ -102,11 +102,11 @@ public final class Constants {
   public final class IntakeConstants {
     public final class Pivot {
       public final class Real {
-        public static final double kp = 0.1;
+        public static final double kp = 100.0;
         public static final double ki = 0.0;
         public static final double kd = 0.0;
-        public static final AngularVelocity maxVelocity = DegreesPerSecond.of(90);
-        public static final AngularAcceleration maxAcceleration = DegreesPerSecondPerSecond.of(45);
+        public static final AngularVelocity maxVelocity = DegreesPerSecond.of(180);
+        public static final AngularAcceleration maxAcceleration = DegreesPerSecondPerSecond.of(360);
 
         public static final double ks = 0.0;
         public static final double kg = 0.0;

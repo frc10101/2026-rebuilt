@@ -9,6 +9,7 @@ import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
@@ -185,6 +186,8 @@ public class Intake extends SubsystemBase {
   public void periodic() {
     intakePivot.updateTelemetry();
     rollerController.updateTelemetry();
+    SmartDashboard.putNumber("Pivot Voltage", pivot.getMotorVoltage().getValueAsDouble());
+    SmartDashboard.putNumber("Pivot Position", pivot.getPosition().getValueAsDouble());
   }
 
   @Override
