@@ -39,6 +39,12 @@
           "data": {
             "pathName": "mukt"
           }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Finisher-Top"
+          }
         }
       ]
     }
