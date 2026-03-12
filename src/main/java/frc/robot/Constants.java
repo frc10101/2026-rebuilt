@@ -15,6 +15,7 @@ import static edu.wpi.first.units.Units.Feet;
 import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.Pounds;
+import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.Second;
 import static edu.wpi.first.units.Units.Seconds;
 import static edu.wpi.first.units.Units.Volts;
@@ -101,11 +102,11 @@ public final class Constants {
   public final class IntakeConstants {
     public final class Pivot {
       public final class Real {
-        public static final double kp = 50;
+        public static final double kp = 100.0;
         public static final double ki = 0.0;
         public static final double kd = 0.0;
-        public static final AngularVelocity maxVelocity = DegreesPerSecond.of(90);
-        public static final AngularAcceleration maxAcceleration = DegreesPerSecondPerSecond.of(45);
+        public static final AngularVelocity maxVelocity = DegreesPerSecond.of(180);
+        public static final AngularAcceleration maxAcceleration = DegreesPerSecondPerSecond.of(360);
 
         public static final double ks = 0.0;
         public static final double kg = 0.0;
@@ -113,7 +114,7 @@ public final class Constants {
       }
 
       public final class Sim {
-        public static final double kp = 50;
+        public static final double kp = 50.0;
         public static final double ki = 0.0;
         public static final double kd = 0.0;
         public static final AngularVelocity maxVelocity = DegreesPerSecond.of(90);
@@ -130,7 +131,7 @@ public final class Constants {
       // Write down gear stages from motor to output
       // Example: 3:1 stage followed by 4:1 stage -> gearStages = {3, 4}
       // If you gear up instead, use fractions like 1/3.0
-      public static final double[] gearStages = {60.0 / 8.0, 60.0 / 18.0};
+      public static final double[] gearStages = {60.0 / 8.0, 60.0 / 18.0, 30 / 15.0};
       public static final double totalGear =
           java.util.Arrays.stream(gearStages).reduce(1, (a, b) -> a * b);
 
@@ -143,12 +144,12 @@ public final class Constants {
       public static final Angle softLimitOne = Degrees.of(-3);
       public static final Angle softLimitTwo = Degrees.of(105);
       public static final Angle hardLimitOne = Degrees.of(-5);
-      public static final Angle hardLimitTwo = Degrees.of(107);
-      public static final Angle startingPosition = Degrees.of(100);
-      public static final Angle stowedPosition = Degrees.of(100);
+      public static final Angle hardLimitTwo = Degrees.of(105);
+      public static final Angle startingPosition = Degrees.of(105);
+      public static final Angle stowedPosition = Degrees.of(105);
       public static final Angle intakePosition = Degrees.of(0);
       public static final Distance armLength = Feet.of(1);
-      public static final Mass mass = Pounds.of(7);
+      public static final Mass mass = Pounds.of(8);
 
       // sys Id stuff
       public static final Voltage maxVoltage = Volts.of(7);
@@ -175,8 +176,10 @@ public final class Constants {
       public static final Time openLoopRampRate = Seconds.of(0.25);
 
       // Roller speeds (duty cycle -1 to 1)
-      public static final double intakeSpeed = 0.65;
-      public static final double outtakeSpeed = 0.3;
+      // public static final double intakeSpeed = 0.65;
+      // public static final double outtakeSpeed = 0.3;
+      public static final AngularVelocity intakeSpeed = RPM.of(1000);
+      public static final AngularVelocity outtakeSpeed = RPM.of(500);
     }
   }
 

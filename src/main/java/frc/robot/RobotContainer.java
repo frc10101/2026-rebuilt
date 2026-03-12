@@ -209,11 +209,11 @@ public class RobotContainer {
     // Intake Buttons
     // schedule setAngle when b is pressed, cancelling on release
     intakeController
-        .button(1)
+        .button(3)
         .onTrue(((m_intake.setAngle(Constants.IntakeConstants.Pivot.stowedPosition))));
     intakeController.button(2).onTrue(((m_intake.goToIntakePosition())));
-    intakeController.rightBumper().whileTrue(m_intake.intake());
-    intakeController.leftBumper().whileTrue(m_intake.outtake());
+    // intakeController.rightBumper().whileTrue(m_intake.intake());
+    // intakeController.leftBumper().whileTrue(m_intake.outtake());
     // Reset gyro to 0° when B button is pressed
     o.onTrue(
         Commands.runOnce(
