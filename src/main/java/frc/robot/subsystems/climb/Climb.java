@@ -6,12 +6,15 @@ package frc.robot.subsystems.climb;
 
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
+import edu.wpi.first.math.controller.ElevatorFeedforward;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.ClimbConstants;
 import frc.robot.Constants.SparkMaxCanIDs;
+import yams.mechanisms.config.ElevatorConfig;
+import yams.mechanisms.positional.Elevator;
 import yams.motorcontrollers.SmartMotorController;
 import yams.motorcontrollers.SmartMotorControllerConfig;
 import yams.motorcontrollers.SmartMotorControllerConfig.ControlMode;
@@ -44,11 +47,21 @@ public class Climb extends SubsystemBase {
               ClimbConstants.Sim.kd,
               ClimbConstants.Sim.maxVelocity,
               ClimbConstants.Sim.maxAcceleration)
+          // Feedforward Constants
+          .withFeedforward(
+              new ElevatorFeedforward(
+                  ClimbConstants.Real.ks, ClimbConstants.Real.kg, ClimbConstants.Real.kv))
+          .withSimFeedforward(
+              new ElevatorFeedforward(
+                  ClimbConstants.Sim.ks, ClimbConstants.Sim.kg, ClimbConstants.Sim.kv))
+          // Telemetry name and verbosity level
           .withTelemetry("ClimbLeftMotor", TelemetryVerbosity.HIGH)
           .withGearing(ClimbConstants.gearRatio)
           .withMotorInverted(false)
           .withIdleMode(MotorMode.BRAKE)
-          .withStatorCurrentLimit(ClimbConstants.currentLimit);
+          .withStatorCurrentLimit(ClimbConstants.currentLimit)
+          .withClosedLoopRampRate(ClimbConstants.ClosedLoppRampRate)
+          .withOpenLoopRampRate(ClimbConstants.OpenLoppRampRate);
 
   private SmartMotorControllerConfig RightMotorConfig =
       new SmartMotorControllerConfig(this)
@@ -66,11 +79,21 @@ public class Climb extends SubsystemBase {
               ClimbConstants.Sim.kd,
               ClimbConstants.Sim.maxVelocity,
               ClimbConstants.Sim.maxAcceleration)
+          // Feedforward Constants
+          .withFeedforward(
+              new ElevatorFeedforward(
+                  ClimbConstants.Real.ks, ClimbConstants.Real.kg, ClimbConstants.Real.kv))
+          .withSimFeedforward(
+              new ElevatorFeedforward(
+                  ClimbConstants.Sim.ks, ClimbConstants.Sim.kg, ClimbConstants.Sim.kv))
+          // Telemetry name and verbosity level
           .withTelemetry("ClimbRightMotor", TelemetryVerbosity.HIGH)
           .withGearing(ClimbConstants.gearRatio)
           .withMotorInverted(false)
           .withIdleMode(MotorMode.BRAKE)
-          .withStatorCurrentLimit(ClimbConstants.currentLimit);
+          .withStatorCurrentLimit(ClimbConstants.currentLimit)
+          .withClosedLoopRampRate(ClimbConstants.ClosedLoppRampRate)
+          .withOpenLoopRampRate(ClimbConstants.OpenLoppRampRate);
 
   private SparkMax m_left_motor = new SparkMax(SparkMaxCanIDs.ClimbLeftMotor, MotorType.kBrushless);
   private SparkMax m_right_motor =
@@ -81,6 +104,26 @@ public class Climb extends SubsystemBase {
 
   private SmartMotorController rightMotorController =
       new SparkWrapper(m_right_motor, DCMotor.getNEO(1), RightMotorConfig);
+
+  private ElevatorConfig leftElevatorConfig =
+      new ElevatorConfig(leftMotorController)
+          .withStartingHeight(ClimbConstants.RestDistance)
+          .withHardLimits(ClimbConstants.hardMinimum, ClimbConstants.hardMaximum)
+          .withTelemetry("Elevator", TelemetryVerbosity.HIGH)
+          .withMass(ClimbConstants.Weight);
+
+  // Elevator Mechanism
+  private Elevator leftElevator = new Elevator(leftElevatorConfig);
+
+  private ElevatorConfig rightElevatorConfig =
+      new ElevatorConfig(rightMotorController)
+          .withStartingHeight(ClimbConstants.RestDistance)
+          .withHardLimits(ClimbConstants.hardMinimum, ClimbConstants.hardMaximum)
+          .withTelemetry("Elevator", TelemetryVerbosity.HIGH)
+          .withMass(ClimbConstants.Weight);
+
+  // Elevator Mechanism
+  private Elevator rightElevator = new Elevator(rightElevatorConfig);
 
   /** Creates a new Climb. */
   public Climb() {}
@@ -166,8 +209,8 @@ public class Climb extends SubsystemBase {
   @Override
   public void periodic() {
     // This method will be called once per scheduler run
-    leftMotorController.setPosition(leftDistance);
-    rightMotorController.setPosition(rightDistance);
+    leftElevator.setHeight(leftDistance);
+    rightElevator.setHeight(rightDistance);
 
     // SmartDashboard.putNumber("Left Climb Distance Setpoint", leftDistance.in(Inches));
     // SmartDashboard.putNumber("Left Climb Distance Actual", getLeftHeight().in(Inches));
