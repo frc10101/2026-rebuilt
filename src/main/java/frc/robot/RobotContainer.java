@@ -8,8 +8,10 @@
 package frc.robot;
 
 import static edu.wpi.first.units.Units.Degrees;
+import static edu.wpi.first.units.Units.RPM;
 
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.auto.NamedCommands;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.GenericHID;
@@ -23,6 +25,7 @@ import frc.robot.commands.DriveCommands;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.Feeder;
 import frc.robot.subsystems.Intake;
+import frc.robot.subsystems.Launcher;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.GyroIO;
 import frc.robot.subsystems.drive.GyroIOPigeon2;
@@ -41,6 +44,7 @@ public class RobotContainer {
   // Subsystems
   private final Drive drive;
   private final Intake m_intake = new Intake();
+  private final Launcher m_launcher = new Launcher();
 
   // Controller
   private final CommandXboxController controller = new CommandXboxController(0);
@@ -117,6 +121,25 @@ public class RobotContainer {
         Column = new Feeder();
         break;
     }
+    // Intake Pivot
+    NamedCommands.registerCommand(
+        "IntakeDown", m_intake.setAngle(Constants.IntakeConstants.Pivot.softLimitOne));
+    NamedCommands.registerCommand(
+        "IntakeUp", m_intake.setAngle(Constants.IntakeConstants.Pivot.startingPosition));
+
+    // Intake Roller
+    NamedCommands.registerCommand("IntakeRollerIn", m_intake.intake());
+    NamedCommands.registerCommand("IntakeRollerOut", m_intake.outtake());
+    NamedCommands.registerCommand("IntakeRollerStop", m_intake.stopRoller());
+
+    // Feeder
+    NamedCommands.registerCommand("FeedIn", Column.IntakeFuel());
+    NamedCommands.registerCommand("FeedOut", Column.OuttakeFuel());
+    NamedCommands.registerCommand("FeedStop", Column.NoFuel());
+
+    // Launcher
+    NamedCommands.registerCommand("LauncherOn", m_launcher.setVelocity(RPM.of(3000)));
+    NamedCommands.registerCommand("LauncherOff", m_launcher.set(0));
 
     // Set up auto routines
     autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
