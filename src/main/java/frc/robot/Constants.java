@@ -57,8 +57,8 @@ public final class Constants {
     public static final int MOTOR_ID_FOLLOW = 21;
 
     // Closed-loop gains (real robot)
-    public static final double REAL_kP = 0.91;
-    public static final double REAL_kI = 0.1;
+    public static final double REAL_kP = 0.0; // 0.91
+    public static final double REAL_kI = 0.0; // 0.1
     public static final double REAL_kD = 0.0;
 
     // Closed-loop gains (sim)
@@ -69,7 +69,7 @@ public final class Constants {
     // Feedforward (ks, kv, ka) used by SimpleMotorFeedforward
     public static final double FFW_kS = 0.0;
     public static final double FFW_kV = 0.39;
-    public static final double FFW_kA = 0.58;
+    public static final double FFW_kA = 0.0; // 0.58
 
     // Motion constraints used in controllers (degrees/sec, degrees/sec^2)
     public static final double MAX_VELOCITY_DPS = 90.0;

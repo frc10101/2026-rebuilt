@@ -18,6 +18,7 @@ import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.MomentOfInertia;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.LauncherConstants;
@@ -37,6 +38,9 @@ import yams.motorcontrollers.remote.TalonFXWrapper;
  * <p>It may also be referred to as <i>Blinky</i>.
  */
 public class Launcher extends SubsystemBase {
+
+  private AngularVelocity TargetSpeed = RPM.zero();
+
   /** Creates a new Launcher. */
   private TalonFX FlywheelLead = new TalonFX(LauncherConstants.MOTOR_ID_LEAD);
 
@@ -104,6 +108,7 @@ public class Launcher extends SubsystemBase {
    * @return {@link edu.wpi.first.wpilibj2.command.RunCommand}
    */
   public Command setVelocity(AngularVelocity speed) {
+    TargetSpeed = speed;
     return Launcher.setSpeed(speed);
   }
 
@@ -123,6 +128,8 @@ public class Launcher extends SubsystemBase {
   public void periodic() {
     // This method will be called once per scheduler run
     Launcher.updateTelemetry();
+    SmartDashboard.putNumber("Flywheel Target Speed", TargetSpeed.baseUnitMagnitude());
+    SmartDashboard.putNumber("Flywheel Actual Speed", Launcher.getSpeed().baseUnitMagnitude());
   }
 
   @Override

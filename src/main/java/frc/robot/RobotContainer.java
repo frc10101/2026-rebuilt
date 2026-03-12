@@ -7,6 +7,8 @@
 
 package frc.robot;
 
+import static edu.wpi.first.units.Units.RPM;
+
 import com.pathplanner.lib.auto.AutoBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -223,7 +225,7 @@ public class RobotContainer {
 
     lbumper.whileTrue(Column.IntakeFuel().alongWith(BeltDexter.IntakeFuel()));
     triangle.whileTrue(Launcher.set(-0.6));
-    square.whileTrue(Launcher.set(-0.4));
+    square.whileTrue(Launcher.setVelocity(RPM.of(-1000)));
     rbumper.whileTrue(Column.OuttakeFuel());
     (lbumper.or(rbumper)).whileFalse(Column.NoFuel().alongWith(BeltDexter.NoFuel()));
     triangle.whileFalse(Launcher.set(0));
