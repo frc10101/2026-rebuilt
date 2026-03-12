@@ -247,8 +247,8 @@ public final class Constants {
     public static final Distance MechanismCircumference =
         Meters.of(Inches.of(0.25).in(Meters) * 22);
 
-    public static final Distance hardMinimum = Meters.of(0);
-    public static final Distance hardMaximum = Meters.of(1);
+    public static final Distance hardMinimum = Inches.of(0);
+    public static final Distance hardMaximum = Inches.of(9.75);
     public static final Mass Weight = Pounds.of(1.02757);
 
     public final class Real {
