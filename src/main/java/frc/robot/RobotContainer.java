@@ -47,7 +47,7 @@ public class RobotContainer {
   private final Feeder Column;
   private final Climb climb;
   private final Indexer BeltDexter;
-  private final Launcher Launcher;
+  private final Launcher launcher;
 
   // Controller
   private final CommandXboxController controller = new CommandXboxController(0);
