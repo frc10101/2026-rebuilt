@@ -7,8 +7,6 @@
 
 package frc.robot;
 
-import static edu.wpi.first.units.Units.Degrees;
-
 import com.pathplanner.lib.auto.AutoBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -45,11 +43,11 @@ import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 public class RobotContainer {
   // Subsystems
   private final Drive drive;
-  private final Intake m_intake = new Intake();
+  private final Intake m_intake;
   private final Feeder Column;
-  private final Indexer BeltDexter;
   private final Climb climb;
-  private final Launcher flywheel;
+  private final Indexer BeltDexter;
+  private final Launcher Launcher;
 
   // Controller
   private final CommandXboxController controller = new CommandXboxController(0);
@@ -156,8 +154,6 @@ public class RobotContainer {
 
     // Configure the button bindings
     configureButtonBindings();
-
-    m_intake.setDefaultCommand(m_intake.setAngle(Degrees.of(0)));
   }
 
   /**
@@ -167,6 +163,8 @@ public class RobotContainer {
    * edu.wpi.first.wpilibj2.command.button.JoystickButton}.
    */
   private void configureButtonBindings() {
+    // m_intake.setDefaultCommand(m_intake.setAngle(Degrees.of(90)));
+
     // Default command, normal field-relative drive
     drive.setDefaultCommand(
         DriveCommands.joystickDrive(
@@ -208,12 +206,12 @@ public class RobotContainer {
 
     // Intake Buttons
     // schedule setAngle when b is pressed, cancelling on release
-    intakeController.a().whileTrue(m_intake.setAngle(Degrees.of(-5)));
-    intakeController.b().whileTrue(m_intake.setAngle(Degrees.of(15)));
-    intakeController.x().whileTrue(m_intake.set(0.3));
-    intakeController.y().whileTrue(m_intake.set(-0.3));
-    intakeController.rightBumper().whileTrue(m_intake.intake());
-    intakeController.leftBumper().whileTrue(m_intake.outtake());
+    intakeController
+        .button(3)
+        .onTrue(((m_intake.setAngle(Constants.IntakeConstants.Pivot.stowedPosition))));
+    intakeController.button(2).onTrue(((m_intake.goToIntakePosition())));
+    // intakeController.rightBumper().whileTrue(m_intake.intake());
+    // intakeController.leftBumper().whileTrue(m_intake.outtake());
     // Reset gyro to 0° when B button is pressed
     o.onTrue(
         Commands.runOnce(
@@ -221,9 +219,13 @@ public class RobotContainer {
                 drive)
             .ignoringDisable(true));
 
-    lbumper.whileTrue(Column.IntakeFuel());
+    lbumper.whileTrue(Column.IntakeFuel().alongWith(BeltDexter.IntakeFuel()));
+    triangle.whileTrue(Launcher.set(-0.6));
+    square.whileTrue(Launcher.set(-0.4));
     rbumper.whileTrue(Column.OuttakeFuel());
-    (lbumper.or(rbumper)).whileFalse(Column.NoFuel());
+    (lbumper.or(rbumper)).whileFalse(Column.NoFuel().alongWith(BeltDexter.NoFuel()));
+    triangle.whileFalse(Launcher.set(0));
+    square.whileFalse(Launcher.set(0));
   }
 
   /**

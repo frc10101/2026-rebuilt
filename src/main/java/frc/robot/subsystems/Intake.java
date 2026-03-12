@@ -7,12 +7,11 @@ package frc.robot.subsystems;
 import static edu.wpi.first.units.Units.Degrees;
 
 import com.ctre.phoenix6.hardware.TalonFX;
-import com.revrobotics.spark.SparkLowLevel.MotorType;
-import com.revrobotics.spark.SparkMax;
 import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
@@ -25,7 +24,6 @@ import yams.motorcontrollers.SmartMotorControllerConfig;
 import yams.motorcontrollers.SmartMotorControllerConfig.ControlMode;
 import yams.motorcontrollers.SmartMotorControllerConfig.MotorMode;
 import yams.motorcontrollers.SmartMotorControllerConfig.TelemetryVerbosity;
-import yams.motorcontrollers.local.SparkWrapper;
 import yams.motorcontrollers.remote.TalonFXWrapper;
 
 /**
@@ -67,7 +65,7 @@ public class Intake extends SubsystemBase {
                   GearBox.fromReductionStages(Constants.IntakeConstants.Pivot.totalGear)))
           // Motor properties from tutorial to prevent over currenting
           .withMotorInverted(false)
-          .withIdleMode(MotorMode.BRAKE)
+          .withIdleMode(MotorMode.COAST)
           .withStatorCurrentLimit(Constants.IntakeConstants.Pivot.currentLimit)
           .withClosedLoopRampRate(Constants.IntakeConstants.Pivot.closedLoopRampRate)
           .withOpenLoopRampRate(Constants.IntakeConstants.Pivot.openLoopRampRate);
@@ -80,20 +78,20 @@ public class Intake extends SubsystemBase {
               new MechanismGearing(
                   GearBox.fromReductionStages(Constants.IntakeConstants.Roller.totalGear)))
           .withMotorInverted(false)
-          .withIdleMode(MotorMode.COAST)
+          .withIdleMode(MotorMode.BRAKE)
           .withStatorCurrentLimit(Constants.IntakeConstants.Roller.currentLimit)
           .withClosedLoopRampRate(Constants.IntakeConstants.Roller.closedLoopRampRate)
           .withOpenLoopRampRate(Constants.IntakeConstants.Roller.openLoopRampRate);
 
-  private TalonFX pivot = new TalonFX(Constants.IDs.intakePivotMotor);
-  private SparkMax roller = new SparkMax(Constants.IDs.intakeRollerMotor, MotorType.kBrushless);
+  private TalonFX pivot = new TalonFX(Constants.IntakeConstants.Pivot.intakePivotID);
+  private TalonFX roller = new TalonFX(Constants.IntakeConstants.Roller.rollerMotorID);
 
   // create the smartMotorController
   private SmartMotorController pivotController =
       new TalonFXWrapper(pivot, DCMotor.getKrakenX60(1), SmartPivotMotorConfig);
 
   private SmartMotorController rollerController =
-      new SparkWrapper(roller, DCMotor.getNEO(1), SmartRollerMotorConfig);
+      new TalonFXWrapper(roller, DCMotor.getKrakenX60(1), SmartRollerMotorConfig);
 
   private ArmConfig pivotConfig =
       new ArmConfig(pivotController)
@@ -119,6 +117,7 @@ public class Intake extends SubsystemBase {
    *
    * @param angle Angle to go to
    */
+  /** public Command setAngle(Angle angle) { return runOnce(() -> setAngle = angle); } */
   public Command setAngle(Angle angle) {
     return runOnce(() -> intakePivotAngle = angle);
   }
@@ -132,6 +131,10 @@ public class Intake extends SubsystemBase {
     return intakePivot.set(dutyCycle);
   }
 
+  public Command goToIntakePosition() {
+    return setAngle(Constants.IntakeConstants.Pivot.intakePosition).andThen(intakePivot.set(0.0));
+  }
+
   // Roller Commands
 
   /**
@@ -139,18 +142,18 @@ public class Intake extends SubsystemBase {
    *
    * @param dutyCycle Duty cycle to set (-1 to 1)
    */
-  public Command setRoller(double dutyCycle) {
-    return runEnd(() -> rollerController.setDutyCycle(dutyCycle), () -> rollerController.setDutyCycle(0));
+  public Command setRollerSpeed(AngularVelocity vel) {
+    return runEnd(() -> rollerController.setVelocity(vel), () -> rollerController.setDutyCycle(0));
   }
 
   /** Run the roller to intake game pieces */
   public Command intake() {
-    return runOnce(() -> rollerDutyCycle = Constants.IntakeConstants.Roller.intakeSpeed); 
+    return setRollerSpeed(Constants.IntakeConstants.Roller.intakeSpeed);
   }
 
   /** Run the roller to outtake game pieces */
   public Command outtake() {
-    return runOnce(() -> rollerDutyCycle = Constants.IntakeConstants.Roller.outtakeSpeed); 
+    return setRollerSpeed(Constants.IntakeConstants.Roller.outtakeSpeed);
   }
 
   /** Stop the roller */
@@ -191,6 +194,8 @@ public class Intake extends SubsystemBase {
 
     intakePivot.updateTelemetry();
     rollerController.updateTelemetry();
+    SmartDashboard.putNumber("Pivot Voltage", pivot.getMotorVoltage().getValueAsDouble());
+    SmartDashboard.putNumber("Pivot Position", pivot.getPosition().getValueAsDouble());
   }
 
   @Override

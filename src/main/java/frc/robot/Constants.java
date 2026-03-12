@@ -15,6 +15,7 @@ import static edu.wpi.first.units.Units.Feet;
 import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.Pounds;
+import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.Second;
 import static edu.wpi.first.units.Units.Seconds;
 import static edu.wpi.first.units.Units.Volts;
@@ -51,19 +52,14 @@ public final class Constants {
     REPLAY
   }
 
-  public final class IDs {
-    public static final int intakePivotMotor = 50;
-    public static final int intakeRollerMotor = 51;
-  }
-
   public static class LauncherConstants {
 
-    public static final int MOTOR_ID_LEAD = 13;
-    public static final int MOTOR_ID_FOLLOW = 9;
+    public static final int MOTOR_ID_LEAD = 20;
+    public static final int MOTOR_ID_FOLLOW = 21;
 
     // Closed-loop gains (real robot)
-    public static final double REAL_kP = 0.0;
-    public static final double REAL_kI = 0.0;
+    public static final double REAL_kP = 0.91;
+    public static final double REAL_kI = 0.1;
     public static final double REAL_kD = 0.0;
 
     // Closed-loop gains (sim)
@@ -106,11 +102,11 @@ public final class Constants {
   public final class IntakeConstants {
     public final class Pivot {
       public final class Real {
-        public static final double kp = 50.0;
+        public static final double kp = 100.0;
         public static final double ki = 0.0;
         public static final double kd = 0.0;
-        public static final AngularVelocity maxVelocity = DegreesPerSecond.of(90);
-        public static final AngularAcceleration maxAcceleration = DegreesPerSecondPerSecond.of(45);
+        public static final AngularVelocity maxVelocity = DegreesPerSecond.of(180);
+        public static final AngularAcceleration maxAcceleration = DegreesPerSecondPerSecond.of(360);
 
         public static final double ks = 0.0;
         public static final double kg = 0.0;
@@ -129,27 +125,31 @@ public final class Constants {
         public static final double kv = 0.1;
       }
 
+      public static final int intakePivotID = 22;
+
       // Gears
       // Write down gear stages from motor to output
       // Example: 3:1 stage followed by 4:1 stage -> gearStages = {3, 4}
       // If you gear up instead, use fractions like 1/3.0
-      public static final double[] gearStages = {3, 4};
+      public static final double[] gearStages = {60.0 / 8.0, 60.0 / 18.0, 30 / 15.0};
       public static final double totalGear =
           java.util.Arrays.stream(gearStages).reduce(1, (a, b) -> a * b);
 
       // Motor properties from tutorial to prevent over currenting
       public static final Current currentLimit = Amps.of(40);
-      public static final Time closedLoopRampRate = Seconds.of(0);
+      public static final Time closedLoopRampRate = Seconds.of(0.01);
       public static final Time openLoopRampRate = Seconds.of(0.25);
 
       // Pivot mechanism constraints
-      public static final Angle softLimitOne = Degrees.of(-20);
-      public static final Angle softLimitTwo = Degrees.of(10);
-      public static final Angle hardLimitOne = Degrees.of(-30);
-      public static final Angle hardLimitTwo = Degrees.of(40);
-      public static final Angle startingPosition = Degrees.of(-5);
-      public static final Distance armLength = Feet.of(3);
-      public static final Mass mass = Pounds.of(1);
+      public static final Angle softLimitOne = Degrees.of(-3);
+      public static final Angle softLimitTwo = Degrees.of(105);
+      public static final Angle hardLimitOne = Degrees.of(-5);
+      public static final Angle hardLimitTwo = Degrees.of(105);
+      public static final Angle startingPosition = Degrees.of(105);
+      public static final Angle stowedPosition = Degrees.of(105);
+      public static final Angle intakePosition = Degrees.of(0);
+      public static final Distance armLength = Feet.of(1);
+      public static final Mass mass = Pounds.of(8);
 
       // sys Id stuff
       public static final Voltage maxVoltage = Volts.of(7);
@@ -158,6 +158,7 @@ public final class Constants {
     }
 
     public final class Roller {
+      public static final int rollerMotorID = 13;
       public static final double rollerRatio = 1; // feet per second
       public static final double smartCurrentLimit = 50;
       public static final double kp = 0;
@@ -171,7 +172,7 @@ public final class Constants {
           java.util.Arrays.stream(gearStages).reduce(1, (a, b) -> a * b);
 
       public static final Current currentLimit = Amps.of(40);
-      public static final Time closedLoopRampRate = Seconds.of(0);
+      public static final Time closedLoopRampRate = Seconds.of(0.1);
       public static final Time openLoopRampRate = Seconds.of(0.25);
 
       // Roller speeds (duty cycle -1 to 1)
@@ -183,15 +184,15 @@ public final class Constants {
 
   public static final class SparkMaxCanIDs {
     /** Column Can ID */
-    public static final int ColumnMotor = 10;
+    public static final int ColumnMotor = 4;
 
     /** Climb Can IDs */
-    public static final int ClimbLeftMotor = 11;
+    public static final int ClimbLeftMotor = 18;
 
-    public static final int ClimbRightMotor = 12;
+    public static final int ClimbRightMotor = 8;
 
     /** BeltDexter Can ID */
-    public static final int BeltDexterMotor = 8;
+    public static final int BeltDexterMotor = 15;
   }
 
   public static final class ColumnConstants {
@@ -200,8 +201,8 @@ public final class Constants {
     /** Column Stall Current Limit */
     public static final Current currentLimit = Amps.of(60);
 
-    public static final double IntakeSpeed = 1.0;
-    public static final double OuttakeSpeed = -0.5;
+    public static final double IntakeSpeed = 0.3;
+    public static final double OuttakeSpeed = -0.3;
 
     public final class Real {
       public static final double kp = 50.0;
@@ -269,12 +270,12 @@ public final class Constants {
 
   public static final class BeltDexterConstants {
     /** Column Gear Ratio */
-    public static final int gearRatio = 1;
+    public static final int gearRatio = 2;
     /** Column Stall Current Limit */
     public static final Current currentLimit = Amps.of(60);
 
-    public static final double IntakeSpeed = 1.0;
-    public static final double OuttakeSpeed = -0.5;
+    public static final double IntakeSpeed = 0.3;
+    public static final double OuttakeSpeed = -0.3;
 
     public final class Real {
       public static final double kp = 50.0;
