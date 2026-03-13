@@ -232,17 +232,24 @@ public final class Constants {
 
   public static final class ClimbConstants {
     /** Column Gear Ratio */
-    public static final int gearRatio = 1;
+    public static final int gearRatio = 5;
     /** Column Stall Current Limit */
     public static final Current currentLimit = Amps.of(60);
 
-    public static final Distance PreHangExtension = Inches.of(0);
+    public static final Time ClosedLoppRampRate = Seconds.of(0.25);
+    public static final Time OpenLoppRampRate = Seconds.of(0.25);
+
+    public static final Distance PreHangExtension = Inches.of(9.5);
     public static final Distance HangDistance = Inches.of(0);
     public static final Distance ReleaseDistance = Inches.of(0);
     public static final Distance RestDistance = Inches.of(0);
 
     public static final Distance MechanismCircumference =
         Meters.of(Inches.of(0.25).in(Meters) * 22);
+
+    public static final Distance hardMinimum = Inches.of(0);
+    public static final Distance hardMaximum = Inches.of(9.75);
+    public static final Mass Weight = Pounds.of(1.02757);
 
     public final class Real {
       public static final double kp = 50.0;
