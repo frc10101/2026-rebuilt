@@ -9,6 +9,7 @@ import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
@@ -136,19 +137,18 @@ public class Intake extends SubsystemBase {
    *
    * @param dutyCycle Duty cycle to set (-1 to 1)
    */
-  public Command setRoller(double dutyCycle) {
-    return runEnd(
-        () -> rollerController.setDutyCycle(dutyCycle), () -> rollerController.setDutyCycle(0));
+  public Command setRollerSpeed(AngularVelocity vel) {
+    return runEnd(() -> rollerController.setVelocity(vel), () -> rollerController.setDutyCycle(0));
   }
 
   /** Run the roller to intake game pieces */
   public Command intake() {
-    return setRoller(Constants.IntakeConstants.Roller.intakeSpeed);
+    return setRollerSpeed(Constants.IntakeConstants.Roller.intakeSpeed);
   }
 
   /** Run the roller to outtake game pieces */
   public Command outtake() {
-    return setRoller(Constants.IntakeConstants.Roller.outtakeSpeed);
+    return setRollerSpeed(Constants.IntakeConstants.Roller.outtakeSpeed);
   }
 
   /** Stop the roller */
@@ -186,6 +186,8 @@ public class Intake extends SubsystemBase {
   public void periodic() {
     intakePivot.updateTelemetry();
     rollerController.updateTelemetry();
+    SmartDashboard.putNumber("Pivot Voltage", pivot.getMotorVoltage().getValueAsDouble());
+    SmartDashboard.putNumber("Pivot Position", pivot.getPosition().getValueAsDouble());
   }
 
   @Override
