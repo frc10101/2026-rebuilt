@@ -67,13 +67,13 @@ public final class Constants {
     public static final double SIM_kD = 0.0;
 
     // Feedforward (ks, kv, ka) used by SimpleMotorFeedforward
-    public static final double FFW_kS = 0.0;
-    public static final double FFW_kV = 0.39;
-    public static final double FFW_kA = 0.0; // 0.58
+    public static final double FFW_kS = 0.25264;
+    public static final double FFW_kV = 0.12113;
+    public static final double FFW_kA = 0.0093485;
 
     // Motion constraints used in controllers (degrees/sec, degrees/sec^2)
-    public static final double MAX_VELOCITY_DPS = 90.0;
-    public static final double MAX_ACCEL_DPS2 = 45.0;
+    public static final double MAX_VELOCITY_DPS = 180.0;
+    public static final double MAX_ACCEL_DPS2 = 180.0;
 
     // Telemetry names
     public static final String MOTOR_TELEMETRY_NAME = "LauncherMotor";

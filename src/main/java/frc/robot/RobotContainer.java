@@ -230,6 +230,14 @@ public class RobotContainer {
     (lbumper.or(rbumper)).whileFalse(Column.NoFuel().alongWith(BeltDexter.NoFuel()));
     triangle.whileFalse(Launcher.set(0));
     square.whileFalse(Launcher.set(0));
+
+    // Quasistatic tests
+    // triangle.whileTrue(Launcher.sysIdQuasistatic(SysIdRoutine.Direction.kForward));
+    // square.whileTrue(Launcher.sysIdQuasistatic(SysIdRoutine.Direction.kReverse));
+
+    // Dynamic tests
+    // x.whileTrue(Launcher.sysIdDynamic(SysIdRoutine.Direction.kForward));
+    // o.whileTrue(Launcher.sysIdDynamic(SysIdRoutine.Direction.kReverse));
   }
 
   /**
