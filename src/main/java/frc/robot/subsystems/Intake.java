@@ -156,6 +156,10 @@ public class Intake extends SubsystemBase {
     return runOnce(() -> rollerController.setDutyCycle(0));
   }
 
+  public Command setIntakeRollerDutyCycle(double speed) {
+    return runOnce(() -> rollerController.setDutyCycle(speed));
+  }
+
   /**
    * Get the current pivot angle
    *
