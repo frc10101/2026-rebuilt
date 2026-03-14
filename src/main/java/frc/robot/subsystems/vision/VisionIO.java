@@ -6,17 +6,30 @@ package frc.robot.subsystems.vision;
 
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import org.littletonrobotics.junction.AutoLog;
+import java.util.Optional;
+import org.littletonrobotics.junction.Logger;
 
 /** Add your docs here. */
 public interface VisionIO {
-  @AutoLog
+
   class VisionIOInputs {
     public boolean connected = false;
-    public TargetObservation latestTargetObservation =
-        new TargetObservation(new Rotation2d(), new Rotation2d());
+    public Optional<TargetObservation> latestTargetObservation = Optional.empty();
     public PoseObservation[] poseObservations = new PoseObservation[0];
     public int[] tagIds = new int[0];
+
+    void log() {
+      Logger.recordOutput("connected", connected);
+      Logger.recordOutput("connected", poseObservations);
+      Logger.recordOutput("connected", tagIds);
+
+      if (latestTargetObservation.isPresent()) {
+    Logger.recordOutput("latestTargetObservation", latestTargetObservation.get());
+} else {
+    // Log NaN (Not a Number) when the value is absent
+    Logger.recordOutput("MyOptionalData", Double.NaN); 
+}
+    }
   }
 
   /** Represents the angle to a simple target, not used for pose estimation. */

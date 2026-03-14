@@ -17,6 +17,7 @@ import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.subsystems.vision.VisionIO.PoseObservationType;
+import frc.robot.subsystems.vision.VisionIO.VisionIOInputs;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
@@ -25,7 +26,7 @@ import org.littletonrobotics.junction.Logger;
 public class Vision extends SubsystemBase {
   private final VisionConsumer consumer;
   private final VisionIO[] io;
-  private final VisionIOInputsAutoLogged[] inputs;
+  private final VisionIOInputs[] inputs;
   private final Alert[] disconnectedAlerts;
 
   public Vision(VisionConsumer consumer, VisionIO... io) {
@@ -33,9 +34,9 @@ public class Vision extends SubsystemBase {
     this.io = io;
 
     // Initialize inputs
-    this.inputs = new VisionIOInputsAutoLogged[io.length];
+    this.inputs = new VisionIOInputs[io.length];
     for (int i = 0; i < inputs.length; i++) {
-      inputs[i] = new VisionIOInputsAutoLogged();
+      inputs[i] = new VisionIOInputs();
     }
 
     // Initialize disconnected alerts
@@ -52,11 +53,15 @@ public class Vision extends SubsystemBase {
    *
    * @param cameraIndex The index of the camera to use.
    */
-  public Rotation2d getTargetX(int cameraIndex) {
+  public Optional<Rotation2d> getTargetX(int cameraIndex) {
     if (cameraIndex > 3 || cameraIndex < 0) {
-      return null;
+      return Optional.empty();
     }
-    return inputs[cameraIndex].latestTargetObservation.tx();
+    var observation = inputs[cameraIndex].latestTargetObservation;
+    if (observation.isEmpty()) {
+      return Optional.empty();
+    }
+    return Optional.of(observation.get().tx());
   }
 
   public double getFiducialID(int cameraIndex) {
@@ -149,7 +154,7 @@ public class Vision extends SubsystemBase {
     for (int i = 0; i < io.length; i++) {
       io[i].updateInputs(inputs[i]);
       String path = "Vision/Camera" + Integer.toString(i);
-      Logger.processInputs(path, inputs[i]);
+      inputs[i].log();
     }
 
     // Initialize logging values
