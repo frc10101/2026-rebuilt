@@ -23,12 +23,7 @@ public interface VisionIO {
       Logger.recordOutput("poseObservations", poseObservations);
       Logger.recordOutput("tagIds", tagIds);
 
-      if (latestTargetObservation.isPresent()) {
-        Logger.recordOutput("latestTargetObservation", latestTargetObservation.get());
-      } else {
-        // Log NaN (Not a Number) when the value is absent
-        Logger.recordOutput("latestTargetObservation", Double.NaN);
-      }
+      Logger.recordOutput("latestTargetObservation", latestTargetObservation.isPresent() ? latestTargetObservation.get() : new TargetObservation(new Rotation2d(Double.MAX_VALUE),new Rotation2d(Double.MAX_VALUE)));
     }
   }
 
