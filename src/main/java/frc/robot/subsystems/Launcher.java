@@ -5,14 +5,13 @@
 package frc.robot.subsystems;
 
 import static edu.wpi.first.units.Units.Amps;
-import static edu.wpi.first.units.Units.DegreesPerSecond;
-import static edu.wpi.first.units.Units.DegreesPerSecondPerSecond;
 import static edu.wpi.first.units.Units.Grams;
 import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.KilogramSquareMeters;
 import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.Rotations;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
+import static edu.wpi.first.units.Units.Second;
 import static edu.wpi.first.units.Units.Seconds;
 import static edu.wpi.first.units.Units.Volts;
 
@@ -63,14 +62,14 @@ public class Launcher extends SubsystemBase {
               LauncherConstants.REAL_kP,
               LauncherConstants.REAL_kI,
               LauncherConstants.REAL_kD,
-              DegreesPerSecond.of(LauncherConstants.MAX_VELOCITY_DPS),
-              DegreesPerSecondPerSecond.of(LauncherConstants.MAX_ACCEL_DPS2))
+              RPM.of(LauncherConstants.MAX_VELOCITY_RPM),
+              RPM.per(Second).of(LauncherConstants.MAX_ACCEL_RPMPerS))
           .withSimClosedLoopController(
               LauncherConstants.SIM_kP,
               LauncherConstants.SIM_kI,
               LauncherConstants.SIM_kD,
-              DegreesPerSecond.of(LauncherConstants.MAX_VELOCITY_DPS),
-              DegreesPerSecondPerSecond.of(LauncherConstants.MAX_ACCEL_DPS2))
+              RPM.of(LauncherConstants.MAX_VELOCITY_RPM),
+              RPM.per(Second).of(LauncherConstants.MAX_ACCEL_RPMPerS))
           // Feedforward Constants
           .withFeedforward(
               new SimpleMotorFeedforward(

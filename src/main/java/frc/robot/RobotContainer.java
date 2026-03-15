@@ -175,9 +175,18 @@ public class RobotContainer {
         "Drive SysId (Dynamic Forward)", drive.sysIdDynamic(SysIdRoutine.Direction.kForward));
     autoChooser.addOption(
         "Drive SysId (Dynamic Reverse)", drive.sysIdDynamic(SysIdRoutine.Direction.kReverse));
+    // autoChooser.addOption("AUTOTEST", );
 
     // Configure the button bindings
+
     configureButtonBindings();
+
+    // launcherDutyCycleButton.whileTrue(m_intake.sysIdQuasistatic(SysIdRoutine.Direction.kForward));
+    // launcherVelocityButton.whileTrue(m_intake.sysIdQuasistatic(SysIdRoutine.Direction.kReverse));
+
+    // // Dynamic tests
+    // alignToZeroButton.whileTrue(m_intake.sysIdDynamic(SysIdRoutine.Direction.kForward));
+    // resetIMUButton.whileTrue(m_intake.sysIdDynamic(SysIdRoutine.Direction.kReverse));
   }
 
   /**
@@ -224,15 +233,16 @@ public class RobotContainer {
 
     beltIntakeButton.whileTrue(Column.IntakeFuel().alongWith(BeltDexter.IntakeFuel()));
     launcherDutyCycleButton.whileTrue(Launcher.set(-0.6));
-    launcherVelocityButton.whileTrue(Launcher.setVelocity(RPM.of(-1000)));
+    launcherVelocityButton.whileTrue(Launcher.setVelocity(RPM.of(-4000)));
     beltOuttakeButton.whileTrue(Column.OuttakeFuel());
     (beltIntakeButton.or(beltOuttakeButton))
         .whileFalse(Column.NoFuel().alongWith(BeltDexter.NoFuel()));
     launcherDutyCycleButton.whileFalse(Launcher.set(0));
     launcherVelocityButton.whileFalse(Launcher.set(0));
 
-    intakeFuelButton.whileTrue(m_intake.setIntakeRollerDutyCycle(-0.7));
-    intakeFuelButton.whileFalse(m_intake.setIntakeRollerDutyCycle(0));
+    // intakeFuelButton.whileTrue(m_intake.setIntakeRollerDutyCycle(-0.7));
+    intakeFuelButton.whileTrue(m_intake.intake());
+    intakeFuelButton.whileFalse(m_intake.stopRoller());
 
     // Quasistatic tests
     // triangle.whileTrue(Launcher.sysIdQuasistatic(SysIdRoutine.Direction.kForward));

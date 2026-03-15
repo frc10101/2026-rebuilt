@@ -4,14 +4,27 @@
 
 package frc.robot.subsystems;
 
+import static edu.wpi.first.units.Units.RPM;
+import static edu.wpi.first.units.Units.Rotations;
+import static edu.wpi.first.units.Units.RotationsPerSecond;
+import static edu.wpi.first.units.Units.Seconds;
+import static edu.wpi.first.units.Units.Volts;
+
 import com.ctre.phoenix6.hardware.TalonFX;
 import edu.wpi.first.math.controller.ArmFeedforward;
+import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.MutAngle;
+import edu.wpi.first.units.measure.MutAngularVelocity;
+import edu.wpi.first.units.measure.MutVoltage;
+import edu.wpi.first.units.measure.Voltage;
+import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants;
 import yams.gearing.GearBox;
 import yams.gearing.MechanismGearing;
@@ -75,6 +88,11 @@ public class Intake extends SubsystemBase {
           .withGearing(
               new MechanismGearing(
                   GearBox.fromReductionStages(Constants.IntakeConstants.Roller.totalGear)))
+          .withFeedforward(
+              new SimpleMotorFeedforward(
+                  Constants.IntakeConstants.Roller.kS,
+                  Constants.IntakeConstants.Roller.kV,
+                  Constants.IntakeConstants.Roller.kA))
           .withMotorInverted(false)
           .withIdleMode(MotorMode.BRAKE)
           .withStatorCurrentLimit(Constants.IntakeConstants.Roller.currentLimit)
@@ -105,6 +123,10 @@ public class Intake extends SubsystemBase {
           .withTelemetry("IntakePivot", TelemetryVerbosity.HIGH);
 
   private Arm intakePivot = new Arm(pivotConfig);
+
+  private final MutVoltage m_appliedVoltage = new MutVoltage(0, 0, Volts);
+  private final MutAngle m_position = new MutAngle(0, 0, Rotations);
+  private final MutAngularVelocity m_velocity = new MutAngularVelocity(0, 0, RotationsPerSecond);
 
   // Commands
   /**
@@ -138,7 +160,7 @@ public class Intake extends SubsystemBase {
    * @param dutyCycle Duty cycle to set (-1 to 1)
    */
   public Command setRollerSpeed(AngularVelocity vel) {
-    return runEnd(() -> rollerController.setVelocity(vel), () -> rollerController.setDutyCycle(0));
+    return runOnce(() -> rollerController.setVelocity(vel));
   }
 
   /** Run the roller to intake game pieces */
@@ -153,7 +175,7 @@ public class Intake extends SubsystemBase {
 
   /** Stop the roller */
   public Command stopRoller() {
-    return runOnce(() -> rollerController.setDutyCycle(0));
+    return runOnce(() -> rollerController.setVelocity(RPM.of(0)));
   }
 
   public Command setIntakeRollerDutyCycle(double speed) {
@@ -198,5 +220,49 @@ public class Intake extends SubsystemBase {
   public void simulationPeriodic() {
     intakePivot.simIterate();
     rollerController.simIterate();
+  }
+
+  private final SysIdRoutine sysIdRoutine =
+      new SysIdRoutine(
+          // Config: ramp rate, step voltage, timeout
+          new SysIdRoutine.Config(
+              Volts.of(1).per(Seconds), // Quasistatic ramp rate (1 V/s)
+              Volts.of(4), // Dynamic step voltage
+              Seconds.of(10) // Timeout
+              ),
+          new SysIdRoutine.Mechanism(
+              // Drive callback - convert voltage to duty cycle
+              // Using duty cycle instead of the motor controller's voltage control
+              // bypasses the internal closed-loop controller, resulting in cleaner data
+              (Voltage voltage) ->
+                  rollerController.setDutyCycle(
+                      voltage.in(Volts) / RobotController.getBatteryVoltage()),
+              // Log callback - records position, velocity, and voltage
+              // updateTelemetry() and simIterate() ensure sensor data is fresh at logging time
+              log -> {
+                rollerController.updateTelemetry();
+                rollerController.simIterate();
+                log.motor("motor")
+                    .voltage(
+                        m_appliedVoltage.mut_replace(
+                            rollerController.getDutyCycle() * RobotController.getBatteryVoltage(),
+                            Volts))
+                    .angularPosition(
+                        m_position.mut_replace(rollerController.getMechanismPosition()))
+                    .angularVelocity(
+                        m_velocity.mut_replace(rollerController.getMechanismVelocity()));
+              },
+              this, // Subsystem for requirements
+              "MyMechanism" // Name for logging
+              ));
+
+  /** Returns the quasistatic test command. */
+  public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {
+    return sysIdRoutine.quasistatic(direction);
+  }
+
+  /** Returns the dynamic test command. */
+  public Command sysIdDynamic(SysIdRoutine.Direction direction) {
+    return sysIdRoutine.dynamic(direction);
   }
 }
