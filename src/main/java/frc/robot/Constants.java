@@ -58,8 +58,8 @@ public final class Constants {
     public static final int MOTOR_ID_FOLLOW = 21;
 
     // Closed-loop gains (real robot)
-    public static final double REAL_kP = 0.91;
-    public static final double REAL_kI = 0.1;
+    public static final double REAL_kP = 0.0; // 0.91
+    public static final double REAL_kI = 0.0; // 0.1
     public static final double REAL_kD = 0.0;
 
     // Closed-loop gains (sim)
@@ -68,13 +68,13 @@ public final class Constants {
     public static final double SIM_kD = 0.0;
 
     // Feedforward (ks, kv, ka) used by SimpleMotorFeedforward
-    public static final double FFW_kS = 0.0;
-    public static final double FFW_kV = 0.39;
-    public static final double FFW_kA = 0.58;
+    public static final double FFW_kS = 0.25264;
+    public static final double FFW_kV = 0.12113;
+    public static final double FFW_kA = 0.0093485;
 
-    // Motion constraints used in controllers (degrees/sec, degrees/sec^2)
-    public static final double MAX_VELOCITY_DPS = 90.0;
-    public static final double MAX_ACCEL_DPS2 = 45.0;
+    // Motion constraints used in controllers (RPM, RPM/sec)
+    public static final double MAX_VELOCITY_RPM = 60.0;
+    public static final double MAX_ACCEL_RPMPerS = 1800.0;
 
     // Telemetry names
     public static final String MOTOR_TELEMETRY_NAME = "LauncherMotor";
@@ -164,7 +164,9 @@ public final class Constants {
       public static final double kp = 0;
       public static final double ki = 0;
       public static final double kd = 0;
-      public static final double FF = 1.0 / 5767;
+      public static final double kS = 0.26651;
+      public static final double kV = 0.12215;
+      public static final double kA = 0.003861;
       public static final AngularVelocity maxVelocity = DegreesPerSecond.of(90);
       public static final AngularAcceleration maxAcceleration = DegreesPerSecondPerSecond.of(45);
       public static final double[] gearStages = {1};
@@ -178,7 +180,7 @@ public final class Constants {
       // Roller speeds (duty cycle -1 to 1)
       // public static final double intakeSpeed = 0.65;
       // public static final double outtakeSpeed = 0.3;
-      public static final AngularVelocity intakeSpeed = RPM.of(1000);
+      public static final AngularVelocity intakeSpeed = RPM.of(-4500);
       public static final AngularVelocity outtakeSpeed = RPM.of(500);
     }
   }

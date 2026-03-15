@@ -7,6 +7,8 @@
 
 package frc.robot;
 
+import static edu.wpi.first.units.Units.RPM;
+
 import com.pathplanner.lib.auto.AutoBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -49,16 +51,36 @@ public class RobotContainer {
   // private final Climb climb;
 
   // Controller
-  private final CommandXboxController controller = new CommandXboxController(0);
-  private final CommandXboxController intakeController = new CommandXboxController(1);
+  private final CommandXboxController driverOneController = new CommandXboxController(0);
+  private final CommandXboxController driverTwoController = new CommandXboxController(1);
 
   // Buttons tehe
-  private final Trigger x = controller.button(1);
-  private final Trigger o = controller.button(2);
-  private final Trigger square = controller.button(3);
-  private final Trigger triangle = controller.button(4);
-  private final Trigger lbumper = controller.button(5);
-  private final Trigger rbumper = controller.button(6);
+  // Driver One A Button
+  private final Trigger alignToZeroButton = driverOneController.button(1);
+
+  // Driver One B Button
+  private final Trigger resetIMUButton = driverOneController.button(2);
+
+  // Driver One X Button
+  private final Trigger launcherVelocityButton = driverOneController.button(3);
+
+  // Driver One Y Button
+  private final Trigger launcherDutyCycleButton = driverOneController.button(4);
+
+  // Driver One Left Bumper
+  private final Trigger beltIntakeButton = driverOneController.button(5);
+
+  // Driver One Right Bumper
+  private final Trigger beltOuttakeButton = driverOneController.button(6);
+
+  // Driver Two B Button
+  private final Trigger lowerIntakeButton = driverTwoController.button(2);
+
+  // Driver Two X Button
+  private final Trigger stowIntakeButton = driverTwoController.button(3);
+
+  // Driver Two Left Trigger
+  private final Trigger intakeFuelButton = driverTwoController.axisGreaterThan(2, 0.3);
 
   // Dashboard inputs
   private final LoggedDashboardChooser<Command> autoChooser;
@@ -153,9 +175,18 @@ public class RobotContainer {
         "Drive SysId (Dynamic Forward)", drive.sysIdDynamic(SysIdRoutine.Direction.kForward));
     autoChooser.addOption(
         "Drive SysId (Dynamic Reverse)", drive.sysIdDynamic(SysIdRoutine.Direction.kReverse));
+    // autoChooser.addOption("AUTOTEST", );
 
     // Configure the button bindings
+
     configureButtonBindings();
+
+    // launcherDutyCycleButton.whileTrue(m_intake.sysIdQuasistatic(SysIdRoutine.Direction.kForward));
+    // launcherVelocityButton.whileTrue(m_intake.sysIdQuasistatic(SysIdRoutine.Direction.kReverse));
+
+    // // Dynamic tests
+    // alignToZeroButton.whileTrue(m_intake.sysIdDynamic(SysIdRoutine.Direction.kForward));
+    // resetIMUButton.whileTrue(m_intake.sysIdDynamic(SysIdRoutine.Direction.kReverse));
   }
 
   /**
@@ -171,63 +202,55 @@ public class RobotContainer {
     drive.setDefaultCommand(
         DriveCommands.joystickDrive(
             drive,
-            () -> -controller.getRawAxis(1),
-            () -> -controller.getRawAxis(0),
-            () -> -controller.getRawAxis(4)));
+            () -> -driverOneController.getRawAxis(1),
+            () -> -driverOneController.getRawAxis(0),
+            () -> -driverOneController.getRawAxis(4)));
 
     // Lock to 0 degrees when A button is held
-    controller
-        .a()
-        .whileTrue(
-            DriveCommands.joystickDriveAtAngle(
-                drive,
-                () -> -controller.getLeftY(),
-                () -> -controller.getLeftX(),
-                () -> Rotation2d.kZero));
-    // Lock to 0° when A button is held
-    x.whileTrue(
+    alignToZeroButton.whileTrue(
         DriveCommands.joystickDriveAtAngle(
             drive,
-            () -> -controller.getRawAxis(1),
-            () -> -controller.getRawAxis(0),
+            () -> -driverOneController.getLeftY(),
+            () -> -driverOneController.getLeftX(),
             () -> Rotation2d.kZero));
 
     // Switch to X pattern when X button is pressed
-    square.onTrue(Commands.runOnce(drive::stopWithX, drive));
-
-    // Reset gyro to 0 degrees when B button is pressed
-    controller
-        .b()
-        .onTrue(
-            Commands.runOnce(
-                    () ->
-                        drive.setPose(
-                            new Pose2d(drive.getPose().getTranslation(), Rotation2d.kZero)),
-                    drive)
-                .ignoringDisable(true));
+    // square.onTrue(Commands.runOnce(drive::stopWithX, drive));
 
     // Intake Buttons
     // schedule setAngle when b is pressed, cancelling on release
-    intakeController
-        .button(3)
-        .onTrue(((m_intake.setAngle(Constants.IntakeConstants.Pivot.stowedPosition))));
-    intakeController.button(2).onTrue(((m_intake.goToIntakePosition())));
+    stowIntakeButton.onTrue(((m_intake.setAngle(Constants.IntakeConstants.Pivot.stowedPosition))));
+
+    lowerIntakeButton.onTrue(((m_intake.goToIntakePosition())));
     // intakeController.rightBumper().whileTrue(m_intake.intake());
     // intakeController.leftBumper().whileTrue(m_intake.outtake());
     // Reset gyro to 0° when B button is pressed
-    o.onTrue(
+    resetIMUButton.onTrue(
         Commands.runOnce(
                 () -> drive.setPose(new Pose2d(drive.getPose().getTranslation(), Rotation2d.kZero)),
                 drive)
             .ignoringDisable(true));
 
-    lbumper.whileTrue(Column.IntakeFuel().alongWith(BeltDexter.IntakeFuel()));
-    triangle.whileTrue(Launcher.set(-0.6));
-    square.whileTrue(Launcher.set(-0.4));
-    rbumper.whileTrue(Column.OuttakeFuel());
-    (lbumper.or(rbumper)).whileFalse(Column.NoFuel().alongWith(BeltDexter.NoFuel()));
-    triangle.whileFalse(Launcher.set(0));
-    square.whileFalse(Launcher.set(0));
+    beltIntakeButton.whileTrue(Column.IntakeFuel().alongWith(BeltDexter.IntakeFuel()));
+    launcherDutyCycleButton.whileTrue(Launcher.set(-0.6));
+    launcherVelocityButton.whileTrue(Launcher.setVelocity(RPM.of(-4000)));
+    beltOuttakeButton.whileTrue(Column.OuttakeFuel());
+    (beltIntakeButton.or(beltOuttakeButton))
+        .whileFalse(Column.NoFuel().alongWith(BeltDexter.NoFuel()));
+    launcherDutyCycleButton.whileFalse(Launcher.set(0));
+    launcherVelocityButton.whileFalse(Launcher.set(0));
+
+    // intakeFuelButton.whileTrue(m_intake.setIntakeRollerDutyCycle(-0.7));
+    intakeFuelButton.whileTrue(m_intake.intake());
+    intakeFuelButton.whileFalse(m_intake.stopRoller());
+
+    // Quasistatic tests
+    // triangle.whileTrue(Launcher.sysIdQuasistatic(SysIdRoutine.Direction.kForward));
+    // square.whileTrue(Launcher.sysIdQuasistatic(SysIdRoutine.Direction.kReverse));
+
+    // Dynamic tests
+    // x.whileTrue(Launcher.sysIdDynamic(SysIdRoutine.Direction.kForward));
+    // o.whileTrue(Launcher.sysIdDynamic(SysIdRoutine.Direction.kReverse));
   }
 
   /**

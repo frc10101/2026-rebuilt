@@ -5,12 +5,15 @@
 package frc.robot.subsystems;
 
 import static edu.wpi.first.units.Units.Amps;
-import static edu.wpi.first.units.Units.DegreesPerSecond;
-import static edu.wpi.first.units.Units.DegreesPerSecondPerSecond;
 import static edu.wpi.first.units.Units.Grams;
 import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.KilogramSquareMeters;
 import static edu.wpi.first.units.Units.RPM;
+import static edu.wpi.first.units.Units.Rotations;
+import static edu.wpi.first.units.Units.RotationsPerSecond;
+import static edu.wpi.first.units.Units.Second;
+import static edu.wpi.first.units.Units.Seconds;
+import static edu.wpi.first.units.Units.Volts;
 
 import com.ctre.phoenix6.hardware.TalonFX;
 import edu.wpi.first.math.Pair;
@@ -18,8 +21,15 @@ import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.MomentOfInertia;
+import edu.wpi.first.units.measure.MutAngle;
+import edu.wpi.first.units.measure.MutAngularVelocity;
+import edu.wpi.first.units.measure.MutVoltage;
+import edu.wpi.first.units.measure.Voltage;
+import edu.wpi.first.wpilibj.RobotController;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants.LauncherConstants;
 import yams.gearing.MechanismGearing;
 import yams.mechanisms.config.FlyWheelConfig;
@@ -37,6 +47,9 @@ import yams.motorcontrollers.remote.TalonFXWrapper;
  * <p>It may also be referred to as <i>Blinky</i>.
  */
 public class Launcher extends SubsystemBase {
+
+  private AngularVelocity TargetSpeed = RPM.zero();
+
   /** Creates a new Launcher. */
   private TalonFX FlywheelLead = new TalonFX(LauncherConstants.MOTOR_ID_LEAD);
 
@@ -49,14 +62,14 @@ public class Launcher extends SubsystemBase {
               LauncherConstants.REAL_kP,
               LauncherConstants.REAL_kI,
               LauncherConstants.REAL_kD,
-              DegreesPerSecond.of(LauncherConstants.MAX_VELOCITY_DPS),
-              DegreesPerSecondPerSecond.of(LauncherConstants.MAX_ACCEL_DPS2))
+              RPM.of(LauncherConstants.MAX_VELOCITY_RPM),
+              RPM.per(Second).of(LauncherConstants.MAX_ACCEL_RPMPerS))
           .withSimClosedLoopController(
               LauncherConstants.SIM_kP,
               LauncherConstants.SIM_kI,
               LauncherConstants.SIM_kD,
-              DegreesPerSecond.of(LauncherConstants.MAX_VELOCITY_DPS),
-              DegreesPerSecondPerSecond.of(LauncherConstants.MAX_ACCEL_DPS2))
+              RPM.of(LauncherConstants.MAX_VELOCITY_RPM),
+              RPM.per(Second).of(LauncherConstants.MAX_ACCEL_RPMPerS))
           // Feedforward Constants
           .withFeedforward(
               new SimpleMotorFeedforward(
@@ -88,6 +101,10 @@ public class Launcher extends SubsystemBase {
 
   private FlyWheel Launcher = new FlyWheel(LauncherConfig);
 
+  private final MutVoltage m_appliedVoltage = new MutVoltage(0, 0, Volts);
+  private final MutAngle m_position = new MutAngle(0, 0, Rotations);
+  private final MutAngularVelocity m_velocity = new MutAngularVelocity(0, 0, RotationsPerSecond);
+
   /**
    * Gets the current velocity of the shooter.
    *
@@ -104,6 +121,7 @@ public class Launcher extends SubsystemBase {
    * @return {@link edu.wpi.first.wpilibj2.command.RunCommand}
    */
   public Command setVelocity(AngularVelocity speed) {
+    TargetSpeed = speed;
     return Launcher.setSpeed(speed);
   }
 
@@ -122,12 +140,57 @@ public class Launcher extends SubsystemBase {
   @Override
   public void periodic() {
     // This method will be called once per scheduler run
-    Launcher.updateTelemetry();
+    // Launcher.updateTelemetry();
+    SmartDashboard.putNumber("Flywheel Target Speed", TargetSpeed.baseUnitMagnitude());
+    SmartDashboard.putNumber("Flywheel Actual Speed", Launcher.getSpeed().baseUnitMagnitude());
   }
 
   @Override
   public void simulationPeriodic() {
     // This method will be called once per scheduler run during simulation
-    Launcher.simIterate();
+    // Launcher.simIterate();
+  }
+
+  // Create the SysIdRoutine
+  private final SysIdRoutine sysIdRoutine =
+      new SysIdRoutine(
+          // Config: ramp rate, step voltage, timeout
+          new SysIdRoutine.Config(
+              Volts.of(1).per(Seconds), // Quasistatic ramp rate (1 V/s)
+              Volts.of(4), // Dynamic step voltage
+              Seconds.of(10) // Timeout
+              ),
+          new SysIdRoutine.Mechanism(
+              // Drive callback - convert voltage to duty cycle
+              // Using duty cycle instead of the motor controller's voltage control
+              // bypasses the internal closed-loop controller, resulting in cleaner data
+              (Voltage voltage) ->
+                  shooterMotors.setDutyCycle(
+                      voltage.in(Volts) / RobotController.getBatteryVoltage()),
+              // Log callback - records position, velocity, and voltage
+              // updateTelemetry() and simIterate() ensure sensor data is fresh at logging time
+              log -> {
+                shooterMotors.updateTelemetry();
+                shooterMotors.simIterate();
+                log.motor("motor")
+                    .voltage(
+                        m_appliedVoltage.mut_replace(
+                            shooterMotors.getDutyCycle() * RobotController.getBatteryVoltage(),
+                            Volts))
+                    .angularPosition(m_position.mut_replace(shooterMotors.getMechanismPosition()))
+                    .angularVelocity(m_velocity.mut_replace(shooterMotors.getMechanismVelocity()));
+              },
+              this, // Subsystem for requirements
+              "MyMechanism" // Name for logging
+              ));
+
+  /** Returns the quasistatic test command. */
+  public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {
+    return sysIdRoutine.quasistatic(direction);
+  }
+
+  /** Returns the dynamic test command. */
+  public Command sysIdDynamic(SysIdRoutine.Direction direction) {
+    return sysIdRoutine.dynamic(direction);
   }
 }
