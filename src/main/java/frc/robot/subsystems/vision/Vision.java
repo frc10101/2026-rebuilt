@@ -66,7 +66,8 @@ public class Vision extends SubsystemBase {
 
   public double getFiducialID(int cameraIndex) {
     if (cameraIndex > 3 || cameraIndex < 0) {
-      return 0;
+      System.out.println("No Camera");
+      return -1;
     }
     // Check if there are any pose observations available
     if (inputs[cameraIndex].poseObservations.length == 0) {
@@ -138,9 +139,11 @@ public class Vision extends SubsystemBase {
     double ty = robotPoseInTagSpace.getY(); // Translation Y (meters)
     double tz = robotPoseInTagSpace.getZ(); // Translation Z (meters)
 
-    double pitch = Math.toDegrees(robotPoseInTagSpace.getRotation().getX()); // Pitch (degrees)
-    double yaw = Math.toDegrees(robotPoseInTagSpace.getRotation().getY()); // Yaw (degrees)
-    double roll = Math.toDegrees(robotPoseInTagSpace.getRotation().getZ()); // Roll (degrees)
+    var rotation = robotPoseInTagSpace.getRotation();
+
+    double pitch = Math.toDegrees(rotation.getX()); // Pitch (degrees)
+    double yaw = Math.toDegrees(rotation.getY()); // Yaw (degrees)
+    double roll = Math.toDegrees(rotation.getZ()); // Roll (degrees)
 
     Optional<double[]> RightTag = Optional.of(new double[] {tx, ty, tz, pitch, yaw, roll});
 

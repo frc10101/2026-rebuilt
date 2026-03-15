@@ -158,11 +158,8 @@ public class VisionIOPhotonVision implements VisionIO {
       }
     }
 
-    // Save pose observations to inputs object
-    inputs.poseObservations = new PoseObservation[poseObservations.size()];
-    for (int i = 0; i < poseObservations.size(); i++) {
-      inputs.poseObservations[i] = poseObservations.get(i);
-    }
+    // Save pose observations to inputs object (clones the array)
+      inputs.poseObservations = poseObservations.toArray(new PoseObservation[0]);
 
     // Save tag IDs to inputs objects
     inputs.tagIds = new int[tagIds.size()];

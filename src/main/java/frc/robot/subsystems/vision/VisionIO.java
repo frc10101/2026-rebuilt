@@ -20,14 +20,14 @@ public interface VisionIO {
 
     void log() {
       Logger.recordOutput("connected", connected);
-      Logger.recordOutput("connected", poseObservations);
-      Logger.recordOutput("connected", tagIds);
+      Logger.recordOutput("poseObservations", poseObservations);
+      Logger.recordOutput("tagIds", tagIds);
 
       if (latestTargetObservation.isPresent()) {
         Logger.recordOutput("latestTargetObservation", latestTargetObservation.get());
       } else {
         // Log NaN (Not a Number) when the value is absent
-        Logger.recordOutput("MyOptionalData", Double.NaN);
+        Logger.recordOutput("latestTargetObservation", Double.NaN);
       }
     }
   }
