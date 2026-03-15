@@ -32,6 +32,9 @@ import frc.robot.subsystems.drive.GyroIOPigeon2;
 import frc.robot.subsystems.drive.ModuleIO;
 import frc.robot.subsystems.drive.ModuleIOSim;
 import frc.robot.subsystems.drive.ModuleIOTalonFX;
+import frc.robot.subsystems.vision.Vision;
+import frc.robot.subsystems.vision.VisionIOPhotonVision;
+import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 /**
@@ -43,12 +46,12 @@ import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 public class RobotContainer {
   // Subsystems
   private final Drive drive;
+  private final Vision vision;
+  private final Launcher launcher;
   private final Intake m_intake;
   private final Feeder Column;
-  private final Climb climb;
   private final Indexer BeltDexter;
-  private final Launcher Launcher;
-  // private final Climb climb;
+  private final Climb climb;
 
   // Controller
   private final CommandXboxController driverOneController = new CommandXboxController(0);
@@ -120,7 +123,8 @@ public class RobotContainer {
         Column = new Feeder();
         BeltDexter = new Indexer();
         climb = new Climb();
-        Launcher = new Launcher();
+        launcher = new Launcher();
+        vision = new Vision(drive::addVisionMeasurement, VisionIOPhotonVision.createAllCameras());
         m_intake = new Intake();
         break;
 
@@ -136,8 +140,12 @@ public class RobotContainer {
         Column = new Feeder();
         BeltDexter = new Indexer();
         climb = new Climb();
+        launcher = new Launcher();
+        vision =
+            new Vision(
+                drive::addVisionMeasurement,
+                VisionIOPhotonVisionSim.createAllSimCameras(drive::getPose));
         m_intake = new Intake();
-        Launcher = new Launcher();
         break;
 
       default:
@@ -152,7 +160,8 @@ public class RobotContainer {
         Column = new Feeder();
         BeltDexter = new Indexer();
         climb = new Climb();
-        Launcher = new Launcher();
+        launcher = new Launcher();
+        vision = new Vision(drive::addVisionMeasurement);
         m_intake = new Intake();
         break;
     }
@@ -232,13 +241,13 @@ public class RobotContainer {
             .ignoringDisable(true));
 
     beltIntakeButton.whileTrue(Column.IntakeFuel().alongWith(BeltDexter.IntakeFuel()));
-    launcherDutyCycleButton.whileTrue(Launcher.set(-0.6));
-    launcherVelocityButton.whileTrue(Launcher.setVelocity(RPM.of(-4000)));
+    launcherDutyCycleButton.whileTrue(launcher.set(-0.6));
+    launcherVelocityButton.whileTrue(launcher.setVelocity(RPM.of(-4000)));
     beltOuttakeButton.whileTrue(Column.OuttakeFuel());
     (beltIntakeButton.or(beltOuttakeButton))
         .whileFalse(Column.NoFuel().alongWith(BeltDexter.NoFuel()));
-    launcherDutyCycleButton.whileFalse(Launcher.set(0));
-    launcherVelocityButton.whileFalse(Launcher.set(0));
+    launcherDutyCycleButton.whileFalse(launcher.set(0));
+    launcherVelocityButton.whileFalse(launcher.set(0));
 
     // intakeFuelButton.whileTrue(m_intake.setIntakeRollerDutyCycle(-0.7));
     intakeFuelButton.whileTrue(m_intake.intake());

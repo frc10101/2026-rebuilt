@@ -20,6 +20,11 @@ import static edu.wpi.first.units.Units.Second;
 import static edu.wpi.first.units.Units.Seconds;
 import static edu.wpi.first.units.Units.Volts;
 
+import edu.wpi.first.apriltag.AprilTagFieldLayout;
+import edu.wpi.first.apriltag.AprilTagFields;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.units.VoltageUnit;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularAcceleration;
@@ -310,5 +315,73 @@ public final class Constants {
       public static final double kg = 0.0;
       public static final double kv = 0.0;
     }
+  }
+
+  public static final class VisionConstants {
+    // AprilTag layout
+    public static final AprilTagFieldLayout aprilTagLayout =
+        AprilTagFieldLayout.loadField(AprilTagFields.kDefaultField);
+
+    // Camera names, must match names configured on coprocessor
+    public static final String camera0Name = "cherry";
+    public static final String camera1Name = "orange";
+    public static final String camera2Name = "grape";
+    public static final String camera3Name = "strawberry";
+
+    // Robot to camera transforms
+    // (Not used by Limelight, configure in web UI instead)
+    public static final Transform3d robotToCamera0 =
+        new Transform3d(
+            Inches.of(12.25),
+            Inches.of(12.504),
+            Inches.of(13.5),
+            new Rotation3d(Degrees.of(0), Degrees.of(0), Degrees.of(0)));
+    public static final Transform3d robotToCamera1 =
+        new Transform3d(
+            Inches.of(12.25),
+            Inches.of(-12.504),
+            Inches.of(13.5),
+            new Rotation3d(Degrees.of(0), Degrees.of(0), Degrees.of(0)));
+    public static final Transform3d robotToCamera2 =
+        new Transform3d(
+            Inches.of(-8.425),
+            Inches.of(11),
+            Inches.of(7.495),
+            new Rotation3d(Degrees.of(0), Degrees.of(0), Degrees.of(180)));
+    public static final Transform3d robotToCamera3 =
+        new Transform3d(
+            Inches.of(-8.425),
+            Inches.of(-11),
+            Inches.of(7.495),
+            new Rotation3d(Degrees.of(0), Degrees.of(0), Degrees.of(180)));
+
+    // SIM Camera Constants
+    public static final int resWidth = 1280;
+    public static final int resHeight = 800;
+    public static final Rotation2d fovDiag = Rotation2d.fromDegrees(92.4);
+
+    // Basic filtering thresholds
+    public static final double maxAmbiguity = 0.3;
+    public static final double maxZError = 0.75;
+
+    // Standard deviation baselines, for 1 meter distance and 1 tag
+    // (Adjusted automatically based on distance and # of tags)
+    public static final double linearStdDevBaseline = 0.02; // Meters
+    public static final double angularStdDevBaseline = 0.06; // Radians
+
+    // Standard deviation multipliers for each camera
+    // (Adjust to trust some cameras more than others)
+    public static final double[] cameraStdDevFactors =
+        new double[] {
+          1.0, // Camera 0
+          1.0, // Camera 1
+          1.0, // Camera 2
+          1.0 // Camera 3
+        };
+
+    // Multipliers to apply for MegaTag 2 observations
+    public static final double linearStdDevMegatag2Factor = 0.5; // More stable than full 3D solve
+    public static final double angularStdDevMegatag2Factor =
+        Double.POSITIVE_INFINITY; // No rotation data available
   }
 }
