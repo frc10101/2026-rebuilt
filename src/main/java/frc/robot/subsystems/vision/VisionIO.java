@@ -24,11 +24,11 @@ public interface VisionIO {
       Logger.recordOutput("connected", tagIds);
 
       if (latestTargetObservation.isPresent()) {
-    Logger.recordOutput("latestTargetObservation", latestTargetObservation.get());
-} else {
-    // Log NaN (Not a Number) when the value is absent
-    Logger.recordOutput("MyOptionalData", Double.NaN); 
-}
+        Logger.recordOutput("latestTargetObservation", latestTargetObservation.get());
+      } else {
+        // Log NaN (Not a Number) when the value is absent
+        Logger.recordOutput("MyOptionalData", Double.NaN);
+      }
     }
   }
 
