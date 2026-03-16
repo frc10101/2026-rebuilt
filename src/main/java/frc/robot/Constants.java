@@ -104,7 +104,7 @@ public final class Constants {
     public static final double SOFT_LIMIT_RPM = 5000.0;
   }
 
-  public final class IntakeConstants {
+  public static final class IntakeConstants {
     public final class Pivot {
       public final class Real {
         public static final double kp = 100.0;
@@ -152,7 +152,8 @@ public final class Constants {
       public static final Angle hardLimitTwo = Degrees.of(105);
       public static final Angle startingPosition = Degrees.of(105);
       public static final Angle stowedPosition = Degrees.of(105);
-      public static final Angle intakePosition = Degrees.of(0);
+      public static final Angle intakePosition = Degrees.of(5);
+      public static final Angle jitterPosition = Degrees.of(30);
       public static final Distance armLength = Feet.of(1);
       public static final Mass mass = Pounds.of(8);
 
@@ -203,43 +204,9 @@ public final class Constants {
     public static final int BeltDexterMotor = 15;
   }
 
-  public static final class ColumnConstants {
-    /** Column Gear Ratio */
-    public static final int gearRatio = 1;
-    /** Column Stall Current Limit */
-    public static final Current currentLimit = Amps.of(60);
-
-    public static final double IntakeSpeed = 0.3;
-    public static final double OuttakeSpeed = -0.3;
-
-    public final class Real {
-      public static final double kp = 50.0;
-      public static final double ki = 0.0;
-      public static final double kd = 0.0;
-      public static final AngularVelocity maxVelocity = DegreesPerSecond.of(90);
-      public static final AngularAcceleration maxAcceleration = DegreesPerSecondPerSecond.of(45);
-
-      public static final double ks = 0.0;
-      public static final double kg = 0.0;
-      public static final double kv = 0.0;
-    }
-
-    public final class Sim {
-      public static final double kp = 50.0;
-      public static final double ki = 0.0;
-      public static final double kd = 0.0;
-      public static final AngularVelocity maxVelocity = DegreesPerSecond.of(90);
-      public static final AngularAcceleration maxAcceleration = DegreesPerSecondPerSecond.of(45);
-
-      public static final double ks = 0.0;
-      public static final double kg = 0.0;
-      public static final double kv = 0.0;
-    }
-  }
-
   public static final class ClimbConstants {
     /** Column Gear Ratio */
-    public static final int gearRatio = 5;
+    public static final int gearRatio = 25;
     /** Column Stall Current Limit */
     public static final Current currentLimit = Amps.of(60);
 
@@ -248,7 +215,7 @@ public final class Constants {
 
     public static final Distance PreHangExtension = Inches.of(9.5);
     public static final Distance HangDistance = Inches.of(0);
-    public static final Distance ReleaseDistance = Inches.of(0);
+    public static final Distance ReleaseDistance = Inches.of(9.5);
     public static final Distance RestDistance = Inches.of(0);
 
     public static final Distance MechanismCircumference =
@@ -271,6 +238,41 @@ public final class Constants {
     }
 
     public final class Sim {
+      public static final double kp = 10.0; // 0.1
+      public static final double ki = 0.0;
+      public static final double kd = 0.0;
+      public static final AngularVelocity maxVelocity = DegreesPerSecond.of(90);
+      public static final AngularAcceleration maxAcceleration = DegreesPerSecondPerSecond.of(45);
+
+      public static final double ks = 0.0;
+      public static final double kg = 0.8;
+      public static final double kv = 0.0;
+    }
+  }
+
+  public static final class BeltDexterConstants {
+    /** Column Gear Ratio */
+    public static final int gearRatio = 1;
+    /** Column Stall Current Limit */
+    public static final Current currentLimit = Amps.of(60);
+
+    public static final AngularVelocity IntakeSpeed = RPM.of(2500);
+    public static final AngularVelocity OuttakeSpeed = RPM.of(-2500);
+
+    public final class Real {
+      public static final double kp = 50.0;
+      public static final double ki = 0.0;
+      public static final double kd = 0.0;
+      public static final AngularVelocity maxVelocity = DegreesPerSecond.of(90);
+      public static final AngularAcceleration maxAcceleration = DegreesPerSecondPerSecond.of(45);
+
+      // feedforward
+      public static final double ks = 0.25264;
+      public static final double ka = 0.0093485;
+      public static final double kv = 0.12113;
+    }
+
+    public final class Sim {
       public static final double kp = 50.0;
       public static final double ki = 0.0;
       public static final double kd = 0.0;
@@ -278,12 +280,12 @@ public final class Constants {
       public static final AngularAcceleration maxAcceleration = DegreesPerSecondPerSecond.of(45);
 
       public static final double ks = 0.0;
-      public static final double kg = 0.0;
+      public static final double ka = 0.0;
       public static final double kv = 0.0;
     }
   }
 
-  public static final class BeltDexterConstants {
+  public static final class ColumnConstants {
     /** Column Gear Ratio */
     public static final int gearRatio = 2;
     /** Column Stall Current Limit */
@@ -299,8 +301,9 @@ public final class Constants {
       public static final AngularVelocity maxVelocity = DegreesPerSecond.of(90);
       public static final AngularAcceleration maxAcceleration = DegreesPerSecondPerSecond.of(45);
 
+      // Feedforward
       public static final double ks = 0.0;
-      public static final double kg = 0.0;
+      public static final double ka = 0.0;
       public static final double kv = 0.0;
     }
 
@@ -312,7 +315,7 @@ public final class Constants {
       public static final AngularAcceleration maxAcceleration = DegreesPerSecondPerSecond.of(45);
 
       public static final double ks = 0.0;
-      public static final double kg = 0.0;
+      public static final double ka = 0.0;
       public static final double kv = 0.0;
     }
   }

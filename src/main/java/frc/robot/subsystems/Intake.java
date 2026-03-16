@@ -4,6 +4,7 @@
 
 package frc.robot.subsystems;
 
+import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.Rotations;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
@@ -95,7 +96,7 @@ public class Intake extends SubsystemBase {
                   Constants.IntakeConstants.Roller.kA))
           .withMotorInverted(false)
           .withIdleMode(MotorMode.BRAKE)
-          .withStatorCurrentLimit(Constants.IntakeConstants.Roller.currentLimit)
+          .withSupplyCurrentLimit(Constants.IntakeConstants.Roller.currentLimit)
           .withClosedLoopRampRate(Constants.IntakeConstants.Roller.closedLoopRampRate)
           .withOpenLoopRampRate(Constants.IntakeConstants.Roller.openLoopRampRate);
 
@@ -149,15 +150,25 @@ public class Intake extends SubsystemBase {
   }
 
   public Command goToIntakePosition() {
-    return setAngle(Constants.IntakeConstants.Pivot.intakePosition).andThen(intakePivot.set(0.0));
+    return setAngle(Constants.IntakeConstants.Pivot.intakePosition);
+  }
+
+  public Command jitterIntake() {
+    return setAngle(Constants.IntakeConstants.Pivot.jitterPosition)
+        .withTimeout(0.5)
+        .andThen(setAngle(Constants.IntakeConstants.Pivot.intakePosition).withTimeout(0.1));
+  }
+
+  public Command zeroPivot() {
+    return runOnce(() -> pivotController.setEncoderPosition(Degrees.of(0)));
   }
 
   // Roller Commands
 
   /**
-   * Set the roller to a specific duty cycle
+   * Set the roller to a specific Velocity
    *
-   * @param dutyCycle Duty cycle to set (-1 to 1)
+   * @param vel Velocity to set
    */
   public Command setRollerSpeed(AngularVelocity vel) {
     return runOnce(() -> rollerController.setVelocity(vel));
@@ -200,6 +211,17 @@ public class Intake extends SubsystemBase {
     return rollerController.getMechanismVelocity();
   }
 
+  public Command toggleIntake() {
+    return runOnce(
+        () -> {
+          if (getRollerVelocity().abs(RPM) > 0) {
+            rollerController.setVelocity(RPM.of(0));
+          } else {
+            rollerController.setVelocity(Constants.IntakeConstants.Roller.intakeSpeed);
+          }
+        });
+  }
+
   public void close() {
     pivot.close();
     roller.close();
@@ -214,6 +236,8 @@ public class Intake extends SubsystemBase {
     rollerController.updateTelemetry();
     SmartDashboard.putNumber("Pivot Voltage", pivot.getMotorVoltage().getValueAsDouble());
     SmartDashboard.putNumber("Pivot Position", pivot.getPosition().getValueAsDouble());
+
+    SmartDashboard.putNumber("Roller Speed", getRollerVelocity().baseUnitMagnitude());
   }
 
   @Override

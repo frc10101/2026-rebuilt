@@ -29,6 +29,7 @@ import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants.LauncherConstants;
 import yams.gearing.MechanismGearing;
@@ -84,7 +85,7 @@ public class Launcher extends SubsystemBase {
           .withMotorInverted(LauncherConstants.MOTOR_INVERTED)
           .withIdleMode(MotorMode.COAST)
           .withFollowers(Pair.of(FlywheelFollow, LauncherConstants.FOLLOWER_INVERTED))
-          .withStatorCurrentLimit(Amps.of(LauncherConstants.STATOR_CURRENT_LIMIT_AMPS));
+          .withSupplyCurrentLimit(Amps.of(LauncherConstants.STATOR_CURRENT_LIMIT_AMPS));
 
   private SmartMotorController shooterMotors =
       new TalonFXWrapper(
@@ -135,6 +136,10 @@ public class Launcher extends SubsystemBase {
     return Launcher.set(dutyCycle);
   }
 
+  public Trigger isAtSpeed() {
+    return new Trigger(() -> TargetSpeed == Launcher.getSpeed());
+  }
+
   public Launcher() {}
 
   @Override
@@ -143,6 +148,7 @@ public class Launcher extends SubsystemBase {
     // Launcher.updateTelemetry();
     SmartDashboard.putNumber("Flywheel Target Speed", TargetSpeed.baseUnitMagnitude());
     SmartDashboard.putNumber("Flywheel Actual Speed", Launcher.getSpeed().baseUnitMagnitude());
+    SmartDashboard.putBoolean("Flywheel at Speed", TargetSpeed == Launcher.getSpeed());
   }
 
   @Override

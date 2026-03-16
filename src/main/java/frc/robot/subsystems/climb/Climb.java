@@ -4,15 +4,18 @@
 
 package frc.robot.subsystems.climb;
 
+import static edu.wpi.first.units.Units.Inches;
+import static edu.wpi.first.units.Units.Rotations;
+
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
 import edu.wpi.first.math.controller.ElevatorFeedforward;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.Distance;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.ClimbConstants;
-import frc.robot.Constants.SparkMaxCanIDs;
 import yams.mechanisms.config.ElevatorConfig;
 import yams.mechanisms.positional.Elevator;
 import yams.motorcontrollers.SmartMotorController;
@@ -28,205 +31,134 @@ import yams.motorcontrollers.local.SparkWrapper;
  * <p>It may also be referred to as <i>Level Up</i>.
  */
 public class Climb extends SubsystemBase {
-  private Distance leftDistance = ClimbConstants.RestDistance;
-  private Distance rightDistance = ClimbConstants.RestDistance;
+  private Distance distance = ClimbConstants.RestDistance;
+  private boolean working = false;
+  private final String name;
 
-  private SmartMotorControllerConfig LeftMotorConfig =
-      new SmartMotorControllerConfig(this)
-          .withControlMode(ControlMode.CLOSED_LOOP)
-          .withMechanismCircumference(ClimbConstants.MechanismCircumference)
-          .withClosedLoopController(
-              ClimbConstants.Real.kp,
-              ClimbConstants.Real.ki,
-              ClimbConstants.Real.kd,
-              ClimbConstants.Real.maxVelocity,
-              ClimbConstants.Real.maxAcceleration)
-          .withSimClosedLoopController(
-              ClimbConstants.Sim.kp,
-              ClimbConstants.Sim.ki,
-              ClimbConstants.Sim.kd,
-              ClimbConstants.Sim.maxVelocity,
-              ClimbConstants.Sim.maxAcceleration)
-          // Feedforward Constants
-          .withFeedforward(
-              new ElevatorFeedforward(
-                  ClimbConstants.Real.ks, ClimbConstants.Real.kg, ClimbConstants.Real.kv))
-          .withSimFeedforward(
-              new ElevatorFeedforward(
-                  ClimbConstants.Sim.ks, ClimbConstants.Sim.kg, ClimbConstants.Sim.kv))
-          // Telemetry name and verbosity level
-          .withTelemetry("ClimbLeftMotor", TelemetryVerbosity.HIGH)
-          .withGearing(ClimbConstants.gearRatio)
-          .withMotorInverted(false)
-          .withIdleMode(MotorMode.BRAKE)
-          .withStatorCurrentLimit(ClimbConstants.currentLimit)
-          .withClosedLoopRampRate(ClimbConstants.ClosedLoppRampRate)
-          .withOpenLoopRampRate(ClimbConstants.OpenLoppRampRate);
-
-  private SmartMotorControllerConfig RightMotorConfig =
-      new SmartMotorControllerConfig(this)
-          .withControlMode(ControlMode.CLOSED_LOOP)
-          .withMechanismCircumference(ClimbConstants.MechanismCircumference)
-          .withClosedLoopController(
-              ClimbConstants.Real.kp,
-              ClimbConstants.Real.ki,
-              ClimbConstants.Real.kd,
-              ClimbConstants.Real.maxVelocity,
-              ClimbConstants.Real.maxAcceleration)
-          .withSimClosedLoopController(
-              ClimbConstants.Sim.kp,
-              ClimbConstants.Sim.ki,
-              ClimbConstants.Sim.kd,
-              ClimbConstants.Sim.maxVelocity,
-              ClimbConstants.Sim.maxAcceleration)
-          // Feedforward Constants
-          .withFeedforward(
-              new ElevatorFeedforward(
-                  ClimbConstants.Real.ks, ClimbConstants.Real.kg, ClimbConstants.Real.kv))
-          .withSimFeedforward(
-              new ElevatorFeedforward(
-                  ClimbConstants.Sim.ks, ClimbConstants.Sim.kg, ClimbConstants.Sim.kv))
-          // Telemetry name and verbosity level
-          .withTelemetry("ClimbRightMotor", TelemetryVerbosity.HIGH)
-          .withGearing(ClimbConstants.gearRatio)
-          .withMotorInverted(false)
-          .withIdleMode(MotorMode.BRAKE)
-          .withStatorCurrentLimit(ClimbConstants.currentLimit)
-          .withClosedLoopRampRate(ClimbConstants.ClosedLoppRampRate)
-          .withOpenLoopRampRate(ClimbConstants.OpenLoppRampRate);
-
-  private SparkMax m_left_motor = new SparkMax(SparkMaxCanIDs.ClimbLeftMotor, MotorType.kBrushless);
-  private SparkMax m_right_motor =
-      new SparkMax(SparkMaxCanIDs.ClimbRightMotor, MotorType.kBrushless);
-
-  private SmartMotorController leftMotorController =
-      new SparkWrapper(m_left_motor, DCMotor.getNEO(1), LeftMotorConfig);
-
-  private SmartMotorController rightMotorController =
-      new SparkWrapper(m_right_motor, DCMotor.getNEO(1), RightMotorConfig);
-
-  private ElevatorConfig leftElevatorConfig =
-      new ElevatorConfig(leftMotorController)
-          .withStartingHeight(ClimbConstants.RestDistance)
-          .withHardLimits(ClimbConstants.hardMinimum, ClimbConstants.hardMaximum)
-          .withTelemetry("Elevator", TelemetryVerbosity.HIGH)
-          .withMass(ClimbConstants.Weight);
+  private final SmartMotorControllerConfig motorConfig;
+  private final SparkMax motor;
+  private final SmartMotorController motorController;
+  private final ElevatorConfig elevatorConfig;
 
   // Elevator Mechanism
-  private Elevator leftElevator = new Elevator(leftElevatorConfig);
-
-  private ElevatorConfig rightElevatorConfig =
-      new ElevatorConfig(rightMotorController)
-          .withStartingHeight(ClimbConstants.RestDistance)
-          .withHardLimits(ClimbConstants.hardMinimum, ClimbConstants.hardMaximum)
-          .withTelemetry("Elevator", TelemetryVerbosity.HIGH)
-          .withMass(ClimbConstants.Weight);
-
-  // Elevator Mechanism
-  private Elevator rightElevator = new Elevator(rightElevatorConfig);
+  private final Elevator elevator;
 
   /** Creates a new Climb. */
-  public Climb() {}
+  public Climb(String telemetryName, int canID) {
+    name = telemetryName;
+
+    motorConfig =
+        new SmartMotorControllerConfig(this)
+            .withControlMode(ControlMode.CLOSED_LOOP)
+            .withMechanismCircumference(ClimbConstants.MechanismCircumference)
+            .withClosedLoopController(
+                ClimbConstants.Real.kp,
+                ClimbConstants.Real.ki,
+                ClimbConstants.Real.kd,
+                ClimbConstants.Real.maxVelocity,
+                ClimbConstants.Real.maxAcceleration)
+            .withSimClosedLoopController(
+                ClimbConstants.Sim.kp,
+                ClimbConstants.Sim.ki,
+                ClimbConstants.Sim.kd,
+                ClimbConstants.Sim.maxVelocity,
+                ClimbConstants.Sim.maxAcceleration)
+            // Feedforward Constants
+            .withFeedforward(
+                new ElevatorFeedforward(
+                    ClimbConstants.Real.ks, ClimbConstants.Real.kg, ClimbConstants.Real.kv))
+            .withSimFeedforward(
+                new ElevatorFeedforward(
+                    ClimbConstants.Sim.ks, ClimbConstants.Sim.kg, ClimbConstants.Sim.kv))
+            // Telemetry name and verbosity level
+            .withTelemetry(telemetryName + " telemetry", TelemetryVerbosity.HIGH)
+            .withGearing(ClimbConstants.gearRatio)
+            .withMotorInverted(false)
+            .withIdleMode(MotorMode.BRAKE)
+            .withStatorCurrentLimit(ClimbConstants.currentLimit)
+            .withClosedLoopRampRate(ClimbConstants.ClosedLoppRampRate)
+            .withOpenLoopRampRate(ClimbConstants.OpenLoppRampRate);
+
+    motor = new SparkMax(canID, MotorType.kBrushless);
+
+    motorController = new SparkWrapper(motor, DCMotor.getNEO(1), motorConfig);
+
+    elevatorConfig =
+        new ElevatorConfig(motorController)
+            .withStartingHeight(ClimbConstants.RestDistance)
+            .withHardLimits(ClimbConstants.hardMinimum, ClimbConstants.hardMaximum)
+            .withTelemetry(telemetryName + " elevator", TelemetryVerbosity.HIGH)
+            .withMass(ClimbConstants.Weight);
+
+    elevator = new Elevator(elevatorConfig);
+  }
+
+  /** Brings climb arm(s) to height specified for prepping hang */
+  public Command GoToPreHangHeight() {
+    working = true;
+    distance = ClimbConstants.PreHangExtension;
+    return runOnce(() -> elevator.setHeight(ClimbConstants.PreHangExtension));
+  }
+
+  /** Brings climb arm(s) to height specified for clamping */
+  public Command GoToHangHeight() {
+    working = true;
+    distance = ClimbConstants.HangDistance;
+    return runOnce(() -> elevator.setHeight(ClimbConstants.HangDistance));
+  }
+
+  /** Brings climb arm(s) to height specified for releasing from hang */
+  public Command GoToReleaseHeight() {
+    working = true;
+    distance = ClimbConstants.ReleaseDistance;
+    return runOnce(() -> elevator.setHeight(ClimbConstants.ReleaseDistance));
+  }
+
+  /** Brings climb arm(s) to height specified for resting */
+  public Command GoToRestHeight() {
+    working = true;
+    distance = ClimbConstants.RestDistance;
+    return runOnce(() -> elevator.setHeight(ClimbConstants.RestDistance));
+  }
+
+  public Command GoToHeight(Distance height) {
+    working = true;
+    distance = height;
+    return run(() -> elevator.setHeight(height));
+  }
 
   /**
-   * Brings climb arm(s) to height specified for prepping hang
+   * Get the current height of the climb arm
    *
-   * @param climbType Arms to move (LEFT, RIGHT, BOTH)
+   * @return The current height of the climb arm
    */
-  public Command GoToPreHangHeight(ClimbType climbType) {
+  public Distance getHeight() {
+    return motorController.getMeasurementPosition();
+  }
+
+  public Command zeroClimb() {
     return runOnce(
         () -> {
-          if (climbType == ClimbType.LEFT || climbType == ClimbType.BOTH)
-            leftDistance = ClimbConstants.PreHangExtension;
-          if (climbType == ClimbType.RIGHT || climbType == ClimbType.BOTH)
-            rightDistance = ClimbConstants.PreHangExtension;
+          motorController.setEncoderPosition(Rotations.of(0));
         });
   }
 
-  /**
-   * Brings climb arm(s) to height specified for clamping
-   *
-   * @param climbType Arms to move (LEFT, RIGHT, BOTH)
-   */
-  public Command GoToHangHeight(ClimbType climbType) {
-    return runOnce(
-        () -> {
-          if (climbType == ClimbType.LEFT || climbType == ClimbType.BOTH)
-            leftDistance = ClimbConstants.HangDistance;
-          if (climbType == ClimbType.RIGHT || climbType == ClimbType.BOTH)
-            rightDistance = ClimbConstants.HangDistance;
-        });
-  }
-
-  /**
-   * Brings climb arm(s) to height specified for releasing from hang
-   *
-   * @param climbType Arms to move (LEFT, RIGHT, BOTH)
-   */
-  public Command GoToReleaseHeight(ClimbType climbType) {
-    return runOnce(
-        () -> {
-          if (climbType == ClimbType.LEFT || climbType == ClimbType.BOTH)
-            leftDistance = ClimbConstants.ReleaseDistance;
-          if (climbType == ClimbType.RIGHT || climbType == ClimbType.BOTH)
-            rightDistance = ClimbConstants.ReleaseDistance;
-        });
-  }
-
-  /**
-   * Brings climb arm(s) to height specified for resting
-   *
-   * @param climbType Arms to move (LEFT, RIGHT, BOTH)
-   */
-  public Command GoToRestHeight(ClimbType climbType) {
-    return runOnce(
-        () -> {
-          if (climbType == ClimbType.LEFT || climbType == ClimbType.BOTH)
-            leftDistance = ClimbConstants.RestDistance;
-          if (climbType == ClimbType.RIGHT || climbType == ClimbType.BOTH)
-            rightDistance = ClimbConstants.RestDistance;
-        });
-  }
-
-  /**
-   * Get the current height of left climb arm
-   *
-   * @return The current height of left climb arm
-   */
-  public Distance getLeftHeight() {
-    return leftMotorController.getMeasurementPosition();
-  }
-
-  /**
-   * Get the current height of right climb arm
-   *
-   * @return The current height of right climb arm
-   */
-  public Distance getRightHeight() {
-    return rightMotorController.getMeasurementPosition();
+  public void close() {
+    motor.close();
   }
 
   @Override
   public void periodic() {
     // This method will be called once per scheduler run
-    leftElevator.setHeight(leftDistance);
-    rightElevator.setHeight(rightDistance);
+    SmartDashboard.putNumber(" Climb Distance Setpoint", distance.in(Inches));
+    SmartDashboard.putNumber(" Climb Distance Actual", getHeight().in(Inches));
 
-    // SmartDashboard.putNumber("Left Climb Distance Setpoint", leftDistance.in(Inches));
-    // SmartDashboard.putNumber("Left Climb Distance Actual", getLeftHeight().in(Inches));
-
-    leftMotorController.updateTelemetry();
-    rightMotorController.updateTelemetry();
-  }
-
-  public void close() {
-    m_left_motor.close();
-    m_right_motor.close();
+    motorController.updateTelemetry();
   }
 
   @Override
   public void simulationPeriodic() {
-    leftMotorController.simIterate();
-    rightMotorController.simIterate();
+    SmartDashboard.putBoolean("Is it working?", working);
+    motorController.simIterate();
   }
 }

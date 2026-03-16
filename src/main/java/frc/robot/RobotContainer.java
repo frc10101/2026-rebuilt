@@ -13,6 +13,7 @@ import com.pathplanner.lib.auto.AutoBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.GenericHID;
+import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -51,30 +52,32 @@ public class RobotContainer {
   private final Intake m_intake;
   private final Feeder Column;
   private final Indexer BeltDexter;
-  private final Climb climb;
+  private final Climb leftClimb;
+  private final Climb rightClimb;
 
   // Controller
   private final CommandXboxController driverOneController = new CommandXboxController(0);
   private final CommandXboxController driverTwoController = new CommandXboxController(1);
+  private final CommandXboxController testController = new CommandXboxController(2);
 
   // Buttons tehe
   // Driver One A Button
   private final Trigger alignToZeroButton = driverOneController.button(1);
 
-  // Driver One B Button
-  private final Trigger resetIMUButton = driverOneController.button(2);
+  // Driver One Options Button
+  private final Trigger resetIMUButton = driverOneController.button(8);
 
   // Driver One X Button
-  private final Trigger launcherVelocityButton = driverOneController.button(3);
+  private final Trigger xOutButton = driverOneController.button(3);
 
-  // Driver One Y Button
-  private final Trigger launcherDutyCycleButton = driverOneController.button(4);
+  // Driver Two Right Trigger Button
+  private final Trigger launcherVelocityButton = driverTwoController.axisGreaterThan(3, 0.3);
 
-  // Driver One Left Bumper
-  private final Trigger beltIntakeButton = driverOneController.button(5);
+  // Driver Twp Left Bumper
+  private final Trigger beltIntakeButton = driverTwoController.button(5);
 
-  // Driver One Right Bumper
-  private final Trigger beltOuttakeButton = driverOneController.button(6);
+  // Driver Two Right Bumper
+  private final Trigger beltOuttakeButton = driverTwoController.button(6);
 
   // Driver Two B Button
   private final Trigger lowerIntakeButton = driverTwoController.button(2);
@@ -82,8 +85,17 @@ public class RobotContainer {
   // Driver Two X Button
   private final Trigger stowIntakeButton = driverTwoController.button(3);
 
+  // Driver Two Y Button
+  private final Trigger jitterIntakeButton = driverTwoController.button(4);
+
   // Driver Two Left Trigger
   private final Trigger intakeFuelButton = driverTwoController.axisGreaterThan(2, 0.3);
+
+  // Driver Two Dpad Up
+  private final Trigger climbUp = driverTwoController.pov(0);
+
+  // Driver Two Dpad Down
+  private final Trigger climbDown = driverTwoController.pov(180);
 
   // Dashboard inputs
   private final LoggedDashboardChooser<Command> autoChooser;
@@ -122,7 +134,8 @@ public class RobotContainer {
         // new ModuleIOTalonFXS(TunerConstants.BackRight));
         Column = new Feeder();
         BeltDexter = new Indexer();
-        climb = new Climb();
+        leftClimb = new Climb("Left", Constants.SparkMaxCanIDs.ClimbLeftMotor);
+        rightClimb = new Climb("Right", Constants.SparkMaxCanIDs.ClimbRightMotor);
         launcher = new Launcher();
         vision = new Vision(drive::addVisionMeasurement, VisionIOPhotonVision.createAllCameras());
         m_intake = new Intake();
@@ -139,7 +152,8 @@ public class RobotContainer {
                 new ModuleIOSim(TunerConstants.BackRight));
         Column = new Feeder();
         BeltDexter = new Indexer();
-        climb = new Climb();
+        leftClimb = new Climb("Left", Constants.SparkMaxCanIDs.ClimbLeftMotor);
+        rightClimb = new Climb("Right", Constants.SparkMaxCanIDs.ClimbRightMotor);
         launcher = new Launcher();
         vision =
             new Vision(
@@ -159,7 +173,8 @@ public class RobotContainer {
                 new ModuleIO() {});
         Column = new Feeder();
         BeltDexter = new Indexer();
-        climb = new Climb();
+        leftClimb = new Climb("Left", Constants.SparkMaxCanIDs.ClimbLeftMotor);
+        rightClimb = new Climb("Right", Constants.SparkMaxCanIDs.ClimbRightMotor);
         launcher = new Launcher();
         vision = new Vision(drive::addVisionMeasurement);
         m_intake = new Intake();
@@ -189,13 +204,6 @@ public class RobotContainer {
     // Configure the button bindings
 
     configureButtonBindings();
-
-    // launcherDutyCycleButton.whileTrue(m_intake.sysIdQuasistatic(SysIdRoutine.Direction.kForward));
-    // launcherVelocityButton.whileTrue(m_intake.sysIdQuasistatic(SysIdRoutine.Direction.kReverse));
-
-    // // Dynamic tests
-    // alignToZeroButton.whileTrue(m_intake.sysIdDynamic(SysIdRoutine.Direction.kForward));
-    // resetIMUButton.whileTrue(m_intake.sysIdDynamic(SysIdRoutine.Direction.kReverse));
   }
 
   /**
@@ -224,15 +232,8 @@ public class RobotContainer {
             () -> Rotation2d.kZero));
 
     // Switch to X pattern when X button is pressed
-    // square.onTrue(Commands.runOnce(drive::stopWithX, drive));
+    xOutButton.onTrue(Commands.runOnce(drive::stopWithX, drive));
 
-    // Intake Buttons
-    // schedule setAngle when b is pressed, cancelling on release
-    stowIntakeButton.onTrue(((m_intake.setAngle(Constants.IntakeConstants.Pivot.stowedPosition))));
-
-    lowerIntakeButton.onTrue(((m_intake.goToIntakePosition())));
-    // intakeController.rightBumper().whileTrue(m_intake.intake());
-    // intakeController.leftBumper().whileTrue(m_intake.outtake());
     // Reset gyro to 0° when B button is pressed
     resetIMUButton.onTrue(
         Commands.runOnce(
@@ -240,26 +241,36 @@ public class RobotContainer {
                 drive)
             .ignoringDisable(true));
 
+    // stowIntakeButton.onTrue(((m_intake.setAngle(Constants.IntakeConstants.Pivot.stowedPosition))));
+    // lowerIntakeButton.onTrue(((m_intake.goToIntakePosition())));
+
+    intakeFuelButton.onTrue(m_intake.toggleIntake());
+    jitterIntakeButton.onTrue(m_intake.jitterIntake());
+
     beltIntakeButton.whileTrue(Column.IntakeFuel().alongWith(BeltDexter.IntakeFuel()));
-    launcherDutyCycleButton.whileTrue(launcher.set(-0.6));
-    launcherVelocityButton.whileTrue(launcher.setVelocity(RPM.of(-4000)));
     beltOuttakeButton.whileTrue(Column.OuttakeFuel());
     (beltIntakeButton.or(beltOuttakeButton))
         .whileFalse(Column.NoFuel().alongWith(BeltDexter.NoFuel()));
-    launcherDutyCycleButton.whileFalse(launcher.set(0));
+
+    launcherVelocityButton.whileTrue(launcher.setVelocity(RPM.of(-4000)));
     launcherVelocityButton.whileFalse(launcher.set(0));
 
-    // intakeFuelButton.whileTrue(m_intake.setIntakeRollerDutyCycle(-0.7));
-    intakeFuelButton.whileTrue(m_intake.intake());
-    intakeFuelButton.whileFalse(m_intake.stopRoller());
+    // climbUp.onTrue(leftClimb.GoToHeight(ClimbConstants.PreHangExtension).alongWith(rightClimb.GoToHeight(ClimbConstants.PreHangExtension)));
+    // climbDown.onTrue(leftClimb.GoToHeight(ClimbConstants.RestDistance).alongWith(rightClimb.GoToHeight(ClimbConstants.RestDistance)));
+
+    var speedTrigger = launcher.isAtSpeed();
+    speedTrigger.whileTrue(
+        Commands.run(() -> driverOneController.setRumble(RumbleType.kBothRumble, 0.5)));
+    speedTrigger.whileFalse(
+        Commands.run(() -> driverOneController.setRumble(RumbleType.kBothRumble, 0)));
 
     // Quasistatic tests
-    // triangle.whileTrue(Launcher.sysIdQuasistatic(SysIdRoutine.Direction.kForward));
-    // square.whileTrue(Launcher.sysIdQuasistatic(SysIdRoutine.Direction.kReverse));
+    testController.button(1).whileTrue(drive.sysIdQuasistatic(SysIdRoutine.Direction.kForward));
+    testController.button(2).whileTrue(drive.sysIdQuasistatic(SysIdRoutine.Direction.kReverse));
 
     // Dynamic tests
-    // x.whileTrue(Launcher.sysIdDynamic(SysIdRoutine.Direction.kForward));
-    // o.whileTrue(Launcher.sysIdDynamic(SysIdRoutine.Direction.kReverse));
+    testController.button(3).whileTrue(drive.sysIdDynamic(SysIdRoutine.Direction.kForward));
+    testController.button(4).whileTrue(drive.sysIdDynamic(SysIdRoutine.Direction.kReverse));
   }
 
   /**

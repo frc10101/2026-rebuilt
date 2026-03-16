@@ -4,12 +4,23 @@
 
 package frc.robot.subsystems;
 
+import static edu.wpi.first.units.Units.Rotations;
+import static edu.wpi.first.units.Units.RotationsPerSecond;
+import static edu.wpi.first.units.Units.Seconds;
+import static edu.wpi.first.units.Units.Volts;
+
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
 import edu.wpi.first.math.system.plant.DCMotor;
+import edu.wpi.first.units.measure.MutAngle;
+import edu.wpi.first.units.measure.MutAngularVelocity;
+import edu.wpi.first.units.measure.MutVoltage;
+import edu.wpi.first.units.measure.Voltage;
+import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants.ColumnConstants;
 import frc.robot.Constants.SparkMaxCanIDs;
 import yams.motorcontrollers.SmartMotorController;
@@ -26,6 +37,10 @@ import yams.motorcontrollers.local.SparkWrapper;
  */
 public class Feeder extends SubsystemBase {
   private double m_motorspeed = 0.0;
+
+  private final MutVoltage m_appliedVoltage = new MutVoltage(0, 0, Volts);
+  private final MutAngle m_position = new MutAngle(0, 0, Rotations);
+  private final MutAngularVelocity m_velocity = new MutAngularVelocity(0, 0, RotationsPerSecond);
 
   private SmartMotorControllerConfig MotorConfig =
       new SmartMotorControllerConfig(this)
@@ -46,7 +61,7 @@ public class Feeder extends SubsystemBase {
           .withGearing(ColumnConstants.gearRatio)
           .withMotorInverted(false)
           .withIdleMode(MotorMode.BRAKE)
-          .withStatorCurrentLimit(ColumnConstants.currentLimit);
+          .withSupplyCurrentLimit(ColumnConstants.currentLimit);
 
   private SparkMax m_motor = new SparkMax(SparkMaxCanIDs.ColumnMotor, MotorType.kBrushless);
 
@@ -81,5 +96,48 @@ public class Feeder extends SubsystemBase {
   @Override
   public void simulationPeriodic() {
     motorController.simIterate();
+  }
+  // Create the SysIdRoutine
+  private final SysIdRoutine sysIdRoutine =
+      new SysIdRoutine(
+          // Config: ramp rate, step voltage, timeout
+          new SysIdRoutine.Config(
+              Volts.of(1).per(Seconds), // Quasistatic ramp rate (1 V/s)
+              Volts.of(4), // Dynamic step voltage
+              Seconds.of(10) // Timeout
+              ),
+          new SysIdRoutine.Mechanism(
+              // Drive callback - convert voltage to duty cycle
+              // Using duty cycle instead of the motor controller's voltage control
+              // bypasses the internal closed-loop controller, resulting in cleaner data
+              (Voltage voltage) ->
+                  motorController.setDutyCycle(
+                      voltage.in(Volts) / RobotController.getBatteryVoltage()),
+              // Log callback - records position, velocity, and voltage
+              // updateTelemetry() and simIterate() ensure sensor data is fresh at logging time
+              log -> {
+                motorController.updateTelemetry();
+                motorController.simIterate();
+                log.motor("motor")
+                    .voltage(
+                        m_appliedVoltage.mut_replace(
+                            motorController.getDutyCycle() * RobotController.getBatteryVoltage(),
+                            Volts))
+                    .angularPosition(m_position.mut_replace(motorController.getMechanismPosition()))
+                    .angularVelocity(
+                        m_velocity.mut_replace(motorController.getMechanismVelocity()));
+              },
+              this, // Subsystem for requirements
+              "MyMechanism" // Name for logging
+              ));
+
+  /** Returns the quasistatic test command. */
+  public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {
+    return sysIdRoutine.quasistatic(direction);
+  }
+
+  /** Returns the dynamic test command. */
+  public Command sysIdDynamic(SysIdRoutine.Direction direction) {
+    return sysIdRoutine.dynamic(direction);
   }
 }

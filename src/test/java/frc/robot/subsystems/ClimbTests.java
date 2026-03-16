@@ -7,81 +7,77 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import edu.wpi.first.hal.HAL;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj2.command.Command;
+import frc.robot.Constants;
 import frc.robot.Constants.ClimbConstants;
 import frc.robot.subsystems.climb.Climb;
-import frc.robot.subsystems.climb.ClimbType;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 public class ClimbTests {
-  private Climb mClimb;
+  private Climb leftClimb;
+  private Climb rightClimb;
 
   @BeforeEach
   void setup() {
     assert HAL.initialize(500, 0);
-    mClimb = new Climb();
+    leftClimb = new Climb("Left", Constants.SparkMaxCanIDs.ClimbLeftMotor);
+    rightClimb = new Climb("Right", Constants.SparkMaxCanIDs.ClimbRightMotor);
   }
 
   @AfterEach
   void teardown() {
-    mClimb.close();
+    leftClimb.close();
+    rightClimb.close();
   }
 
   @Test
   void canCreateClimbTest() {
-    assertNotNull(mClimb);
+    assertNotNull(leftClimb);
+    assertNotNull(rightClimb);
   }
 
   @Test
   void GoToPreHangHeightReturnsCommandTest() {
-    Command cmd = mClimb.GoToPreHangHeight(ClimbType.LEFT);
+    Command cmd = leftClimb.GoToPreHangHeight();
     assertNotNull(cmd);
-    cmd = mClimb.GoToPreHangHeight(ClimbType.RIGHT);
-    assertNotNull(cmd);
-    cmd = mClimb.GoToPreHangHeight(ClimbType.BOTH);
+    cmd = rightClimb.GoToPreHangHeight();
     assertNotNull(cmd);
   }
 
   @Test
   void GoToHangHeightReturnsCommandTest() {
-    Command cmd = mClimb.GoToHangHeight(ClimbType.LEFT);
+    Command cmd = leftClimb.GoToHangHeight();
     assertNotNull(cmd);
-    cmd = mClimb.GoToHangHeight(ClimbType.RIGHT);
-    assertNotNull(cmd);
-    cmd = mClimb.GoToHangHeight(ClimbType.BOTH);
+    cmd = rightClimb.GoToHangHeight();
     assertNotNull(cmd);
   }
 
   @Test
   void GoToReleaseHeightReturnsCommandTest() {
-    Command cmd = mClimb.GoToReleaseHeight(ClimbType.LEFT);
+    Command cmd = rightClimb.GoToReleaseHeight();
     assertNotNull(cmd);
-    cmd = mClimb.GoToReleaseHeight(ClimbType.RIGHT);
-    assertNotNull(cmd);
-    cmd = mClimb.GoToReleaseHeight(ClimbType.BOTH);
+    cmd = rightClimb.GoToReleaseHeight();
     assertNotNull(cmd);
   }
 
   @Test
   void GoToRestHeightReturnsCommandTest() {
-    Command cmd = mClimb.GoToRestHeight(ClimbType.LEFT);
+    Command cmd = leftClimb.GoToRestHeight();
     assertNotNull(cmd);
-    cmd = mClimb.GoToRestHeight(ClimbType.RIGHT);
-    assertNotNull(cmd);
-    cmd = mClimb.GoToRestHeight(ClimbType.BOTH);
+    cmd = rightClimb.GoToRestHeight();
     assertNotNull(cmd);
   }
 
   @Test
   void getLeftHeightReturnsPositionTest() {
-    Distance LeftHeightTestVariable = mClimb.getLeftHeight();
+    Distance LeftHeightTestVariable = leftClimb.getHeight();
     assertEquals(ClimbConstants.RestDistance, LeftHeightTestVariable);
   }
 
   @Test
   void getRightHeightReturnsPositionTest() {
-    Distance RightHeightTestVariable = mClimb.getRightHeight();
+    Distance RightHeightTestVariable = rightClimb.getHeight();
     assertEquals(ClimbConstants.RestDistance, RightHeightTestVariable);
   }
 
@@ -90,8 +86,10 @@ public class ClimbTests {
     // Calling lifecycle methods should not throw exceptions
     assertDoesNotThrow(
         () -> {
-          mClimb.periodic();
-          mClimb.simulationPeriodic();
+          leftClimb.periodic();
+          leftClimb.simulationPeriodic();
+          rightClimb.periodic();
+          rightClimb.simulationPeriodic();
         });
   }
 }
