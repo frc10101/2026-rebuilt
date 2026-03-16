@@ -6,15 +6,24 @@ package frc.robot.subsystems.climb;
 
 import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Rotations;
+import static edu.wpi.first.units.Units.RotationsPerSecond;
+import static edu.wpi.first.units.Units.Seconds;
+import static edu.wpi.first.units.Units.Volts;
 
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
 import edu.wpi.first.math.controller.ElevatorFeedforward;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.Distance;
+import edu.wpi.first.units.measure.MutAngle;
+import edu.wpi.first.units.measure.MutAngularVelocity;
+import edu.wpi.first.units.measure.MutVoltage;
+import edu.wpi.first.units.measure.Voltage;
+import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants.ClimbConstants;
 import yams.mechanisms.config.ElevatorConfig;
 import yams.mechanisms.positional.Elevator;
@@ -35,6 +44,10 @@ public class Climb extends SubsystemBase {
   private boolean isWorking = false;
   private final String name;
 
+  private final MutVoltage m_appliedVoltage = new MutVoltage(0, 0, Volts);
+  private final MutAngle m_position = new MutAngle(0, 0, Rotations);
+  private final MutAngularVelocity m_velocity = new MutAngularVelocity(0, 0, RotationsPerSecond);
+
   private final SmartMotorControllerConfig motorConfig;
   private final SparkMax motor;
   private final SmartMotorController motorController;
@@ -42,6 +55,8 @@ public class Climb extends SubsystemBase {
 
   // Elevator Mechanism
   private final Elevator elevator;
+
+  private final SysIdRoutine sysIdRoutine;
 
   /** Creates a new Climb. */
   public Climb(String telemetryName, int canID) {
@@ -91,41 +106,86 @@ public class Climb extends SubsystemBase {
             .withMass(ClimbConstants.Weight);
 
     elevator = new Elevator(elevatorConfig);
+
+     // Create the SysIdRoutine
+  sysIdRoutine =
+      new SysIdRoutine(
+          // Config: ramp rate, step voltage, timeout
+          new SysIdRoutine.Config(
+              Volts.of(1).per(Seconds), // Quasistatic ramp rate (1 V/s)
+              Volts.of(4), // Dynamic step voltage
+              Seconds.of(10) // Timeout
+              ),
+          new SysIdRoutine.Mechanism(
+              // Drive callback - convert voltage to duty cycle
+              // Using duty cycle instead of the motor controller's voltage control
+              // bypasses the internal closed-loop controller, resulting in cleaner data
+              (Voltage voltage) ->
+                  motorController.setDutyCycle(
+                      voltage.in(Volts) / RobotController.getBatteryVoltage()),
+              // Log callback - records position, velocity, and voltage
+              // updateTelemetry() and simIterate() ensure sensor data is fresh at logging time
+              log -> {
+                motorController.updateTelemetry();
+                motorController.simIterate();
+                log.motor("motor")
+                    .voltage(
+                        m_appliedVoltage.mut_replace(
+                            motorController.getDutyCycle() * RobotController.getBatteryVoltage(),
+                            Volts))
+                    .angularPosition(m_position.mut_replace(motorController.getMechanismPosition()))
+                    .angularVelocity(
+                        m_velocity.mut_replace(motorController.getMechanismVelocity()));
+              },
+              this, // Subsystem for requirements
+              "Climb" // Name for logging
+              ));
+
   }
 
   /** Brings climb arm(s) to height specified for prepping hang */
   public Command GoToPreHangHeight() {
-    return runOnce(() ->{
-  distance = ClimbConstants.PreHangExtension;})
-      .andThen(elevator.setHeight(distance));
+    return runOnce(
+            () -> {
+              distance = ClimbConstants.PreHangExtension;
+            })
+        .andThen(elevator.setHeight(distance));
   }
 
   /** Brings climb arm(s) to height specified for clamping */
   public Command GoToHangHeight() {
-    return runOnce(() ->{
-  distance = ClimbConstants.HangDistance;})
-      .andThen(elevator.setHeight(distance));
+    return runOnce(
+            () -> {
+              distance = ClimbConstants.HangDistance;
+            })
+        .andThen(elevator.setHeight(distance));
   }
 
   /** Brings climb arm(s) to height specified for releasing from hang */
   public Command GoToReleaseHeight() {
-    return runOnce(() ->{
-  distance = ClimbConstants.ReleaseDistance;})
-      .andThen(elevator.setHeight(distance));
+    return runOnce(
+            () -> {
+              distance = ClimbConstants.ReleaseDistance;
+            })
+        .andThen(elevator.setHeight(distance));
   }
 
   /** Brings climb arm(s) to height specified for resting */
   public Command GoToRestHeight() {
-    return runOnce(() ->{
-  distance = ClimbConstants.RestDistance;})
-      .andThen(elevator.setHeight(distance));
+    return runOnce(
+            () -> {
+              distance = ClimbConstants.RestDistance;
+            })
+        .andThen(elevator.setHeight(distance));
   }
 
   public Command GoToHeight(Distance height) {
-    return runOnce(() ->{
-    distance = height;
-      isWorking = true;})
-      .andThen(elevator.setHeight(distance));
+    return runOnce(
+            () -> {
+              distance = height;
+              isWorking = true;
+            })
+        .andThen(elevator.setHeight(distance));
   }
 
   /**
@@ -161,5 +221,15 @@ public class Climb extends SubsystemBase {
   public void simulationPeriodic() {
     SmartDashboard.putBoolean("Is it working?", isWorking);
     motorController.simIterate();
+  }
+
+  /** Returns the quasistatic test command. */
+  public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {
+    return sysIdRoutine.quasistatic(direction);
+  }
+
+  /** Returns the dynamic test command. */
+  public Command sysIdDynamic(SysIdRoutine.Direction direction) {
+    return sysIdRoutine.dynamic(direction);
   }
 }

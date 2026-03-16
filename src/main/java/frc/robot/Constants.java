@@ -238,15 +238,15 @@ public final class Constants {
     }
 
     public final class Sim {
-      public static final double kp = 10.0; // 0.1
+      public static final double kp = 1.0;
       public static final double ki = 0.0;
       public static final double kd = 0.0;
       public static final AngularVelocity maxVelocity = DegreesPerSecond.of(90);
-      public static final AngularAcceleration maxAcceleration = DegreesPerSecondPerSecond.of(45);
+      public static final AngularAcceleration maxAcceleration = DegreesPerSecondPerSecond.of(90);
 
-      public static final double ks = 0.0;
-      public static final double kg = 0.8;
-      public static final double kv = 0.0;
+      public static final double ks = 0.5;
+      public static final double kg = 0.5;
+      public static final double kv = 0.5;
     }
   }
 
