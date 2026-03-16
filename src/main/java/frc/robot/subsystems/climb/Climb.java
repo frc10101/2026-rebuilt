@@ -32,7 +32,7 @@ import yams.motorcontrollers.local.SparkWrapper;
  */
 public class Climb extends SubsystemBase {
   private Distance distance = ClimbConstants.RestDistance;
-  private boolean working = false;
+  private boolean isWorking = false;
   private final String name;
 
   private final SmartMotorControllerConfig motorConfig;
@@ -95,36 +95,37 @@ public class Climb extends SubsystemBase {
 
   /** Brings climb arm(s) to height specified for prepping hang */
   public Command GoToPreHangHeight() {
-    working = true;
-    distance = ClimbConstants.PreHangExtension;
-    return runOnce(() -> elevator.setHeight(ClimbConstants.PreHangExtension));
+    return runOnce(() ->{
+  distance = ClimbConstants.PreHangExtension;})
+      .andThen(elevator.setHeight(distance));
   }
 
   /** Brings climb arm(s) to height specified for clamping */
   public Command GoToHangHeight() {
-    working = true;
-    distance = ClimbConstants.HangDistance;
-    return runOnce(() -> elevator.setHeight(ClimbConstants.HangDistance));
+    return runOnce(() ->{
+  distance = ClimbConstants.HangDistance;})
+      .andThen(elevator.setHeight(distance));
   }
 
   /** Brings climb arm(s) to height specified for releasing from hang */
   public Command GoToReleaseHeight() {
-    working = true;
-    distance = ClimbConstants.ReleaseDistance;
-    return runOnce(() -> elevator.setHeight(ClimbConstants.ReleaseDistance));
+    return runOnce(() ->{
+  distance = ClimbConstants.ReleaseDistance;})
+      .andThen(elevator.setHeight(distance));
   }
 
   /** Brings climb arm(s) to height specified for resting */
   public Command GoToRestHeight() {
-    working = true;
-    distance = ClimbConstants.RestDistance;
-    return runOnce(() -> elevator.setHeight(ClimbConstants.RestDistance));
+    return runOnce(() ->{
+  distance = ClimbConstants.RestDistance;})
+      .andThen(elevator.setHeight(distance));
   }
 
   public Command GoToHeight(Distance height) {
-    working = true;
+    return runOnce(() ->{
     distance = height;
-    return run(() -> elevator.setHeight(height));
+      isWorking = true;})
+      .andThen(elevator.setHeight(distance));
   }
 
   /**
@@ -150,15 +151,15 @@ public class Climb extends SubsystemBase {
   @Override
   public void periodic() {
     // This method will be called once per scheduler run
-    SmartDashboard.putNumber(" Climb Distance Setpoint", distance.in(Inches));
-    SmartDashboard.putNumber(" Climb Distance Actual", getHeight().in(Inches));
+    SmartDashboard.putNumber(name + " Climb Distance Setpoint", distance.in(Inches));
+    SmartDashboard.putNumber(name + " Climb Distance Actual", getHeight().in(Inches));
 
     motorController.updateTelemetry();
   }
 
   @Override
   public void simulationPeriodic() {
-    SmartDashboard.putBoolean("Is it working?", working);
+    SmartDashboard.putBoolean("Is it working?", isWorking);
     motorController.simIterate();
   }
 }

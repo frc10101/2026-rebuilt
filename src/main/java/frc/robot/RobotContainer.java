@@ -20,8 +20,8 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
-import frc.robot.commands.DriveCommands;
 import frc.robot.Constants.ClimbConstants;
+import frc.robot.commands.DriveCommands;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.Feeder;
 import frc.robot.subsystems.Indexer;
@@ -34,9 +34,6 @@ import frc.robot.subsystems.drive.GyroIOPigeon2;
 import frc.robot.subsystems.drive.ModuleIO;
 import frc.robot.subsystems.drive.ModuleIOSim;
 import frc.robot.subsystems.drive.ModuleIOTalonFX;
-import frc.robot.subsystems.vision.Vision;
-import frc.robot.subsystems.vision.VisionIOPhotonVision;
-import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 /**
@@ -48,7 +45,7 @@ import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 public class RobotContainer {
   // Subsystems
   private final Drive drive;
-  private final Vision vision;
+  // private final Vision vision;
   private final Launcher launcher;
   private final Intake m_intake;
   private final Feeder Column;
@@ -138,7 +135,8 @@ public class RobotContainer {
         leftClimb = new Climb("Left", Constants.SparkMaxCanIDs.ClimbLeftMotor);
         rightClimb = new Climb("Right", Constants.SparkMaxCanIDs.ClimbRightMotor);
         launcher = new Launcher();
-        vision = new Vision(drive::addVisionMeasurement, VisionIOPhotonVision.createAllCameras());
+        // vision = new Vision(drive::addVisionMeasurement,
+        // VisionIOPhotonVision.createAllCameras());
         m_intake = new Intake();
         break;
 
@@ -156,10 +154,11 @@ public class RobotContainer {
         leftClimb = new Climb("Left", Constants.SparkMaxCanIDs.ClimbLeftMotor);
         rightClimb = new Climb("Right", Constants.SparkMaxCanIDs.ClimbRightMotor);
         launcher = new Launcher();
-        vision =
-            new Vision(
-                drive::addVisionMeasurement,
-                VisionIOPhotonVisionSim.createAllSimCameras(drive::getPose));
+        /*vision =
+        new Vision(
+            drive::addVisionMeasurement,
+            VisionIOPhotonVisionSim.createAllSimCameras(drive::getPose));
+        */
         m_intake = new Intake();
         break;
 
@@ -177,7 +176,7 @@ public class RobotContainer {
         leftClimb = new Climb("Left", Constants.SparkMaxCanIDs.ClimbLeftMotor);
         rightClimb = new Climb("Right", Constants.SparkMaxCanIDs.ClimbRightMotor);
         launcher = new Launcher();
-        vision = new Vision(drive::addVisionMeasurement);
+        // vision = new Vision(drive::addVisionMeasurement);
         m_intake = new Intake();
         break;
     }
@@ -256,8 +255,14 @@ public class RobotContainer {
     launcherVelocityButton.whileTrue(launcher.setVelocity(RPM.of(-4000)));
     launcherVelocityButton.whileFalse(launcher.set(0));
 
-    climbUp.onTrue(leftClimb.GoToHeight(ClimbConstants.PreHangExtension).alongWith(rightClimb.GoToHeight(ClimbConstants.PreHangExtension)));
-    climbDown.onTrue(leftClimb.GoToHeight(ClimbConstants.RestDistance).alongWith(rightClimb.GoToHeight(ClimbConstants.RestDistance)));
+    climbUp.onTrue(
+        leftClimb
+            .GoToHeight(ClimbConstants.PreHangExtension)
+            .alongWith(rightClimb.GoToHeight(ClimbConstants.PreHangExtension)));
+    climbDown.onTrue(
+        leftClimb
+            .GoToHeight(ClimbConstants.RestDistance)
+            .alongWith(rightClimb.GoToHeight(ClimbConstants.RestDistance)));
 
     var speedTrigger = launcher.isAtSpeed();
     speedTrigger.whileTrue(
