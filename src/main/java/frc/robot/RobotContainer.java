@@ -255,8 +255,8 @@ public class RobotContainer {
     launcherVelocityButton.whileTrue(launcher.setVelocity(RPM.of(-4000)));
     launcherVelocityButton.whileFalse(launcher.set(0));
 
-    // climbUp.onTrue(leftClimb.GoToHeight(ClimbConstants.PreHangExtension).alongWith(rightClimb.GoToHeight(ClimbConstants.PreHangExtension)));
-    // climbDown.onTrue(leftClimb.GoToHeight(ClimbConstants.RestDistance).alongWith(rightClimb.GoToHeight(ClimbConstants.RestDistance)));
+    climbUp.onTrue(leftClimb.GoToHeight(ClimbConstants.PreHangExtension).alongWith(rightClimb.GoToHeight(ClimbConstants.PreHangExtension)));
+    climbDown.onTrue(leftClimb.GoToHeight(ClimbConstants.RestDistance).alongWith(rightClimb.GoToHeight(ClimbConstants.RestDistance)));
 
     var speedTrigger = launcher.isAtSpeed();
     speedTrigger.whileTrue(
