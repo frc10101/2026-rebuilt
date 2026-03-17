@@ -88,6 +88,18 @@ public class Module {
     io.setTurnPosition(Rotation2d.kZero);
   }
 
+  /** Runs the module with the specified drive output at a requested steering angle. */
+  public void runCharacterization(double output, Rotation2d angle) {
+    io.setDriveOpenLoop(output);
+    io.setTurnPosition(angle);
+  }
+
+  /** Runs the turn motor with the specified output while holding drive output at zero. */
+  public void runTurnCharacterization(double output) {
+    io.setDriveOpenLoop(0.0);
+    io.setTurnOpenLoop(output);
+  }
+
   /** Disables all outputs to motors. */
   public void stop() {
     io.setDriveOpenLoop(0.0);

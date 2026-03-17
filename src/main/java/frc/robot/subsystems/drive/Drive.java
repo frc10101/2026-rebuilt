@@ -82,7 +82,9 @@ public class Drive extends SubsystemBase {
   private final GyroIO gyroIO;
   private final GyroIOInputsAutoLogged gyroInputs = new GyroIOInputsAutoLogged();
   private final Module[] modules = new Module[4]; // FL, FR, BL, BR
-  private final SysIdRoutine sysId;
+  private final SysIdRoutine sysIdTranslation;
+  private final SysIdRoutine sysIdSteer;
+  private final SysIdRoutine sysIdRotation;
   private final Alert gyroDisconnectedAlert =
       new Alert("Disconnected gyro, using kinematics as fallback.", AlertType.kError);
 
@@ -138,15 +140,38 @@ public class Drive extends SubsystemBase {
         });
 
     // Configure SysId
-    sysId =
+    sysIdTranslation =
         new SysIdRoutine(
             new SysIdRoutine.Config(
                 null,
+                Volts.of(4),
                 null,
-                null,
-                (state) -> Logger.recordOutput("Drive/SysIdState", state.toString())),
+                (state) -> Logger.recordOutput("SysIdTranslation_State", state.toString())),
             new SysIdRoutine.Mechanism(
                 (voltage) -> runCharacterization(voltage.in(Volts)), null, this));
+    sysIdSteer =
+        new SysIdRoutine(
+            new SysIdRoutine.Config(
+                null,
+                Volts.of(7),
+                null,
+                (state) -> Logger.recordOutput("SysIdSteer_State", state.toString())),
+            new SysIdRoutine.Mechanism(
+                (voltage) -> runTurnCharacterization(voltage.in(Volts)), null, this));
+    sysIdRotation =
+        new SysIdRoutine(
+            new SysIdRoutine.Config(
+                Volts.of(Math.PI / 6.0).per(Second),
+                Volts.of(Math.PI),
+                null,
+                (state) -> Logger.recordOutput("SysIdRotation_State", state.toString())),
+            new SysIdRoutine.Mechanism(
+                (voltage) -> {
+                  runRotationCharacterization(voltage.in(Volts));
+                  Logger.recordOutput("Rotational_Rate", voltage.in(Volts));
+                },
+                null,
+                this));
   }
 
   @Override
@@ -202,6 +227,11 @@ public class Drive extends SubsystemBase {
 
       // Apply update
       poseEstimator.updateWithTime(sampleTimestamps[i], rawGyroRotation, modulePositions);
+
+      Logger.recordOutput("SwerveStates/M0TurnPos", modules[0].getState().angle.getRadians());
+      Logger.recordOutput("SwerveStates/M1TurnPos", modules[1].getState().angle.getRadians());
+      Logger.recordOutput("SwerveStates/M2TurnPos", modules[2].getState().angle.getRadians());
+      Logger.recordOutput("SwerveStates/M3TurnPos", modules[3].getState().angle.getRadians());
     }
 
     // Update gyro alert
@@ -239,6 +269,25 @@ public class Drive extends SubsystemBase {
     }
   }
 
+  /** Runs the turn motors with the specified output while holding drive motors at zero. */
+  public void runTurnCharacterization(double output) {
+    for (int i = 0; i < 4; i++) {
+      modules[i].runTurnCharacterization(output);
+    }
+  }
+
+  /** Runs the drive motors to spin the robot in place for characterization. */
+  public void runRotationCharacterization(double output) {
+    SwerveModuleState[] rotationStates =
+        kinematics.toSwerveModuleStates(new ChassisSpeeds(0.0, 0.0, 1.0));
+    double magnitude = Math.abs(output);
+    for (int i = 0; i < 4; i++) {
+      double signedOutput =
+          Math.copySign(magnitude, output * rotationStates[i].speedMetersPerSecond);
+      modules[i].runCharacterization(signedOutput, rotationStates[i].angle);
+    }
+  }
+
   /** Stops the drive. */
   public void stop() {
     runVelocity(new ChassisSpeeds());
@@ -261,12 +310,52 @@ public class Drive extends SubsystemBase {
   public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {
     return run(() -> runCharacterization(0.0))
         .withTimeout(1.0)
-        .andThen(sysId.quasistatic(direction));
+        .andThen(sysIdTranslation.quasistatic(direction));
   }
 
   /** Returns a command to run a dynamic test in the specified direction. */
   public Command sysIdDynamic(SysIdRoutine.Direction direction) {
-    return run(() -> runCharacterization(0.0)).withTimeout(1.0).andThen(sysId.dynamic(direction));
+    return run(() -> runCharacterization(0.0))
+        .withTimeout(1.0)
+        .andThen(sysIdTranslation.dynamic(direction));
+  }
+
+  /** Returns a command to run a quasistatic steer test in the specified direction. */
+  public Command sysIdSteerQuasistatic(SysIdRoutine.Direction direction) {
+    return run(() -> runTurnCharacterization(0.0))
+        .withTimeout(1.0)
+        .andThen(sysIdSteer.quasistatic(direction));
+  }
+
+  /** Returns a command to run a dynamic steer test in the specified direction. */
+  public Command sysIdSteerDynamic(SysIdRoutine.Direction direction) {
+    return run(() -> runTurnCharacterization(0.0))
+        .withTimeout(1.0)
+        .andThen(sysIdSteer.dynamic(direction));
+  }
+
+  /** Returns a command to run a quasistatic rotation test in the specified direction. */
+  public Command sysIdRotationQuasistatic(SysIdRoutine.Direction direction) {
+    return run(() -> runRotationCharacterization(0.0))
+        .withTimeout(1.0)
+        .andThen(sysIdRotation.quasistatic(direction));
+  }
+
+  /** Returns a command to run a dynamic rotation test in the specified direction. */
+  public Command sysIdRotationDynamic(SysIdRoutine.Direction direction) {
+    return run(() -> runRotationCharacterization(0.0))
+        .withTimeout(1.0)
+        .andThen(sysIdRotation.dynamic(direction));
+  }
+
+  /** Legacy alias for steer characterization (kept for existing bindings). */
+  public Command sysIdTurnQuasistatic(SysIdRoutine.Direction direction) {
+    return sysIdSteerQuasistatic(direction);
+  }
+
+  /** Legacy alias for steer characterization (kept for existing bindings). */
+  public Command sysIdTurnDynamic(SysIdRoutine.Direction direction) {
+    return sysIdSteerDynamic(direction);
   }
 
   /** Returns the module states (turn angles and drive velocities) for all of the modules. */
@@ -355,5 +444,13 @@ public class Drive extends SubsystemBase {
       new Translation2d(TunerConstants.BackLeft.LocationX, TunerConstants.BackLeft.LocationY),
       new Translation2d(TunerConstants.BackRight.LocationX, TunerConstants.BackRight.LocationY)
     };
+  }
+
+  public Command getAuto(String autoName) {
+    try {
+      return AutoBuilder.buildAuto(autoName);
+    } catch (Exception e) {
+      return null;
+    }
   }
 }

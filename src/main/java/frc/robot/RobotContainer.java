@@ -185,20 +185,21 @@ public class RobotContainer {
     autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
 
     // Set up SysId routines
-    autoChooser.addOption(
-        "Drive Wheel Radius Characterization", DriveCommands.wheelRadiusCharacterization(drive));
-    autoChooser.addOption(
-        "Drive Simple FF Characterization", DriveCommands.feedforwardCharacterization(drive));
-    autoChooser.addOption(
-        "Drive SysId (Quasistatic Forward)",
-        drive.sysIdQuasistatic(SysIdRoutine.Direction.kForward));
-    autoChooser.addOption(
-        "Drive SysId (Quasistatic Reverse)",
-        drive.sysIdQuasistatic(SysIdRoutine.Direction.kReverse));
-    autoChooser.addOption(
-        "Drive SysId (Dynamic Forward)", drive.sysIdDynamic(SysIdRoutine.Direction.kForward));
-    autoChooser.addOption(
-        "Drive SysId (Dynamic Reverse)", drive.sysIdDynamic(SysIdRoutine.Direction.kReverse));
+    // autoChooser.addOption(
+    //     "Drive Wheel Radius Characterization", DriveCommands.wheelRadiusCharacterization(drive));
+    // autoChooser.addOption(
+    //     "Drive Simple FF Characterization", DriveCommands.feedforwardCharacterization(drive));
+    // autoChooser.addOption(
+    //     "Drive SysId (Quasistatic Forward)",
+    //     drive.sysIdQuasistatic(SysIdRoutine.Direction.kForward));
+    // autoChooser.addOption(
+    //     "Drive SysId (Quasistatic Reverse)",
+    //     drive.sysIdQuasistatic(SysIdRoutine.Direction.kReverse));
+    // autoChooser.addOption(
+    //     "Drive SysId (Dynamic Forward)", drive.sysIdDynamic(SysIdRoutine.Direction.kForward));
+    // autoChooser.addOption(
+    //     "Drive SysId (Dynamic Reverse)", drive.sysIdDynamic(SysIdRoutine.Direction.kReverse));
+    autoChooser.addOption("AutoTest", drive.getAuto("LsRhChute"));
     // autoChooser.addOption("AUTOTEST", );
 
     // Configure the button bindings
@@ -221,7 +222,7 @@ public class RobotContainer {
             drive,
             () -> -driverOneController.getRawAxis(1),
             () -> -driverOneController.getRawAxis(0),
-            () -> -driverOneController.getRawAxis(4)));
+            () -> -driverOneController.getRawAxis(4) / 1.5));
 
     // Lock to 0 degrees when A button is held
     alignToZeroButton.whileTrue(
@@ -270,13 +271,37 @@ public class RobotContainer {
     speedTrigger.whileFalse(
         Commands.run(() -> driverOneController.setRumble(RumbleType.kBothRumble, 0)));
 
-    // Quasistatic tests
+    // Quasistatic Turn Tests
+    testController.button(1).whileTrue(drive.sysIdTurnQuasistatic(SysIdRoutine.Direction.kForward));
+    testController.button(2).whileTrue(drive.sysIdTurnQuasistatic(SysIdRoutine.Direction.kReverse));
+    // Dynamic Turn Tests
+    testController.button(3).whileTrue(drive.sysIdTurnDynamic(SysIdRoutine.Direction.kForward));
+    testController.button(4).whileTrue(drive.sysIdTurnDynamic(SysIdRoutine.Direction.kReverse));
+
+    // Toggle which SysId test is bound to buttons 1-4
+    // Quasistatic Drive tests
     // testController.button(1).whileTrue(drive.sysIdQuasistatic(SysIdRoutine.Direction.kForward));
     // testController.button(2).whileTrue(drive.sysIdQuasistatic(SysIdRoutine.Direction.kReverse));
 
-    // Dynamic tests
+    // Dynamic Drivetests
     // testController.button(3).whileTrue(drive.sysIdDynamic(SysIdRoutine.Direction.kForward));
     // testController.button(4).whileTrue(drive.sysIdDynamic(SysIdRoutine.Direction.kReverse));
+
+    // Quasistatic Rotation tests
+    // testController
+    //     .button(1)
+    //     .whileTrue(drive.sysIdRotationQuasistatic(SysIdRoutine.Direction.kForward));
+    // testController
+    //     .button(2)
+    //     .whileTrue(drive.sysIdRotationQuasistatic(SysIdRoutine.Direction.kReverse));
+
+    // Dynamic Rotation tests
+    // testController
+    //     .button(3)
+    //     .whileTrue(drive.sysIdRotationDynamic(SysIdRoutine.Direction.kForward));
+    // testController
+    //     .button(4)
+    //     .whileTrue(drive.sysIdRotationDynamic(SysIdRoutine.Direction.kReverse));
 
     // testController.button(7).whileTrue(DriveCommands.wheelRadiusCharacterization(drive));
   }
