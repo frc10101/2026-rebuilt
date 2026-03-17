@@ -222,7 +222,7 @@ public final class Constants {
         Meters.of(Inches.of(0.25).in(Meters) * 22);
 
     public static final Distance hardMinimum = Inches.of(0);
-    public static final Distance hardMaximum = Inches.of(9.75);
+    public static final Distance hardMaximum = Inches.of(9.5);
     public static final Mass Weight = Pounds.of(1.02757);
 
     public final class Real {
@@ -242,7 +242,7 @@ public final class Constants {
       public static final double ki = 0.0;
       public static final double kd = 0.0;
       public static final AngularVelocity maxVelocity = DegreesPerSecond.of(90);
-      public static final AngularAcceleration maxAcceleration = DegreesPerSecondPerSecond.of(90);
+      public static final AngularAcceleration maxAcceleration = DegreesPerSecondPerSecond.of(45);
 
       public static final double ks = 0.5;
       public static final double kg = 0.5;
@@ -252,15 +252,15 @@ public final class Constants {
 
   public static final class BeltDexterConstants {
     /** Column Gear Ratio */
-    public static final int gearRatio = 1;
+    public static final int gearRatio = 2;
     /** Column Stall Current Limit */
     public static final Current currentLimit = Amps.of(60);
 
-    public static final AngularVelocity IntakeSpeed = RPM.of(2500);
-    public static final AngularVelocity OuttakeSpeed = RPM.of(-2500);
+    public static final Voltage IntakeSpeed = Volts.of(3);
+    public static final Voltage OuttakeSpeed = Volts.of(-3);
 
     public final class Real {
-      public static final double kp = 50.0;
+      public static final double kp = 0.0;
       public static final double ki = 0.0;
       public static final double kd = 0.0;
       public static final AngularVelocity maxVelocity = DegreesPerSecond.of(90);
@@ -273,7 +273,7 @@ public final class Constants {
     }
 
     public final class Sim {
-      public static final double kp = 50.0;
+      public static final double kp = 0.0;
       public static final double ki = 0.0;
       public static final double kd = 0.0;
       public static final AngularVelocity maxVelocity = DegreesPerSecond.of(90);
@@ -291,11 +291,11 @@ public final class Constants {
     /** Column Stall Current Limit */
     public static final Current currentLimit = Amps.of(60);
 
-    public static final double IntakeSpeed = 0.3;
-    public static final double OuttakeSpeed = -0.3;
+    public static final Voltage IntakeSpeed = Volts.of(3);
+    public static final Voltage OuttakeSpeed = Volts.of(-3);
 
     public final class Real {
-      public static final double kp = 50.0;
+      public static final double kp = 0.0;
       public static final double ki = 0.0;
       public static final double kd = 0.0;
       public static final AngularVelocity maxVelocity = DegreesPerSecond.of(90);
@@ -308,7 +308,7 @@ public final class Constants {
     }
 
     public final class Sim {
-      public static final double kp = 50.0;
+      public static final double kp = 0.0;
       public static final double ki = 0.0;
       public static final double kd = 0.0;
       public static final AngularVelocity maxVelocity = DegreesPerSecond.of(90);

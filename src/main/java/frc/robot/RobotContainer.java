@@ -241,8 +241,8 @@ public class RobotContainer {
                 drive)
             .ignoringDisable(true));
 
-    // stowIntakeButton.onTrue(((m_intake.setAngle(Constants.IntakeConstants.Pivot.stowedPosition))));
-    // lowerIntakeButton.onTrue(((m_intake.goToIntakePosition())));
+    stowIntakeButton.onTrue(((m_intake.setAngle(Constants.IntakeConstants.Pivot.stowedPosition))));
+    lowerIntakeButton.onTrue(((m_intake.goToIntakePosition())));
 
     intakeFuelButton.onTrue(m_intake.toggleIntake());
     jitterIntakeButton.onTrue(m_intake.jitterIntake());
@@ -271,12 +271,14 @@ public class RobotContainer {
         Commands.run(() -> driverOneController.setRumble(RumbleType.kBothRumble, 0)));
 
     // Quasistatic tests
-    testController.button(1).whileTrue(drive.sysIdQuasistatic(SysIdRoutine.Direction.kForward));
-    testController.button(2).whileTrue(drive.sysIdQuasistatic(SysIdRoutine.Direction.kReverse));
+    // testController.button(1).whileTrue(drive.sysIdQuasistatic(SysIdRoutine.Direction.kForward));
+    // testController.button(2).whileTrue(drive.sysIdQuasistatic(SysIdRoutine.Direction.kReverse));
 
     // Dynamic tests
-    testController.button(3).whileTrue(drive.sysIdDynamic(SysIdRoutine.Direction.kForward));
-    testController.button(4).whileTrue(drive.sysIdDynamic(SysIdRoutine.Direction.kReverse));
+    // testController.button(3).whileTrue(drive.sysIdDynamic(SysIdRoutine.Direction.kForward));
+    // testController.button(4).whileTrue(drive.sysIdDynamic(SysIdRoutine.Direction.kReverse));
+
+    // testController.button(7).whileTrue(DriveCommands.wheelRadiusCharacterization(drive));
   }
 
   /**

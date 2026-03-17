@@ -78,7 +78,7 @@ public class TunerConstants {
 
   // Theoretical free speed (m/s) at 12 V applied output;
   // This needs to be tuned to your individual robot
-  public static final LinearVelocity kSpeedAt12Volts = MetersPerSecond.of(12.00);
+  public static final LinearVelocity kSpeedAt12Volts = MetersPerSecond.of(6.00);
 
   // Every 1 rotation of the azimuth results in kCoupleRatio drive motor turns;
   // This may need to be tuned to your individual robot
@@ -86,7 +86,7 @@ public class TunerConstants {
 
   private static final double kDriveGearRatio = 5.143;
   private static final double kSteerGearRatio = 25;
-  private static final Distance kWheelRadius = Inches.of(4);
+  private static final Distance kWheelRadius = Inches.of(2);
 
   private static final boolean kInvertLeftSide = false;
   private static final boolean kInvertRightSide = true;
@@ -136,45 +136,45 @@ public class TunerConstants {
   private static final int kFrontLeftDriveMotorId = 1;
   private static final int kFrontLeftSteerMotorId = 3;
   private static final int kFrontLeftEncoderId = 2;
-  private static final Angle kFrontLeftEncoderOffset = Rotations.of(-0.37353515625);
+  private static final Angle kFrontLeftEncoderOffset = Rotations.of(-0.364990234375);
   private static final boolean kFrontLeftSteerMotorInverted = false;
   private static final boolean kFrontLeftEncoderInverted = false;
 
-  private static final Distance kFrontLeftXPos = Inches.of(5.375);
-  private static final Distance kFrontLeftYPos = Inches.of(5.375);
+  private static final Distance kFrontLeftXPos = Inches.of(10.25);
+  private static final Distance kFrontLeftYPos = Inches.of(10.25);
 
   // Front Right
   private static final int kFrontRightDriveMotorId = 6;
   private static final int kFrontRightSteerMotorId = 4;
   private static final int kFrontRightEncoderId = 3;
-  private static final Angle kFrontRightEncoderOffset = Rotations.of(0.48291015625);
+  private static final Angle kFrontRightEncoderOffset = Rotations.of(0.484619140625);
   private static final boolean kFrontRightSteerMotorInverted = false;
   private static final boolean kFrontRightEncoderInverted = false;
 
-  private static final Distance kFrontRightXPos = Inches.of(5.375);
-  private static final Distance kFrontRightYPos = Inches.of(-5.375);
+  private static final Distance kFrontRightXPos = Inches.of(10.25);
+  private static final Distance kFrontRightYPos = Inches.of(-10.25);
 
   // Back Left
   private static final int kBackLeftDriveMotorId = 0;
   private static final int kBackLeftSteerMotorId = 7;
   private static final int kBackLeftEncoderId = 1;
-  private static final Angle kBackLeftEncoderOffset = Rotations.of(-0.326416015625);
+  private static final Angle kBackLeftEncoderOffset = Rotations.of(-0.33984375);
   private static final boolean kBackLeftSteerMotorInverted = false;
   private static final boolean kBackLeftEncoderInverted = false;
 
-  private static final Distance kBackLeftXPos = Inches.of(-5.375);
-  private static final Distance kBackLeftYPos = Inches.of(5.375);
+  private static final Distance kBackLeftXPos = Inches.of(-10.25);
+  private static final Distance kBackLeftYPos = Inches.of(10.25);
 
   // Back Right
   private static final int kBackRightDriveMotorId = 2;
   private static final int kBackRightSteerMotorId = 5;
   private static final int kBackRightEncoderId = 0;
-  private static final Angle kBackRightEncoderOffset = Rotations.of(-0.32421875);
+  private static final Angle kBackRightEncoderOffset = Rotations.of(-0.32666015625);
   private static final boolean kBackRightSteerMotorInverted = false;
   private static final boolean kBackRightEncoderInverted = false;
 
-  private static final Distance kBackRightXPos = Inches.of(-5.375);
-  private static final Distance kBackRightYPos = Inches.of(-5.375);
+  private static final Distance kBackRightXPos = Inches.of(-10.25);
+  private static final Distance kBackRightYPos = Inches.of(-10.25);
 
   public static final SwerveModuleConstants<
           TalonFXConfiguration, TalonFXConfiguration, CANcoderConfiguration>

@@ -4,7 +4,6 @@
 
 package frc.robot.subsystems;
 
-import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.Rotations;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 import static edu.wpi.first.units.Units.Seconds;
@@ -38,7 +37,7 @@ import yams.motorcontrollers.local.SparkWrapper;
  * <p>It may also be referred to as <i>Clyde</i>.
  */
 public class Indexer extends SubsystemBase {
-  private double m_motorspeed = 0.0;
+  private Voltage m_motorspeed = Volts.zero();
 
   private final MutVoltage m_appliedVoltage = new MutVoltage(0, 0, Volts);
   private final MutAngle m_position = new MutAngle(0, 0, Rotations);
@@ -80,22 +79,25 @@ public class Indexer extends SubsystemBase {
   public Indexer() {}
 
   public Command IntakeFuel() {
-    return runOnce(() -> motorController.setVelocity(BeltDexterConstants.IntakeSpeed));
+    return runOnce(() -> m_motorspeed = BeltDexterConstants.IntakeSpeed);
   }
 
   public Command OuttakeFuel() {
-    return runOnce(() -> motorController.setVelocity(BeltDexterConstants.OuttakeSpeed));
+    return runOnce(() -> m_motorspeed = BeltDexterConstants.OuttakeSpeed);
   }
 
   public Command NoFuel() {
-    return runOnce(() -> motorController.setVelocity(RPM.of(0)));
+    return runOnce(() -> m_motorspeed = Volts.zero());
   }
 
   @Override
   public void periodic() {
     // This method will be called once per scheduler run
-    m_motor.set(m_motorspeed);
-    SmartDashboard.putNumber("BeltDexter Speed", m_motorspeed);
+    motorController.setVoltage(m_motorspeed);
+
+    SmartDashboard.putNumber("BeltDexter Setpoint", m_motorspeed.baseUnitMagnitude());
+    SmartDashboard.putNumber(
+        "BeltDexter Actual", motorController.getMechanismVelocity().baseUnitMagnitude());
 
     motorController.updateTelemetry();
   }

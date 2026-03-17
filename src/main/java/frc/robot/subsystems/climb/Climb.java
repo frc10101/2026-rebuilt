@@ -7,6 +7,7 @@ package frc.robot.subsystems.climb;
 import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Rotations;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
+import static edu.wpi.first.units.Units.Second;
 import static edu.wpi.first.units.Units.Seconds;
 import static edu.wpi.first.units.Units.Volts;
 
@@ -18,12 +19,9 @@ import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.MutAngle;
 import edu.wpi.first.units.measure.MutAngularVelocity;
 import edu.wpi.first.units.measure.MutVoltage;
-import edu.wpi.first.units.measure.Voltage;
-import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants.ClimbConstants;
 import yams.mechanisms.config.ElevatorConfig;
 import yams.mechanisms.positional.Elevator;
@@ -56,7 +54,7 @@ public class Climb extends SubsystemBase {
   // Elevator Mechanism
   private final Elevator elevator;
 
-  private final SysIdRoutine sysIdRoutine;
+  // private final SysIdRoutine sysIdRoutine;
 
   /** Creates a new Climb. */
   public Climb(String telemetryName, int canID) {
@@ -106,41 +104,6 @@ public class Climb extends SubsystemBase {
             .withMass(ClimbConstants.Weight);
 
     elevator = new Elevator(elevatorConfig);
-
-     // Create the SysIdRoutine
-  sysIdRoutine =
-      new SysIdRoutine(
-          // Config: ramp rate, step voltage, timeout
-          new SysIdRoutine.Config(
-              Volts.of(1).per(Seconds), // Quasistatic ramp rate (1 V/s)
-              Volts.of(4), // Dynamic step voltage
-              Seconds.of(10) // Timeout
-              ),
-          new SysIdRoutine.Mechanism(
-              // Drive callback - convert voltage to duty cycle
-              // Using duty cycle instead of the motor controller's voltage control
-              // bypasses the internal closed-loop controller, resulting in cleaner data
-              (Voltage voltage) ->
-                  motorController.setDutyCycle(
-                      voltage.in(Volts) / RobotController.getBatteryVoltage()),
-              // Log callback - records position, velocity, and voltage
-              // updateTelemetry() and simIterate() ensure sensor data is fresh at logging time
-              log -> {
-                motorController.updateTelemetry();
-                motorController.simIterate();
-                log.motor("motor")
-                    .voltage(
-                        m_appliedVoltage.mut_replace(
-                            motorController.getDutyCycle() * RobotController.getBatteryVoltage(),
-                            Volts))
-                    .angularPosition(m_position.mut_replace(motorController.getMechanismPosition()))
-                    .angularVelocity(
-                        m_velocity.mut_replace(motorController.getMechanismVelocity()));
-              },
-              this, // Subsystem for requirements
-              "Climb" // Name for logging
-              ));
-
   }
 
   /** Brings climb arm(s) to height specified for prepping hang */
@@ -223,13 +186,17 @@ public class Climb extends SubsystemBase {
     motorController.simIterate();
   }
 
-  /** Returns the quasistatic test command. */
-  public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {
-    return sysIdRoutine.quasistatic(direction);
+  /**
+   * Move the elevator up and down.
+   *
+   * @param dutycycle [-1, 1] speed to set the elevator too.
+   */
+  public Command set(double dutycycle) {
+    return elevator.set(dutycycle);
   }
 
-  /** Returns the dynamic test command. */
-  public Command sysIdDynamic(SysIdRoutine.Direction direction) {
-    return sysIdRoutine.dynamic(direction);
+  /** Run sysId on the {@link Elevator} */
+  public Command sysId() {
+    return elevator.sysId(Volts.of(7), Volts.of(2).per(Second), Seconds.of(4));
   }
 }

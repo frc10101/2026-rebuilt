@@ -36,7 +36,7 @@ import yams.motorcontrollers.local.SparkWrapper;
  * <p>It may also be referred to as <i>Network Switch in between RoboRio and Radio</i>.
  */
 public class Feeder extends SubsystemBase {
-  private double m_motorspeed = 0.0;
+  private Voltage m_motorspeed = Volts.zero();
 
   private final MutVoltage m_appliedVoltage = new MutVoltage(0, 0, Volts);
   private final MutAngle m_position = new MutAngle(0, 0, Rotations);
@@ -81,14 +81,16 @@ public class Feeder extends SubsystemBase {
   }
 
   public Command NoFuel() {
-    return runOnce(() -> m_motorspeed = 0);
+    return runOnce(() -> m_motorspeed = Volts.zero());
   }
 
   @Override
   public void periodic() {
     // This method will be called once per scheduler run
-    m_motor.set(m_motorspeed);
-    SmartDashboard.putNumber("Column Speed", m_motorspeed);
+    motorController.setVoltage(m_motorspeed);
+    SmartDashboard.putNumber("Column Setpoint", m_motorspeed.baseUnitMagnitude());
+    SmartDashboard.putNumber(
+        "Column Actual", motorController.getMechanismVelocity().baseUnitMagnitude());
 
     motorController.updateTelemetry();
   }
