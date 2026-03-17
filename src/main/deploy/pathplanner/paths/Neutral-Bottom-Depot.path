@@ -40,7 +40,7 @@
         "y": 6.1
       },
       "nextControl": {
-        "x": 2.2500000000000004,
+        "x": 2.25,
         "y": 6.1
       },
       "isLocked": false,
@@ -60,7 +60,16 @@
       "linkedName": null
     }
   ],
-  "rotationTargets": [],
+  "rotationTargets": [
+    {
+      "waypointRelativePos": 1.016891891891891,
+      "rotationDegrees": 90.0
+    },
+    {
+      "waypointRelativePos": 2.0202702702702733,
+      "rotationDegrees": 180.0
+    }
+  ],
   "constraintZones": [],
   "pointTowardsZones": [],
   "eventMarkers": [],
@@ -77,7 +86,7 @@
     "rotation": 180.0
   },
   "reversed": false,
-  "folder": "Neutral",
+  "folder": null,
   "idealStartingState": {
     "velocity": 0,
     "rotation": 90.0

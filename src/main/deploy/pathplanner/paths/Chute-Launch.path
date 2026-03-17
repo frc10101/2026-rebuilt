@@ -28,13 +28,22 @@
       "linkedName": null
     }
   ],
-  "rotationTargets": [],
+  "rotationTargets": [
+    {
+      "waypointRelativePos": 0.3050397877984086,
+      "rotationDegrees": 180.0
+    },
+    {
+      "waypointRelativePos": 0.5437665782493372,
+      "rotationDegrees": 0.0
+    }
+  ],
   "constraintZones": [],
   "pointTowardsZones": [],
   "eventMarkers": [
     {
-      "name": "",
-      "waypointRelativePos": 0,
+      "name": "LauncherOn",
+      "waypointRelativePos": 0.7550335570469809,
       "endWaypointRelativePos": null,
       "command": null
     }

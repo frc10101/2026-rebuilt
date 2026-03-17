@@ -36,18 +36,40 @@
         "y": 6.025
       },
       "prevControl": {
-        "x": 1.6468229166666664,
-        "y": 6.220974702380953
+        "x": 3.4653948535936108,
+        "y": 6.622404614019521
       },
       "nextControl": null,
       "isLocked": false,
       "linkedName": null
     }
   ],
-  "rotationTargets": [],
+  "rotationTargets": [
+    {
+      "waypointRelativePos": 0.798408488063662,
+      "rotationDegrees": -90.0
+    },
+    {
+      "waypointRelativePos": 1.6366047745358085,
+      "rotationDegrees": 180.0
+    }
+  ],
   "constraintZones": [],
   "pointTowardsZones": [],
-  "eventMarkers": [],
+  "eventMarkers": [
+    {
+      "name": "IntakeDown",
+      "waypointRelativePos": 1.6912751677852356,
+      "endWaypointRelativePos": null,
+      "command": null
+    },
+    {
+      "name": "IntakeRollerIn",
+      "waypointRelativePos": 1.8724832214765104,
+      "endWaypointRelativePos": null,
+      "command": null
+    }
+  ],
   "globalConstraints": {
     "maxVelocity": 3.0,
     "maxAcceleration": 3.0,
@@ -61,7 +83,7 @@
     "rotation": 180.0
   },
   "reversed": false,
-  "folder": "Neutral",
+  "folder": null,
   "idealStartingState": {
     "velocity": 0,
     "rotation": -90.0

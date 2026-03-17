@@ -141,6 +141,11 @@ public class RobotContainer {
     NamedCommands.registerCommand("LauncherOn", m_launcher.setVelocity(RPM.of(3000)));
     NamedCommands.registerCommand("LauncherOff", m_launcher.set(0));
 
+    // Wait
+    NamedCommands.registerCommand("Wait", Commands.waitSeconds(2.0));
+
+    //
+
     // Set up auto routines
     autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
 
