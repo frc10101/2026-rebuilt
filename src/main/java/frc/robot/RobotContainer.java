@@ -353,7 +353,6 @@ public class RobotContainer {
     return toGoal.getAngle();
   }
 
-  @SuppressWarnings("unused")
   private double getRebuiltHubDistanceInches() {
     Pose2d robotPose = drive.getPose();
     Pose2d goalPose = getRebuiltHubPose();
