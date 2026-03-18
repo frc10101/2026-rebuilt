@@ -14,6 +14,7 @@ import com.pathplanner.lib.auto.NamedCommands;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
@@ -282,8 +283,9 @@ public class RobotContainer {
                 .alongWith(BeltDexter.NoFuel())
                 .andThen(Column.ResetVoltageRampDownLaunch()));
 
-    launcherVelocityButton.whileTrue(launcher.setVelocity(RPM.of(-5000)));
-    launcherVelocityButton.whileFalse(launcher.set(0));
+    // launcherVelocityButton.whileTrue(launcher.setVelocity(RPM.of(-5000)));
+    launcherVelocityButton.whileTrue(launcher.launchDistance(getRebuiltHubDistanceInches()));
+    launcherVelocityButton.whileFalse(launcher.setVelocity(RPM.of(0)));
 
     climbUp.onTrue(
         leftClimb
@@ -349,6 +351,14 @@ public class RobotContainer {
     Pose2d goalPose = getRebuiltHubPose();
     Translation2d toGoal = goalPose.getTranslation().minus(robotPose.getTranslation());
     return toGoal.getAngle();
+  }
+
+  @SuppressWarnings("unused")
+  private double getRebuiltHubDistanceInches() {
+    Pose2d robotPose = drive.getPose();
+    Pose2d goalPose = getRebuiltHubPose();
+    double distanceMeters = robotPose.getTranslation().getDistance(goalPose.getTranslation());
+    return Units.metersToInches(distanceMeters);
   }
 
   private Pose2d getRebuiltHubPose() {
