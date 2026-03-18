@@ -10,8 +10,11 @@ package frc.robot;
 import static edu.wpi.first.units.Units.RPM;
 
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.auto.NamedCommands;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj.XboxController;
@@ -34,6 +37,9 @@ import frc.robot.subsystems.drive.GyroIOPigeon2;
 import frc.robot.subsystems.drive.ModuleIO;
 import frc.robot.subsystems.drive.ModuleIOSim;
 import frc.robot.subsystems.drive.ModuleIOTalonFX;
+import frc.robot.subsystems.vision.Vision;
+import frc.robot.subsystems.vision.VisionIOPhotonVision;
+import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 /**
@@ -43,9 +49,11 @@ import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
  * subsystems, commands, and button mappings) should be declared here.
  */
 public class RobotContainer {
+  private static final Pose2d REBUILT_HUB_BLUE = new Pose2d(4.623, 4.036, Rotation2d.kZero);
+
   // Subsystems
   private final Drive drive;
-  // private final Vision vision;
+  private final Vision vision;
   private final Launcher launcher;
   private final Intake m_intake;
   private final Feeder Column;
@@ -135,9 +143,23 @@ public class RobotContainer {
         leftClimb = new Climb("Left", Constants.SparkMaxCanIDs.ClimbLeftMotor);
         rightClimb = new Climb("Right", Constants.SparkMaxCanIDs.ClimbRightMotor);
         launcher = new Launcher();
-        // vision = new Vision(drive::addVisionMeasurement,
-        // VisionIOPhotonVision.createAllCameras());
+        vision = new Vision(drive::addVisionMeasurement, VisionIOPhotonVision.createAllCameras());
         m_intake = new Intake();
+        NamedCommands.registerCommand("IntakeDown", m_intake.goToIntakePosition());
+        NamedCommands.registerCommand("LauncherSpinUp", launcher.setVelocity(RPM.of(-3500)));
+        NamedCommands.registerCommand(
+            "Launch",
+            BeltDexter.IntakeFuel()
+                .alongWith(Column.VoltageRampDownLaunch())
+                .alongWith(m_intake.jitterIntakeAuto().repeatedly()));
+        NamedCommands.registerCommand(
+            "StopAll",
+            launcher
+                .setVelocity(RPM.of(0))
+                .alongWith(BeltDexter.NoFuel())
+                .alongWith(Column.NoFuel())
+                .alongWith(m_intake.goToIntakePosition())
+                .andThen(Column.ResetVoltageRampDownLaunch()));
         break;
 
       case SIM:
@@ -154,11 +176,11 @@ public class RobotContainer {
         leftClimb = new Climb("Left", Constants.SparkMaxCanIDs.ClimbLeftMotor);
         rightClimb = new Climb("Right", Constants.SparkMaxCanIDs.ClimbRightMotor);
         launcher = new Launcher();
-        /*vision =
-        new Vision(
-            drive::addVisionMeasurement,
-            VisionIOPhotonVisionSim.createAllSimCameras(drive::getPose));
-        */
+        vision =
+            new Vision(
+                drive::addVisionMeasurement,
+                VisionIOPhotonVisionSim.createAllSimCameras(drive::getPose));
+
         m_intake = new Intake();
         break;
 
@@ -176,7 +198,7 @@ public class RobotContainer {
         leftClimb = new Climb("Left", Constants.SparkMaxCanIDs.ClimbLeftMotor);
         rightClimb = new Climb("Right", Constants.SparkMaxCanIDs.ClimbRightMotor);
         launcher = new Launcher();
-        // vision = new Vision(drive::addVisionMeasurement);
+        vision = new Vision(drive::addVisionMeasurement);
         m_intake = new Intake();
         break;
     }
@@ -199,7 +221,7 @@ public class RobotContainer {
     //     "Drive SysId (Dynamic Forward)", drive.sysIdDynamic(SysIdRoutine.Direction.kForward));
     // autoChooser.addOption(
     //     "Drive SysId (Dynamic Reverse)", drive.sysIdDynamic(SysIdRoutine.Direction.kReverse));
-    autoChooser.addOption("AutoTest", drive.getAuto("LsRhChute"));
+    autoChooser.addOption("AutoTest", drive.getAuto("MiddleStartLoadingStation"));
     // autoChooser.addOption("AUTOTEST", );
 
     // Configure the button bindings
@@ -230,7 +252,7 @@ public class RobotContainer {
             drive,
             () -> -driverOneController.getLeftY(),
             () -> -driverOneController.getLeftX(),
-            () -> Rotation2d.kZero));
+            this::getRebuiltHubHeading));
 
     // Switch to X pattern when X button is pressed
     xOutButton.onTrue(Commands.runOnce(drive::stopWithX, drive));
@@ -248,12 +270,19 @@ public class RobotContainer {
     intakeFuelButton.onTrue(m_intake.toggleIntake());
     jitterIntakeButton.onTrue(m_intake.jitterIntake());
 
-    beltIntakeButton.whileTrue(Column.IntakeFuel().alongWith(BeltDexter.IntakeFuel()));
-    beltOuttakeButton.whileTrue(Column.OuttakeFuel());
-    (beltIntakeButton.or(beltOuttakeButton))
-        .whileFalse(Column.NoFuel().alongWith(BeltDexter.NoFuel()));
+    // beltIntakeButton.whileTrue(Column.IntakeFuel().alongWith(BeltDexter.IntakeFuel()));
+    beltIntakeButton.whileTrue(Column.VoltageRampDownLaunch().alongWith(BeltDexter.IntakeFuel()));
 
-    launcherVelocityButton.whileTrue(launcher.setVelocity(RPM.of(-4000)));
+    beltOuttakeButton.whileTrue(Column.OuttakeFuel());
+    // (beltIntakeButton.or(beltOuttakeButton))
+    //     .whileFalse(Column.NoFuel().alongWith(BeltDexter.NoFuel()));
+    (beltIntakeButton.or(beltOuttakeButton))
+        .whileFalse(
+            Column.NoFuel()
+                .alongWith(BeltDexter.NoFuel())
+                .andThen(Column.ResetVoltageRampDownLaunch()));
+
+    launcherVelocityButton.whileTrue(launcher.setVelocity(RPM.of(-5000)));
     launcherVelocityButton.whileFalse(launcher.set(0));
 
     climbUp.onTrue(
@@ -313,5 +342,26 @@ public class RobotContainer {
    */
   public Command getAutonomousCommand() {
     return autoChooser.get();
+  }
+
+  private Rotation2d getRebuiltHubHeading() {
+    Pose2d robotPose = drive.getPose();
+    Pose2d goalPose = getRebuiltHubPose();
+    Translation2d toGoal = goalPose.getTranslation().minus(robotPose.getTranslation());
+    return toGoal.getAngle();
+  }
+
+  private Pose2d getRebuiltHubPose() {
+    double fieldLength = Constants.VisionConstants.aprilTagLayout.getFieldLength();
+    boolean isRed =
+        DriverStation.getAlliance().orElse(DriverStation.Alliance.Blue)
+            == DriverStation.Alliance.Red;
+    if (!isRed) {
+      return REBUILT_HUB_BLUE;
+    }
+    return new Pose2d(
+        fieldLength - REBUILT_HUB_BLUE.getX(),
+        REBUILT_HUB_BLUE.getY(),
+        REBUILT_HUB_BLUE.getRotation());
   }
 }

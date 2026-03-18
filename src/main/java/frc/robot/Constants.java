@@ -152,8 +152,8 @@ public final class Constants {
       public static final Angle hardLimitTwo = Degrees.of(105);
       public static final Angle startingPosition = Degrees.of(105);
       public static final Angle stowedPosition = Degrees.of(105);
-      public static final Angle intakePosition = Degrees.of(5);
-      public static final Angle jitterPosition = Degrees.of(30);
+      public static final Angle intakePosition = Degrees.of(0);
+      public static final Angle jitterPosition = Degrees.of(45);
       public static final Distance armLength = Feet.of(1);
       public static final Mass mass = Pounds.of(8);
 
@@ -186,7 +186,7 @@ public final class Constants {
       // Roller speeds (duty cycle -1 to 1)
       // public static final double intakeSpeed = 0.65;
       // public static final double outtakeSpeed = 0.3;
-      public static final AngularVelocity intakeSpeed = RPM.of(-4500);
+      public static final AngularVelocity intakeSpeed = RPM.of(-4000);
       public static final AngularVelocity outtakeSpeed = RPM.of(500);
     }
   }
@@ -256,7 +256,7 @@ public final class Constants {
     /** Column Stall Current Limit */
     public static final Current currentLimit = Amps.of(60);
 
-    public static final Voltage IntakeSpeed = Volts.of(3);
+    public static final Voltage IntakeSpeed = Volts.of(4);
     public static final Voltage OuttakeSpeed = Volts.of(-3);
 
     public final class Real {
@@ -291,7 +291,7 @@ public final class Constants {
     /** Column Stall Current Limit */
     public static final Current currentLimit = Amps.of(60);
 
-    public static final Voltage IntakeSpeed = Volts.of(3);
+    public static final Voltage IntakeSpeed = Volts.of(6);
     public static final Voltage OuttakeSpeed = Volts.of(-3);
 
     public final class Real {
@@ -326,37 +326,37 @@ public final class Constants {
         AprilTagFieldLayout.loadField(AprilTagFields.kDefaultField);
 
     // Camera names, must match names configured on coprocessor
-    public static final String camera0Name = "cherry";
-    public static final String camera1Name = "orange";
-    public static final String camera2Name = "grape";
-    public static final String camera3Name = "strawberry";
+    public static final String camera0Name = "Cherry";
+    public static final String camera1Name = "Orange";
+    public static final String camera2Name = "Grape";
+    public static final String camera3Name = "Strawberry";
 
     // Robot to camera transforms
     // (Not used by Limelight, configure in web UI instead)
     public static final Transform3d robotToCamera0 =
         new Transform3d(
             Inches.of(12.25),
-            Inches.of(12.504),
-            Inches.of(13.5),
+            Inches.of(12.25),
+            Inches.of(13.375),
             new Rotation3d(Degrees.of(0), Degrees.of(0), Degrees.of(0)));
     public static final Transform3d robotToCamera1 =
         new Transform3d(
             Inches.of(12.25),
-            Inches.of(-12.504),
-            Inches.of(13.5),
+            Inches.of(-12.25),
+            Inches.of(13.375),
             new Rotation3d(Degrees.of(0), Degrees.of(0), Degrees.of(0)));
     public static final Transform3d robotToCamera2 =
         new Transform3d(
-            Inches.of(-8.425),
-            Inches.of(11),
-            Inches.of(7.495),
-            new Rotation3d(Degrees.of(0), Degrees.of(0), Degrees.of(180)));
+            Inches.of(-(9.25)),
+            Inches.of(11.25),
+            Inches.of(8.375),
+            new Rotation3d(Degrees.of(0), Degrees.of(45), Degrees.of(180)));
     public static final Transform3d robotToCamera3 =
         new Transform3d(
-            Inches.of(-8.425),
-            Inches.of(-11),
-            Inches.of(7.495),
-            new Rotation3d(Degrees.of(0), Degrees.of(0), Degrees.of(180)));
+            Inches.of(-(9.25)),
+            Inches.of(-11.25),
+            Inches.of(8.375),
+            new Rotation3d(Degrees.of(0), Degrees.of(45), Degrees.of(180)));
 
     // SIM Camera Constants
     public static final int resWidth = 1280;

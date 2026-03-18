@@ -18,6 +18,7 @@ import static edu.wpi.first.units.Units.Volts;
 import com.ctre.phoenix6.hardware.TalonFX;
 import edu.wpi.first.math.Pair;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
+import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.MomentOfInertia;
@@ -53,6 +54,7 @@ public class Launcher extends SubsystemBase {
 
   /** Creates a new Launcher. */
   private TalonFX FlywheelLead = new TalonFX(LauncherConstants.MOTOR_ID_LEAD);
+  private InterpolatingDoubleTreeMap LauncherLUT = new InterpolatingDoubleTreeMap();
 
   private TalonFX FlywheelFollow = new TalonFX(LauncherConstants.MOTOR_ID_FOLLOW);
   private SmartMotorControllerConfig smcConfig =
@@ -106,6 +108,8 @@ public class Launcher extends SubsystemBase {
   private final MutAngle m_position = new MutAngle(0, 0, Rotations);
   private final MutAngularVelocity m_velocity = new MutAngularVelocity(0, 0, RotationsPerSecond);
 
+
+
   /**
    * Gets the current velocity of the shooter.
    *
@@ -140,7 +144,11 @@ public class Launcher extends SubsystemBase {
     return new Trigger(() -> TargetSpeed == Launcher.getSpeed());
   }
 
-  public Launcher() {}
+  public Launcher() {
+    LauncherLUT.put(79.75, -3300.0);
+    LauncherLUT.put(126.18248429134, -3500.0);
+    LauncherLUT.put(200.0, -5000.0);
+  }
 
   @Override
   public void periodic() {
@@ -198,5 +206,13 @@ public class Launcher extends SubsystemBase {
   /** Returns the dynamic test command. */
   public Command sysIdDynamic(SysIdRoutine.Direction direction) {
     return sysIdRoutine.dynamic(direction);
+  }
+
+  public Command launchDistance(double distance){
+    return runOnce(()->{launchDistance(distance);});
+  }
+
+  private void LaunchDistance(double distance){
+    setVelocity(RPM.of(LauncherLUT.get(distance)));
   }
 }

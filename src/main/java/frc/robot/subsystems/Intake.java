@@ -25,6 +25,7 @@ import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants;
 import yams.gearing.GearBox;
@@ -157,6 +158,13 @@ public class Intake extends SubsystemBase {
     return setAngle(Constants.IntakeConstants.Pivot.jitterPosition)
         .withTimeout(0.5)
         .andThen(setAngle(Constants.IntakeConstants.Pivot.intakePosition).withTimeout(0.1));
+  }
+
+  public Command jitterIntakeAuto() {
+    return setAngle(Constants.IntakeConstants.Pivot.jitterPosition)
+        .withTimeout(0.5)
+        .andThen(setAngle(Constants.IntakeConstants.Pivot.intakePosition).withTimeout(0.1))
+        .andThen(new WaitCommand(.25));
   }
 
   public Command zeroPivot() {

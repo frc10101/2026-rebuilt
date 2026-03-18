@@ -17,6 +17,7 @@ import edu.wpi.first.units.measure.MutAngularVelocity;
 import edu.wpi.first.units.measure.MutVoltage;
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.RobotController;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -41,6 +42,7 @@ public class Feeder extends SubsystemBase {
   private final MutVoltage m_appliedVoltage = new MutVoltage(0, 0, Volts);
   private final MutAngle m_position = new MutAngle(0, 0, Rotations);
   private final MutAngularVelocity m_velocity = new MutAngularVelocity(0, 0, RotationsPerSecond);
+  private Timer voltageRampTimer = new Timer();
 
   private SmartMotorControllerConfig MotorConfig =
       new SmartMotorControllerConfig(this)
@@ -82,6 +84,38 @@ public class Feeder extends SubsystemBase {
 
   public Command NoFuel() {
     return runOnce(() -> m_motorspeed = Volts.zero());
+  }
+
+  public Command VoltageRampDownLaunch() {
+    return runOnce(
+        () -> {
+          voltageRampDown();
+        });
+  }
+
+  public Command ResetVoltageRampDownLaunch() {
+    return runOnce(
+        () -> {
+          ResetVoltageRampDownLaunch();
+        });
+  }
+
+  private void voltageRampDown() {
+    double startVoltage = 6;
+    double endVoltage = 5;
+    double rampTime = 2;
+    voltageRampTimer.start();
+    if (!voltageRampTimer.hasElapsed(rampTime)) {
+      double Slope = (endVoltage - startVoltage) / rampTime;
+      m_motorspeed = Volts.of(startVoltage + Slope * voltageRampTimer.get());
+    } else {
+      m_motorspeed = Volts.of(endVoltage);
+    }
+  }
+
+  private void resetVoltageRampDown() {
+    voltageRampTimer.stop();
+    voltageRampTimer.reset();
   }
 
   @Override
