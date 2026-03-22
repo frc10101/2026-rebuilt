@@ -19,6 +19,7 @@ import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.MutAngle;
 import edu.wpi.first.units.measure.MutAngularVelocity;
 import edu.wpi.first.units.measure.MutVoltage;
+import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -41,6 +42,7 @@ public class Climb extends SubsystemBase {
   private Distance distance = ClimbConstants.RestDistance;
   private boolean isWorking = false;
   private final String name;
+  private Voltage m_motorspeed = Volts.zero();
 
   private final MutVoltage m_appliedVoltage = new MutVoltage(0, 0, Volts);
   private final MutAngle m_position = new MutAngle(0, 0, Rotations);
@@ -167,12 +169,25 @@ public class Climb extends SubsystemBase {
         });
   }
 
+  public Command goUp() {
+    return runOnce(() -> m_motorspeed = Volts.of(3));
+  }
+
+  public Command goDown() {
+    return runOnce(() -> m_motorspeed = Volts.of(-3));
+  }
+
+  public Command No() {
+    return runOnce(() -> m_motorspeed = Volts.zero());
+  }
+
   public void close() {
     motor.close();
   }
 
   @Override
   public void periodic() {
+    motor.setVoltage(m_motorspeed);
     // This method will be called once per scheduler run
     SmartDashboard.putNumber(name + " Climb Distance Setpoint", distance.in(Inches));
     SmartDashboard.putNumber(name + " Climb Distance Actual", getHeight().in(Inches));

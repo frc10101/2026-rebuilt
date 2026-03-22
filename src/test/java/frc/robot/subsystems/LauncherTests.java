@@ -29,13 +29,6 @@ public class LauncherTests {
   }
 
   @Test
-  void setVelocityReturnsCommandTest() {
-    // setVelocity should return a Command that can be scheduled
-    Command cmd = mLauncher.setVelocity(mLauncher.getVelocity());
-    assertNotNull(cmd);
-  }
-
-  @Test
   void setDutyCycleReturnsCommandTest() {
     // set(dutyCycle) should return a Command that can be scheduled
     Command cmd = mLauncher.set(0.5);

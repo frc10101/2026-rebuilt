@@ -46,7 +46,7 @@ public class VisionIOPhotonVision implements VisionIO {
   public VisionIOPhotonVision(String name, Transform3d robotToCamera) {
     camera = new PhotonCamera(name);
     this.robotToCamera = robotToCamera;
-  poseEstimator = new PhotonPoseEstimator(aprilTagLayout, robotToCamera);
+    poseEstimator = new PhotonPoseEstimator(aprilTagLayout, robotToCamera);
   }
 
   /**
@@ -81,7 +81,7 @@ public class VisionIOPhotonVision implements VisionIO {
 
     camera = new PhotonCamera(name);
     this.robotToCamera = transform;
-  poseEstimator = new PhotonPoseEstimator(aprilTagLayout, robotToCamera);
+    poseEstimator = new PhotonPoseEstimator(aprilTagLayout, robotToCamera);
   }
 
   @Override

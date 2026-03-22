@@ -126,4 +126,51 @@ public class HelpersTests {
     assertEquals(isActiveExpected, isAllianceHubActive);
     driverStationMock.close();
   }
+
+  @DisplayName("Time to Next Alliance Shift Test")
+  @ParameterizedTest(name = "Match Time {0} -> {1}")
+  @CsvSource({
+    "140.0,0.0",
+    "130.0,25.0",
+    "106.0,1.0",
+    "105.0,25.0",
+    "81.0,1.0",
+    "80.0,25.0",
+    "56.0,1.0",
+    "55.0,25.0",
+    "31.0,1.0",
+    "30.0,0.0",
+    "0.0,0.0"
+  })
+  public void getTimeToNextAllianceShift_Test(double matchTime, double expectedSeconds) {
+    double actualSeconds = Helpers.getTimeToNextAllianceShift(matchTime);
+    assertEquals(expectedSeconds, actualSeconds, 1e-9);
+  }
+
+  @DisplayName("Shift Label Test")
+  @ParameterizedTest(name = "Match Time {0} -> {1}")
+  @CsvSource({
+    "150.0,A",
+    "141.0,A",
+    "140.0,A",
+    "131.0,A",
+    "130.0,TS",
+    "121.0,TS",
+    "120.0,TS",
+    "119.0,1",
+    "106.0,1",
+    "105.0,2",
+    "81.0,2",
+    "80.0,3",
+    "56.0,3",
+    "55.0,4",
+    "31.0,4",
+    "30.0,EG",
+    "1.0,EG",
+    "0.0,EG"
+  })
+  public void getShift_Test(double matchTime, String expectedLabel) {
+    String actualLabel = Helpers.getShift(matchTime);
+    assertEquals(expectedLabel, actualLabel);
+  }
 }

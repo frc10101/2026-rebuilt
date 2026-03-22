@@ -7,8 +7,6 @@
 
 package frc.robot;
 
-import static edu.wpi.first.units.Units.RPM;
-
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -21,16 +19,17 @@ import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
-import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
-import frc.robot.Constants.ClimbConstants;
 import frc.robot.commands.DriveCommands;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.Feeder;
 import frc.robot.subsystems.Indexer;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Launcher;
+import frc.robot.subsystems.Launcher.LauncherState;
 import frc.robot.subsystems.climb.Climb;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.GyroIO;
@@ -41,6 +40,8 @@ import frc.robot.subsystems.drive.ModuleIOTalonFX;
 import frc.robot.subsystems.vision.Vision;
 import frc.robot.subsystems.vision.VisionIOPhotonVision;
 import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
+import frc.robot.util.Helpers;
+import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 /**
@@ -65,11 +66,11 @@ public class RobotContainer {
   // Controller
   private final CommandXboxController driverOneController = new CommandXboxController(0);
   private final CommandXboxController driverTwoController = new CommandXboxController(1);
-  private final CommandXboxController testController = new CommandXboxController(2);
+  private final CommandJoystick testController = new CommandJoystick(2);
 
   // Buttons tehe
   // Driver One A Button
-  private final Trigger alignToZeroButton = driverOneController.button(1);
+  private final Trigger alignToGoalButton = driverOneController.button(1);
 
   // Driver One Options Button
   private final Trigger resetIMUButton = driverOneController.button(8);
@@ -77,32 +78,59 @@ public class RobotContainer {
   // Driver One X Button
   private final Trigger xOutButton = driverOneController.button(3);
 
-  // Driver Two Right Trigger Button
-  private final Trigger launcherVelocityButton = driverTwoController.axisGreaterThan(3, 0.3);
+  // Driver One Right Trigger
+  private final Trigger LaunchFuel = driverOneController.axisGreaterThan(3, 0.3);
+
+  // Driver One Dpad Down Button
+  private final Trigger IntakeStowed = driverOneController.povDown();
+
+  // Driver Two B  Button
+  private final Trigger JitterIntake = driverTwoController.button(2);
 
   // Driver Twp Left Bumper
-  private final Trigger beltIntakeButton = driverTwoController.button(5);
+  private final Trigger IntakeDownButton = driverTwoController.button(5);
 
   // Driver Two Right Bumper
-  private final Trigger beltOuttakeButton = driverTwoController.button(6);
+  private final Trigger IntakeUp = driverTwoController.button(6);
 
-  // Driver Two B Button
-  private final Trigger lowerIntakeButton = driverTwoController.button(2);
-
-  // Driver Two X Button
-  private final Trigger stowIntakeButton = driverTwoController.button(3);
+  // Driver Two Left Button
+  private final Trigger ToggleIntake = driverTwoController.axisGreaterThan(2, 0.3);
 
   // Driver Two Y Button
-  private final Trigger jitterIntakeButton = driverTwoController.button(4);
+  private final Trigger LaunchTrench = driverTwoController.button(4);
 
-  // Driver Two Left Trigger
-  private final Trigger intakeFuelButton = driverTwoController.axisGreaterThan(2, 0.3);
-
+  // Driver Two X Button
+  private final Trigger LaunchTower = driverTwoController.button(3);
+  // Driver Two A Button
+  private final Trigger launchHub = driverTwoController.button(1);
+  // driver Two Dpad left
+  private final Trigger launchDistance = driverTwoController.povLeft();
   // Driver Two Dpad Up
-  private final Trigger climbUp = driverTwoController.pov(0);
+  private final Trigger NudgeFlywheelUp = driverTwoController.povUp();
 
   // Driver Two Dpad Down
-  private final Trigger climbDown = driverTwoController.pov(180);
+  private final Trigger NudgeFlywheelDown = driverTwoController.povDown();
+
+  // Driver Two Dpad Right
+  private final Trigger RevFlywheel = driverTwoController.povRight();
+
+  // Driver Two Right Trigger
+  private final Trigger LaunchFuel2 = driverTwoController.axisGreaterThan(3, 0.3);
+
+  // Driver Two Start Button
+  private final Trigger LauncherOff = driverTwoController.button(8);
+
+  // Joystick Left Up Button
+  private final Trigger ClimbUp = testController.button(5);
+
+  // Joystick Left Down Button
+  private final Trigger ClimbDown = testController.button(3);
+
+  // Joystick Right Up Button
+  private final Trigger RClimbUp = testController.button(6);
+
+  // Joystick Right Down Button
+  private final Trigger RClimbDown = testController.button(4);
 
   // Dashboard inputs
   private final LoggedDashboardChooser<Command> autoChooser;
@@ -147,7 +175,11 @@ public class RobotContainer {
         vision = new Vision(drive::addVisionMeasurement, VisionIOPhotonVision.createAllCameras());
         m_intake = new Intake();
         NamedCommands.registerCommand("IntakeDown", m_intake.goToIntakePosition());
-        NamedCommands.registerCommand("LauncherSpinUp", launcher.setVelocity(RPM.of(-3500)));
+        NamedCommands.registerCommand(
+            "LauncherSpinUp",
+            launcher
+                .changeDistanceType(LauncherState.AUTO)
+                .andThen(new InstantCommand(launcher::setVelocity)));
         NamedCommands.registerCommand(
             "Launch",
             BeltDexter.IntakeFuel()
@@ -156,11 +188,12 @@ public class RobotContainer {
         NamedCommands.registerCommand(
             "StopAll",
             launcher
-                .setVelocity(RPM.of(0))
+                .changeDistanceType(LauncherState.OFF)
                 .alongWith(BeltDexter.NoFuel())
                 .alongWith(Column.NoFuel())
                 .alongWith(m_intake.goToIntakePosition())
-                .andThen(Column.ResetVoltageRampDownLaunch()));
+                .andThen(Column.ResetVoltageRampDownLaunch())
+                .alongWith(new InstantCommand(launcher::setVelocity)));
         break;
 
       case SIM:
@@ -223,11 +256,15 @@ public class RobotContainer {
     // autoChooser.addOption(
     //     "Drive SysId (Dynamic Reverse)", drive.sysIdDynamic(SysIdRoutine.Direction.kReverse));
     autoChooser.addOption("AutoTest", drive.getAuto("MiddleStartLoadingStation"));
+    autoChooser.addOption("AutoNoRev", drive.getAuto("MiddleStartLoadingStationNoRev"));
     // autoChooser.addOption("AUTOTEST", );
 
     // Configure the button bindings
 
     configureButtonBindings();
+    Logger.recordOutput("isHubActive", Helpers.isAllianceHubActive());
+    Logger.recordOutput("timeToNextShift", Helpers.getTimeToNextAllianceShift());
+    Logger.recordOutput("currentShift", Helpers.getShift());
   }
 
   /**
@@ -237,6 +274,7 @@ public class RobotContainer {
    * edu.wpi.first.wpilibj2.command.button.JoystickButton}.
    */
   private void configureButtonBindings() {
+    // launcher.setDefaultCommand(launcher.updateFlywheel());
     // m_intake.setDefaultCommand(m_intake.setAngle(Degrees.of(90)));
 
     // Default command, normal field-relative drive
@@ -248,7 +286,7 @@ public class RobotContainer {
             () -> -driverOneController.getRawAxis(4) / 1.5));
 
     // Lock to 0 degrees when A button is held
-    alignToZeroButton.whileTrue(
+    alignToGoalButton.whileTrue(
         DriveCommands.joystickDriveAtAngle(
             drive,
             () -> -driverOneController.getLeftY(),
@@ -265,36 +303,83 @@ public class RobotContainer {
                 drive)
             .ignoringDisable(true));
 
-    stowIntakeButton.onTrue(((m_intake.setAngle(Constants.IntakeConstants.Pivot.stowedPosition))));
-    lowerIntakeButton.onTrue(((m_intake.goToIntakePosition())));
+    IntakeStowed.onTrue(((m_intake.setAngle(Constants.IntakeConstants.Pivot.stowedPosition))));
+    IntakeDownButton.onTrue(((m_intake.goToIntakePosition())));
 
-    intakeFuelButton.onTrue(m_intake.toggleIntake());
-    jitterIntakeButton.onTrue(m_intake.jitterIntake());
+    ToggleIntake.onTrue(m_intake.intake());
+    ToggleIntake.onFalse(m_intake.stopRoller());
+    JitterIntake.onTrue(m_intake.jitterIntake());
 
     // beltIntakeButton.whileTrue(Column.IntakeFuel().alongWith(BeltDexter.IntakeFuel()));
-    beltIntakeButton.whileTrue(Column.VoltageRampDownLaunch().alongWith(BeltDexter.IntakeFuel()));
-
-    beltOuttakeButton.whileTrue(Column.OuttakeFuel());
-    // (beltIntakeButton.or(beltOuttakeButton))
-    //     .whileFalse(Column.NoFuel().alongWith(BeltDexter.NoFuel()));
-    (beltIntakeButton.or(beltOuttakeButton))
+    (LaunchFuel.or(LaunchFuel2))
         .whileFalse(
             Column.NoFuel()
                 .alongWith(BeltDexter.NoFuel())
                 .andThen(Column.ResetVoltageRampDownLaunch()));
 
-    // launcherVelocityButton.whileTrue(launcher.setVelocity(RPM.of(-5000)));
-    launcherVelocityButton.whileTrue(launcher.launchDistance(getRebuiltHubDistanceInches()));
-    launcherVelocityButton.whileFalse(launcher.setVelocity(RPM.of(0)));
+    LaunchFuel.or(LaunchFuel2)
+        .whileTrue(Column.VoltageRampDownLaunch().alongWith(BeltDexter.IntakeFuel()));
 
-    climbUp.onTrue(
-        leftClimb
-            .GoToHeight(ClimbConstants.PreHangExtension)
-            .alongWith(rightClimb.GoToHeight(ClimbConstants.PreHangExtension)));
-    climbDown.onTrue(
-        leftClimb
-            .GoToHeight(ClimbConstants.RestDistance)
-            .alongWith(rightClimb.GoToHeight(ClimbConstants.RestDistance)));
+    LauncherOff.onTrue(
+        launcher
+            .changeDistanceType(LauncherState.OFF)
+            .andThen(new InstantCommand(launcher::setVelocity)));
+
+    // (beltIntakeButton.or(beltOuttakeButton))
+    //     .whileFalse(Column.NoFuel().alongWith(BeltDexter.NoFuel()));
+
+    // launcherVelocityButton.whileTrue(launcher.setVelocity(RPM.of(-5000)));
+
+    NudgeFlywheelUp.onTrue(launcher.increaseNudge());
+    NudgeFlywheelDown.onTrue(launcher.decreaseNudge());
+
+    // Trigger autoRevAllianceZone = new Trigger(() ->
+    // Helpers.isPoseInAllianceZone(drive.getPose()));
+    // Trigger autoRevTeleop = new Trigger(DriverStation::isTeleopEnabled);
+    // Trigger autoRevRequest = autoRevAllianceZone.and(autoRevTeleop);
+    // Trigger autoRevCondition = autoRevRequest.and(RevFlywheel.negate());
+    // autoRevCondition.whileTrue(launcher.FlywheelON());
+    // autoRevRequest.onFalse(launcher.FlywheelOFF());
+
+    // RevFlywheel.whileTrue(launcher.updateFlywheel());
+    // RevFlywheel.whileFalse(launcher.changeDistanceType(LauncherState.OFF));
+
+    launchDistance
+        .and(LaunchTrench)
+        .and(launchHub)
+        .and(LaunchTower)
+        .onFalse(
+            launcher
+                .changeDistanceType(LauncherState.OFF)
+                .andThen(new InstantCommand(launcher::setVelocity)));
+
+    launchDistance.onTrue(
+        launcher
+            .changeDistanceType(LauncherState.BYDISTANCE)
+            .andThen(new InstantCommand(launcher::setVelocity)));
+    LaunchTrench.onTrue(
+        launcher
+            .changeDistanceType(LauncherState.TRENCH)
+            .andThen(new InstantCommand(launcher::setVelocity)));
+    launchHub.onTrue(
+        launcher
+            .changeDistanceType(LauncherState.HUB)
+            .andThen(new InstantCommand(launcher::setVelocity)));
+    LaunchTower.onTrue(
+        launcher
+            .changeDistanceType(LauncherState.TOWER)
+            .andThen(new InstantCommand(launcher::setVelocity)));
+
+    IntakeDownButton.onTrue(m_intake.goToIntakePosition());
+    IntakeUp.onTrue(m_intake.setAngle(Constants.IntakeConstants.Pivot.stowedPosition));
+
+    ClimbUp.whileTrue(leftClimb.goUp().alongWith(rightClimb.goUp()));
+    ClimbDown.onTrue(leftClimb.goDown().alongWith(rightClimb.goDown()));
+    ClimbDown.or(ClimbUp).whileFalse(leftClimb.No().alongWith(rightClimb.No()));
+
+    RClimbUp.whileTrue(rightClimb.goUp());
+    RClimbDown.onTrue(rightClimb.goDown());
+    RClimbDown.or(RClimbUp).whileFalse(rightClimb.No());
 
     var speedTrigger = launcher.isAtSpeed();
     speedTrigger.whileTrue(
@@ -302,12 +387,12 @@ public class RobotContainer {
     speedTrigger.whileFalse(
         Commands.run(() -> driverOneController.setRumble(RumbleType.kBothRumble, 0)));
 
-    // Quasistatic Turn Tests
-    testController.button(1).whileTrue(drive.sysIdTurnQuasistatic(SysIdRoutine.Direction.kForward));
-    testController.button(2).whileTrue(drive.sysIdTurnQuasistatic(SysIdRoutine.Direction.kReverse));
-    // Dynamic Turn Tests
-    testController.button(3).whileTrue(drive.sysIdTurnDynamic(SysIdRoutine.Direction.kForward));
-    testController.button(4).whileTrue(drive.sysIdTurnDynamic(SysIdRoutine.Direction.kReverse));
+    // // Quasistatic Turn Tests
+    // testController.button(1).whileTrue(drive.sysIdTurnQuasistatic(SysIdRoutine.Direction.kForward));
+    // testController.button(2).whileTrue(drive.sysIdTurnQuasistatic(SysIdRoutine.Direction.kReverse));
+    // // Dynamic Turn Tests
+    // testController.button(3).whileTrue(drive.sysIdTurnDynamic(SysIdRoutine.Direction.kForward));
+    // testController.button(4).whileTrue(drive.sysIdTurnDynamic(SysIdRoutine.Direction.kReverse));
 
     // Toggle which SysId test is bound to buttons 1-4
     // Quasistatic Drive tests

@@ -3,32 +3,16 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 1.0,
+        "x": 0.65,
         "y": 0.75
       },
       "prevControl": null,
       "nextControl": {
-        "x": 1.525565777589669,
-        "y": 1.6710436789418828
+        "x": 1.547957710554202,
+        "y": 1.8200305406117798
       },
       "isLocked": false,
       "linkedName": "MiddleStartToLoadingStation"
-    },
-    {
-      "anchor": {
-        "x": 1.6844740306712969,
-        "y": 1.4378726851851855
-      },
-      "prevControl": {
-        "x": 1.0097842751532262,
-        "y": 1.1633997193410697
-      },
-      "nextControl": {
-        "x": 1.9160451380103147,
-        "y": 1.5320789601661073
-      },
-      "isLocked": false,
-      "linkedName": null
     },
     {
       "anchor": {
@@ -36,8 +20,8 @@
         "y": 2.125
       },
       "prevControl": {
-        "x": 2.059132746219555,
-        "y": 2.374833130201919
+        "x": 2.296654099338095,
+        "y": 2.084235367293287
       },
       "nextControl": null,
       "isLocked": false,

@@ -102,6 +102,11 @@ public final class Constants {
 
     // Soft limits (RPM)
     public static final double SOFT_LIMIT_RPM = 5000.0;
+
+    public static final double ChangeNudgeFactor = -50;
+    public static final double TRENCH_RPM = -4600.0;
+    public static final double HUB_RPM = -3300.0;
+    public static final double TOWER_RPM = -3500.0;
   }
 
   public static final class IntakeConstants {
@@ -254,7 +259,7 @@ public final class Constants {
     /** Column Gear Ratio */
     public static final int gearRatio = 2;
     /** Column Stall Current Limit */
-    public static final Current currentLimit = Amps.of(60);
+    public static final Current currentLimit = Amps.of(40);
 
     public static final Voltage IntakeSpeed = Volts.of(4);
     public static final Voltage OuttakeSpeed = Volts.of(-3);
@@ -289,7 +294,7 @@ public final class Constants {
     /** Column Gear Ratio */
     public static final int gearRatio = 2;
     /** Column Stall Current Limit */
-    public static final Current currentLimit = Amps.of(60);
+    public static final Current currentLimit = Amps.of(40);
 
     public static final Voltage IntakeSpeed = Volts.of(6);
     public static final Voltage OuttakeSpeed = Volts.of(-3);

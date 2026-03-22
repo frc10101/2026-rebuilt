@@ -79,7 +79,7 @@ public class Intake extends SubsystemBase {
           // Motor properties from tutorial to prevent over currenting
           .withMotorInverted(false)
           .withIdleMode(MotorMode.COAST)
-          .withStatorCurrentLimit(Constants.IntakeConstants.Pivot.currentLimit)
+          .withSupplyCurrentLimit(Constants.IntakeConstants.Pivot.currentLimit)
           .withClosedLoopRampRate(Constants.IntakeConstants.Pivot.closedLoopRampRate)
           .withOpenLoopRampRate(Constants.IntakeConstants.Pivot.openLoopRampRate);
 
@@ -244,7 +244,6 @@ public class Intake extends SubsystemBase {
     rollerController.updateTelemetry();
     SmartDashboard.putNumber("Pivot Voltage", pivot.getMotorVoltage().getValueAsDouble());
     SmartDashboard.putNumber("Pivot Position", pivot.getPosition().getValueAsDouble());
-
     SmartDashboard.putNumber("Roller Speed", getRollerVelocity().baseUnitMagnitude());
   }
 
