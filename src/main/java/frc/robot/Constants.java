@@ -36,6 +36,7 @@ import edu.wpi.first.units.measure.Time;
 import edu.wpi.first.units.measure.Velocity;
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.RobotBase;
+import frc.robot.util.Launcher.ProjectileSimulator;
 
 /**
  * This class defines the runtime mode used by AdvantageKit. The mode is always "real" when running
@@ -107,6 +108,31 @@ public final class Constants {
     public static final double TRENCH_RPM = -4600.0;
     public static final double HUB_RPM = -3300.0;
     public static final double TOWER_RPM = -3500.0;
+
+    // Shoot-on-the-move & simulation parameters
+    public static final double LAUNCHER_OFFSET_X = -0.223; // meters forward from robot center
+    public static final double LAUNCHER_OFFSET_Y = 0.0; // meters left from center (0 if centered)
+    public static final double LAUNCHER_TUBE_SPACING =
+        0.155575; // meters between left/center/right tubes in parallel launcher
+
+    public static final ProjectileSimulator.SimParameters params =
+        new ProjectileSimulator.SimParameters(
+            0.215, // ball mass kg
+            0.1501, // ball diameter m
+            0.47, // drag coeff (smooth sphere)
+            0.2, // Magnus coeff
+            1.225, // air density
+            0.43, // exit height (m), floor to where the ball leaves the shooter
+            0.1016, // flywheel diameter (m), measure with calipers
+            0.5343398, // target height (m), from game manual
+            0.6, // slip factor (0=no grip, 1=perfect), tune this on the real robot
+            30.0, // launch angle from horizontal, measure from CAD
+            0.001, // sim timestep
+            1500,
+            6000,
+            25,
+            5.0 // RPM search range, iterations, max sim time
+            );
   }
 
   public static final class IntakeConstants {
@@ -355,13 +381,13 @@ public final class Constants {
             Inches.of(-(9.25)),
             Inches.of(11.25),
             Inches.of(8.375),
-            new Rotation3d(Degrees.of(0), Degrees.of(45), Degrees.of(180)));
+            new Rotation3d(Degrees.of(0), Degrees.of(-45), Degrees.of(180)));
     public static final Transform3d robotToCamera3 =
         new Transform3d(
             Inches.of(-(9.25)),
             Inches.of(-11.25),
             Inches.of(8.375),
-            new Rotation3d(Degrees.of(0), Degrees.of(45), Degrees.of(180)));
+            new Rotation3d(Degrees.of(0), Degrees.of(-45), Degrees.of(180)));
 
     // SIM Camera Constants
     public static final int resWidth = 1280;
@@ -391,5 +417,11 @@ public final class Constants {
     public static final double linearStdDevMegatag2Factor = 0.5; // More stable than full 3D solve
     public static final double angularStdDevMegatag2Factor =
         Double.POSITIVE_INFINITY; // No rotation data available
+  }
+
+  public static final class RobotConstants {
+    public static final double BumperWidth = 0.818; // Meters
+    public static final double BumperLength = 0.818; // Meters
+    public static final double BumperHeight = 0.127; // Meters
   }
 }

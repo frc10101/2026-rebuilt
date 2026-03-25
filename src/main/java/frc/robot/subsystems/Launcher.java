@@ -15,28 +15,27 @@ import static edu.wpi.first.units.Units.Second;
 import static edu.wpi.first.units.Units.Seconds;
 import static edu.wpi.first.units.Units.Volts;
 
+import java.util.function.Supplier;
+
 import com.ctre.phoenix6.hardware.TalonFX;
 import edu.wpi.first.math.Pair;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
-import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.MomentOfInertia;
 import edu.wpi.first.units.measure.MutAngle;
 import edu.wpi.first.units.measure.MutAngularVelocity;
 import edu.wpi.first.units.measure.MutVoltage;
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.RobotController;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
-import frc.robot.Constants;
 import frc.robot.Constants.LauncherConstants;
-import java.util.function.Supplier;
+import org.littletonrobotics.junction.AutoLog;
 import org.littletonrobotics.junction.Logger;
+
 import yams.gearing.MechanismGearing;
 import yams.mechanisms.config.FlyWheelConfig;
 import yams.mechanisms.velocity.FlyWheel;
@@ -54,27 +53,18 @@ import yams.motorcontrollers.remote.TalonFXWrapper;
  */
 public class Launcher extends SubsystemBase {
 
-  private AngularVelocity TargetSpeed = RPM.zero();
-  private double distanceFromHub = 0;
-  private boolean isON = false;
-
-  public enum LauncherState {
-    TRENCH,
-    HUB,
-    TOWER,
-    BYDISTANCE,
-    AUTO,
-    OFF
+  @AutoLog
+  public static class ShooterInputs {
+    public AngularVelocity velocity = RPM.of(0);
+    public AngularVelocity setpoint = RPM.of(0);
+    public Voltage volts = Volts.of(0);
+    public Current current = Amps.of(0);
   }
 
-  private double Nudge = 0;
-
-  private LauncherState currentState = LauncherState.HUB;
+  private final ShooterInputsAutoLogged shooterInputs = new ShooterInputsAutoLogged();
 
   /** Creates a new Launcher. */
   private TalonFX FlywheelLead = new TalonFX(LauncherConstants.MOTOR_ID_LEAD);
-
-  private InterpolatingDoubleTreeMap LauncherLUT = new InterpolatingDoubleTreeMap();
 
   private TalonFX FlywheelFollow = new TalonFX(LauncherConstants.MOTOR_ID_FOLLOW);
   private SmartMotorControllerConfig smcConfig =
@@ -127,15 +117,22 @@ public class Launcher extends SubsystemBase {
   private final MutVoltage m_appliedVoltage = new MutVoltage(0, 0, Volts);
   private final MutAngle m_position = new MutAngle(0, 0, Rotations);
   private final MutAngularVelocity m_velocity = new MutAngularVelocity(0, 0, RotationsPerSecond);
-  private Supplier<Command> launchSpeedSupplier = () -> Launcher.run(TargetSpeed);
 
-  /**
+  private void updateInputs() {
+    shooterInputs.velocity = Launcher.getSpeed();
+    shooterInputs.setpoint = shooterMotors.getMechanismSetpointVelocity().orElse(RPM.of(0));
+    shooterInputs.volts = shooterMotors.getVoltage();
+    shooterInputs.current = shooterMotors.getStatorCurrent();
+  }
+
+  public Launcher() {}
+   /**
    * Gets the current velocity of the shooter.
    *
-   * @return Shooter velocity.
+   * @return FlyWheel velocity.
    */
   public AngularVelocity getVelocity() {
-    return Launcher.getSpeed();
+    return shooterInputs.velocity;
   }
 
   /**
@@ -144,13 +141,9 @@ public class Launcher extends SubsystemBase {
    * @param speed Speed to set.
    * @return {@link edu.wpi.first.wpilibj2.command.RunCommand}
    */
-  public AngularVelocity setVelocity(AngularVelocity speed) {
-    if (speed.equals(RPM.of(0))) {
-      TargetSpeed = speed;
-    } else {
-      TargetSpeed = speed.plus(RPM.of(Nudge));
-    }
-    return TargetSpeed;
+  public Command setVelocity(AngularVelocity speed) {
+    Logger.recordOutput("Shooter/Setpoint", speed);
+    return Launcher.setSpeed(speed);
   }
 
   /**
@@ -160,73 +153,38 @@ public class Launcher extends SubsystemBase {
    * @return {@link edu.wpi.first.wpilibj2.command.RunCommand}
    */
   public Command set(double dutyCycle) {
+    Logger.recordOutput("Shooter/DutyCycle", dutyCycle);
     return Launcher.set(dutyCycle);
   }
 
-  public Trigger isAtSpeed() {
-    return new Trigger(() -> TargetSpeed == Launcher.getSpeed());
+  public Command setVelocity(Supplier<AngularVelocity> speed) {
+    return Launcher.setSpeed(() -> {
+      Logger.recordOutput("Shooter/Setpoint",
+          speed.get());
+      return speed.get();
+    });
   }
 
-  public Command increaseNudge() {
-    return runOnce(this::IncreaseNudge);
-  }
-
-  public Command decreaseNudge() {
-    return runOnce(this::DecreaseNudge);
-  }
-
-  public void IncreaseNudge() {
-    Nudge += Constants.LauncherConstants.ChangeNudgeFactor;
-  }
-
-  public void DecreaseNudge() {
-    Nudge -= Constants.LauncherConstants.ChangeNudgeFactor;
-  }
-
-  public Launcher() {
-    LauncherLUT.put(79.75, -3300.0);
-    LauncherLUT.put(126.18248429134, -3500.0);
-    LauncherLUT.put(200.0, -5000.0);
+  public Command setDutyCycle(Supplier<Double> dutyCycle) {
+    return Launcher.set(() -> {
+      Logger.recordOutput("Shooter/DutyCycle",
+          dutyCycle.get());
+      return dutyCycle.get();
+    });
   }
 
   @Override
   public void periodic() {
     // This method will be called once per scheduler run
-    // Launcher.updateTelemetry();
-    SmartDashboard.putNumber("Flywheel Target Speed", TargetSpeed.baseUnitMagnitude());
-    SmartDashboard.putNumber("Flywheel Actual Speed", Launcher.getSpeed().baseUnitMagnitude());
-    SmartDashboard.putBoolean("Flywheel at Speed", TargetSpeed == Launcher.getSpeed());
-    Logger.recordOutput("Nudge", Nudge);
-    Logger.recordOutput("LauncherTargetSpeed", TargetSpeed.in(RPM));
-    Logger.recordOutput("LauncherActualSpeed", Launcher.getSpeed().in(RPM));
-    Logger.recordOutput("isON", isON);
-    Logger.recordOutput("launchState", currentState);
-    switch (currentState) {
-      case TRENCH:
-        setVelocity(RPM.of(LauncherConstants.TRENCH_RPM));
-        break;
-      case HUB:
-        setVelocity(RPM.of(LauncherConstants.HUB_RPM));
-        break;
-      case TOWER:
-        setVelocity(RPM.of(LauncherConstants.TOWER_RPM));
-        break;
-      case BYDISTANCE:
-        setVelocity(RPM.of(LauncherLUT.get(distanceFromHub)));
-        break;
-      case AUTO:
-        setVelocity(RPM.of(-3600));
-        break;
-      case OFF:
-        setVelocity(RPM.of(0));
-        break;
-    }
+  updateInputs();
+    Logger.processInputs("Shooter", shooterInputs);
+    Launcher.updateTelemetry();
   }
 
   @Override
   public void simulationPeriodic() {
     // This method will be called once per scheduler run during simulation
-    // Launcher.simIterate();
+     Launcher.simIterate();
   }
 
   // Create the SysIdRoutine
@@ -271,29 +229,4 @@ public class Launcher extends SubsystemBase {
   public Command sysIdDynamic(SysIdRoutine.Direction direction) {
     return sysIdRoutine.dynamic(direction);
   }
-
-  public Command launchDistance(double distance) {
-    return runOnce(
-        () -> {
-          Launch_Distance(distance);
-        });
-  }
-
-  public Command changeDistanceType(LauncherState ls) {
-    return Commands.runOnce(() -> this.currentState = ls);
-  }
-
-  private void Launch_Distance(double distance) {
-    setVelocity(RPM.of(LauncherLUT.get(distance)));
-  }
-
-  // public Command updateFlywheel() {
-  //   return Launcher.TargetSpeed);
-  // }
-  public void setVelocity() {
-    Launcher.setMechanismVelocitySetpoint(TargetSpeed);
-  }
-  // public DeferredCommand updateFlywheel() {
-  //   return new DeferredCommand(launchSpeedSupplier, Set.of(this));
-  // }
 }

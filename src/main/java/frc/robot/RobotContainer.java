@@ -12,7 +12,6 @@ import com.pathplanner.lib.auto.NamedCommands;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
@@ -29,7 +28,7 @@ import frc.robot.subsystems.Feeder;
 import frc.robot.subsystems.Indexer;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Launcher;
-import frc.robot.subsystems.Launcher.LauncherState;
+// import frc.robot.subsystems.Launcher.LauncherState;
 import frc.robot.subsystems.climb.Climb;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.GyroIO;
@@ -41,6 +40,9 @@ import frc.robot.subsystems.vision.Vision;
 import frc.robot.subsystems.vision.VisionIOPhotonVision;
 import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
 import frc.robot.util.Helpers;
+import frc.robot.util.Launcher.FuelPhysicsSim;
+import frc.robot.util.Launcher.ProjectileSimulator;
+import frc.robot.util.Launcher.ShotCalculator;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
@@ -62,6 +64,11 @@ public class RobotContainer {
   private final Indexer BeltDexter;
   private final Climb leftClimb;
   private final Climb rightClimb;
+  private FuelPhysicsSim ballSim;
+
+  // For continuous fuel launching in simulation
+  private int launchCycleCounter = 0;
+  private static final int LAUNCH_INTERVAL_CYCLES = 5; // Launch every 5 cycles (100ms at 50Hz)
 
   // Controller
   private final CommandXboxController driverOneController = new CommandXboxController(0);
@@ -175,25 +182,25 @@ public class RobotContainer {
         vision = new Vision(drive::addVisionMeasurement, VisionIOPhotonVision.createAllCameras());
         m_intake = new Intake();
         NamedCommands.registerCommand("IntakeDown", m_intake.goToIntakePosition());
-        NamedCommands.registerCommand(
-            "LauncherSpinUp",
-            launcher
-                .changeDistanceType(LauncherState.AUTO)
-                .andThen(new InstantCommand(launcher::setVelocity)));
+        // NamedCommands.registerCommand(
+        //     "LauncherSpinUp",
+        //     // launcher
+        //         // .changeDistanceType(LauncherState.AUTO)
+        //         // .andThen(new InstantCommand(launcher::setVelocity)));
         NamedCommands.registerCommand(
             "Launch",
             BeltDexter.IntakeFuel()
                 .alongWith(Column.VoltageRampDownLaunch())
                 .alongWith(m_intake.jitterIntakeAuto().repeatedly()));
-        NamedCommands.registerCommand(
-            "StopAll",
-            launcher
-                .changeDistanceType(LauncherState.OFF)
-                .alongWith(BeltDexter.NoFuel())
-                .alongWith(Column.NoFuel())
-                .alongWith(m_intake.goToIntakePosition())
-                .andThen(Column.ResetVoltageRampDownLaunch())
-                .alongWith(new InstantCommand(launcher::setVelocity)));
+        // NamedCommands.registerCommand(
+        //     "StopAll",
+        //     launcher
+        //         .changeDistanceType(LauncherState.OFF)
+        //         .alongWith(BeltDexter.NoFuel())
+        //         .alongWith(Column.NoFuel())
+        //         .alongWith(m_intake.goToIntakePosition())
+        //         .andThen(Column.ResetVoltageRampDownLaunch())
+        //         // .alongWith(new InstantCommand(launcher::setVelocity)));
         break;
 
       case SIM:
@@ -317,21 +324,24 @@ public class RobotContainer {
                 .alongWith(BeltDexter.NoFuel())
                 .andThen(Column.ResetVoltageRampDownLaunch()));
 
-    LaunchFuel.or(LaunchFuel2)
-        .whileTrue(Column.VoltageRampDownLaunch().alongWith(BeltDexter.IntakeFuel()));
+    // LaunchFuel.or(LaunchFuel2)
+    //     .whileTrue(
+    //         Column.VoltageRampDownLaunch()
+    //             .alongWith(BeltDexter.IntakeFuel())
+    //             .alongWith(Commands.run(this::launchThreeFuelIfInSim)));
 
-    LauncherOff.onTrue(
-        launcher
-            .changeDistanceType(LauncherState.OFF)
-            .andThen(new InstantCommand(launcher::setVelocity)));
+    // LauncherOff.onTrue(
+    //     launcher
+    //         .changeDistanceType(LauncherState.OFF)
+    //         .andThen(new InstantCommand(launcher::setVelocity)));
 
     // (beltIntakeButton.or(beltOuttakeButton))
     //     .whileFalse(Column.NoFuel().alongWith(BeltDexter.NoFuel()));
 
     // launcherVelocityButton.whileTrue(launcher.setVelocity(RPM.of(-5000)));
 
-    NudgeFlywheelUp.onTrue(launcher.increaseNudge());
-    NudgeFlywheelDown.onTrue(launcher.decreaseNudge());
+    // NudgeFlywheelUp.onTrue(launcher.increaseNudge());
+    // NudgeFlywheelDown.onTrue(launcher.decreaseNudge());
 
     // Trigger autoRevAllianceZone = new Trigger(() ->
     // Helpers.isPoseInAllianceZone(drive.getPose()));
@@ -344,31 +354,31 @@ public class RobotContainer {
     // RevFlywheel.whileTrue(launcher.updateFlywheel());
     // RevFlywheel.whileFalse(launcher.changeDistanceType(LauncherState.OFF));
 
-    launchDistance
-        .and(LaunchTrench)
-        .and(launchHub)
-        .and(LaunchTower)
-        .onFalse(
-            launcher
-                .changeDistanceType(LauncherState.OFF)
-                .andThen(new InstantCommand(launcher::setVelocity)));
+    // launchDistance
+    //     .and(LaunchTrench)
+    //     .and(launchHub)
+    //     .and(LaunchTower)
+    //     .onFalse(
+    //         launcher
+    //             .changeDistanceType(LauncherState.OFF)
+    //             .andThen(new InstantCommand(launcher::setVelocity)));
 
-    launchDistance.onTrue(
-        launcher
-            .changeDistanceType(LauncherState.BYDISTANCE)
-            .andThen(new InstantCommand(launcher::setVelocity)));
-    LaunchTrench.onTrue(
-        launcher
-            .changeDistanceType(LauncherState.TRENCH)
-            .andThen(new InstantCommand(launcher::setVelocity)));
-    launchHub.onTrue(
-        launcher
-            .changeDistanceType(LauncherState.HUB)
-            .andThen(new InstantCommand(launcher::setVelocity)));
-    LaunchTower.onTrue(
-        launcher
-            .changeDistanceType(LauncherState.TOWER)
-            .andThen(new InstantCommand(launcher::setVelocity)));
+    // launchDistance.onTrue(
+    //     launcher
+    //         .changeDistanceType(LauncherState.BYDISTANCE)
+    //         .andThen(new InstantCommand(launcher::setVelocity)));
+    // LaunchTrench.onTrue(
+    //     launcher
+    //         .changeDistanceType(LauncherState.TRENCH)
+    //         .andThen(new InstantCommand(launcher::setVelocity)));
+    // launchHub.onTrue(
+    //     launcher
+    //         .changeDistanceType(LauncherState.HUB)
+    //         .andThen(new InstantCommand(launcher::setVelocity)));
+    // LaunchTower.onTrue(
+    //     launcher
+    //         .changeDistanceType(LauncherState.TOWER)
+    //         .andThen(new InstantCommand(launcher::setVelocity)));
 
     IntakeDownButton.onTrue(m_intake.goToIntakePosition());
     IntakeUp.onTrue(m_intake.setAngle(Constants.IntakeConstants.Pivot.stowedPosition));
@@ -381,11 +391,11 @@ public class RobotContainer {
     RClimbDown.onTrue(rightClimb.goDown());
     RClimbDown.or(RClimbUp).whileFalse(rightClimb.No());
 
-    var speedTrigger = launcher.isAtSpeed();
-    speedTrigger.whileTrue(
-        Commands.run(() -> driverOneController.setRumble(RumbleType.kBothRumble, 0.5)));
-    speedTrigger.whileFalse(
-        Commands.run(() -> driverOneController.setRumble(RumbleType.kBothRumble, 0)));
+    // var speedTrigger = launcher.isAtSpeed();
+    // speedTrigger.whileTrue(
+    //     Commands.run(() -> driverOneController.setRumble(RumbleType.kBothRumble, 0.5)));
+    // speedTrigger.whileFalse(
+    //     Commands.run(() -> driverOneController.setRumble(RumbleType.kBothRumble, 0)));
 
     // // Quasistatic Turn Tests
     // testController.button(1).whileTrue(drive.sysIdTurnQuasistatic(SysIdRoutine.Direction.kForward));
@@ -438,13 +448,6 @@ public class RobotContainer {
     return toGoal.getAngle();
   }
 
-  private double getRebuiltHubDistanceInches() {
-    Pose2d robotPose = drive.getPose();
-    Pose2d goalPose = getRebuiltHubPose();
-    double distanceMeters = robotPose.getTranslation().getDistance(goalPose.getTranslation());
-    return Units.metersToInches(distanceMeters);
-  }
-
   private Pose2d getRebuiltHubPose() {
     double fieldLength = Constants.VisionConstants.aprilTagLayout.getFieldLength();
     boolean isRed =
@@ -458,4 +461,27 @@ public class RobotContainer {
         REBUILT_HUB_BLUE.getY(),
         REBUILT_HUB_BLUE.getRotation());
   }
+
+
+  public void SimulationInit() {
+    ballSim = new FuelPhysicsSim("Sim/Fuel");
+    ballSim.enable();
+    ballSim.placeFieldBalls();
+    ballSim.configureRobot(
+        Constants.RobotConstants.BumperWidth,
+        Constants.RobotConstants.BumperLength,
+        Constants.RobotConstants.BumperHeight,
+        () -> drive.getPose(),
+        () -> drive.getChassisSpeeds());
+  }
+
+  public void SimulationPeriodic() {
+    ballSim.tick();
+  }
+
+  /**
+   * Helper method to launch 3 fuel in simulation continuously. Called by launch commands to eject
+   * fuel as long as fire button is held. Launches 3 fuel every ~100ms to simulate continuous
+   * feeding from hopper.
+   */
 }
