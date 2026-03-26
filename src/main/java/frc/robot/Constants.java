@@ -25,6 +25,7 @@ import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.units.VoltageUnit;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularAcceleration;
@@ -124,7 +125,7 @@ public final class Constants {
             1.225, // air density
             0.43, // exit height (m), floor to where the ball leaves the shooter
             0.1016, // flywheel diameter (m), measure with calipers
-            0.5343398, // target height (m), from game manual
+            1.83, // target height (m), from game manual
             0.6, // slip factor (0=no grip, 1=perfect), tune this on the real robot
             30.0, // launch angle from horizontal, measure from CAD
             0.001, // sim timestep
@@ -133,6 +134,9 @@ public final class Constants {
             25,
             5.0 // RPM search range, iterations, max sim time
             );
+    public static final Translation2d hubCenter = new Translation2d(4.6, 4.0); // your target
+    public static final Translation2d hubForward =
+        new Translation2d(1, 0); // which way the hub faces
   }
 
   public static final class IntakeConstants {

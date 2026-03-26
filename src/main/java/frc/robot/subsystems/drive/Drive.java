@@ -383,6 +383,31 @@ public class Drive extends SubsystemBase {
     return kinematics.toChassisSpeeds(getModuleStates());
   }
 
+  /** Returns the field-relative velocity of the robot. */
+  public ChassisSpeeds getFieldVelocity() {
+    ChassisSpeeds robotRelativeSpeeds = getChassisSpeeds();
+    return ChassisSpeeds.fromRobotRelativeSpeeds(
+        robotRelativeSpeeds.vxMetersPerSecond,
+        robotRelativeSpeeds.vyMetersPerSecond,
+        robotRelativeSpeeds.omegaRadiansPerSecond,
+        getRotation());
+  }
+
+  /** Returns the robot-relative velocity of the robot. */
+  public ChassisSpeeds getRobotVelocity() {
+    return getChassisSpeeds();
+  }
+
+  /** Returns the pitch (rotation around Y-axis) of the robot in degrees. */
+  public Rotation2d getPitch() {
+    return gyroInputs.pitchPosition;
+  }
+
+  /** Returns the roll (rotation around X-axis) of the robot in degrees. */
+  public Rotation2d getRoll() {
+    return gyroInputs.rollPosition;
+  }
+
   /** Returns the position of each module in radians. */
   public double[] getWheelRadiusCharacterizationPositions() {
     double[] values = new double[4];

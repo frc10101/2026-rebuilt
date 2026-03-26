@@ -15,8 +15,6 @@ import static edu.wpi.first.units.Units.Second;
 import static edu.wpi.first.units.Units.Seconds;
 import static edu.wpi.first.units.Units.Volts;
 
-import java.util.function.Supplier;
-
 import com.ctre.phoenix6.hardware.TalonFX;
 import edu.wpi.first.math.Pair;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
@@ -33,9 +31,12 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants.LauncherConstants;
+import frc.robot.subsystems.drive.Drive;
+import frc.robot.util.Launcher.ProjectileSimulator;
+import frc.robot.util.Launcher.ShotCalculator;
+import java.util.function.Supplier;
 import org.littletonrobotics.junction.AutoLog;
 import org.littletonrobotics.junction.Logger;
-
 import yams.gearing.MechanismGearing;
 import yams.mechanisms.config.FlyWheelConfig;
 import yams.mechanisms.velocity.FlyWheel;
@@ -62,6 +63,13 @@ public class Launcher extends SubsystemBase {
   }
 
   private final ShooterInputsAutoLogged shooterInputs = new ShooterInputsAutoLogged();
+  private ProjectileSimulator sim = new ProjectileSimulator(LauncherConstants.params);
+  private ProjectileSimulator.GeneratedLUT lut = sim.generateLUT();
+
+  // in RobotContainer or wherever you set stuff up
+  private ShotCalculator.Config config = new ShotCalculator.Config();
+
+  ShotCalculator shotCalc;
 
   /** Creates a new Launcher. */
   private TalonFX FlywheelLead = new TalonFX(LauncherConstants.MOTOR_ID_LEAD);
@@ -125,8 +133,31 @@ public class Launcher extends SubsystemBase {
     shooterInputs.current = shooterMotors.getStatorCurrent();
   }
 
-  public Launcher() {}
-   /**
+  public Launcher() {
+    // print it out
+    for (var entry : lut.entries()) {
+      if (entry.reachable()) {
+        System.out.printf(
+            "%.2fm -> %.0f RPM, %.3fs TOF%n", entry.distanceM(), entry.rpm(), entry.tof());
+      }
+    }
+    config.launcherOffsetX = -0.223; // how far forward the launcher is from robot center (m)
+    config.launcherOffsetY = 0.0; // how far left, 0 if centered
+    config.phaseDelayMs = 30.0; // your vision pipeline latency
+    config.mechLatencyMs = 20.0; // how long the mechanism takes to respond
+    config.maxTiltDeg = 5.0; // suppress firing when chassis tilts past this (bumps/ramps)
+    config.headingSpeedScalar = 1.0; // heading tolerance tightens with robot speed (0 to disable)
+    config.headingReferenceDistance = 2.5; // heading tolerance scales with distance from hub
+    shotCalc = new ShotCalculator(config);
+
+    // load the LUT you generated
+    for (var entry : lut.entries()) {
+      if (entry.reachable()) {
+        shotCalc.loadLUTEntry(entry.distanceM(), entry.rpm(), entry.tof());
+      }
+    }
+  }
+  /**
    * Gets the current velocity of the shooter.
    *
    * @return FlyWheel velocity.
@@ -158,25 +189,25 @@ public class Launcher extends SubsystemBase {
   }
 
   public Command setVelocity(Supplier<AngularVelocity> speed) {
-    return Launcher.setSpeed(() -> {
-      Logger.recordOutput("Shooter/Setpoint",
-          speed.get());
-      return speed.get();
-    });
+    return Launcher.setSpeed(
+        () -> {
+          Logger.recordOutput("Shooter/Setpoint", speed.get());
+          return speed.get();
+        });
   }
 
   public Command setDutyCycle(Supplier<Double> dutyCycle) {
-    return Launcher.set(() -> {
-      Logger.recordOutput("Shooter/DutyCycle",
-          dutyCycle.get());
-      return dutyCycle.get();
-    });
+    return Launcher.set(
+        () -> {
+          Logger.recordOutput("Shooter/DutyCycle", dutyCycle.get());
+          return dutyCycle.get();
+        });
   }
 
   @Override
   public void periodic() {
     // This method will be called once per scheduler run
-  updateInputs();
+    updateInputs();
     Logger.processInputs("Shooter", shooterInputs);
     Launcher.updateTelemetry();
   }
@@ -184,7 +215,7 @@ public class Launcher extends SubsystemBase {
   @Override
   public void simulationPeriodic() {
     // This method will be called once per scheduler run during simulation
-     Launcher.simIterate();
+    Launcher.simIterate();
   }
 
   // Create the SysIdRoutine
@@ -228,5 +259,25 @@ public class Launcher extends SubsystemBase {
   /** Returns the dynamic test command. */
   public Command sysIdDynamic(SysIdRoutine.Direction direction) {
     return sysIdRoutine.dynamic(direction);
+  }
+
+  public double Launch(Drive swerve) {
+    ShotCalculator.ShotInputs inputs =
+        new ShotCalculator.ShotInputs(
+            swerve.getPose(),
+            swerve.getFieldVelocity(),
+            swerve.getRobotVelocity(),
+            LauncherConstants.hubCenter,
+            LauncherConstants.hubForward,
+            0.9, // vision confidence, 0 to 1
+            swerve.getPitch().getDegrees(), // pitch for tilt gate (0.0 if no gyro)
+            swerve.getRoll().getDegrees() // roll for tilt gate (0.0 if no gyro)
+            );
+
+    ShotCalculator.LaunchParameters shot = shotCalc.calculate(inputs);
+    if (shot.isValid() && shot.confidence() > 50) {
+      return shot.rpm();
+    }
+    return Launcher.getMechanismSetpointVelocity().get().in(RPM);
   }
 }
