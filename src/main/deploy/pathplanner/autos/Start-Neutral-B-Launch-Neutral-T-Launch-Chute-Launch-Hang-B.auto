@@ -1,0 +1,67 @@
+{
+  "version": "2025.0",
+  "command": {
+    "type": "sequential",
+    "data": {
+      "commands": [
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Start-Neutral-Bottom-Bottom"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "mukt"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Top-Pass"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "New New Path"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "New Path"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "mukt"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "New New New New Path"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Chute-Launch"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Launch-Hang"
+          }
+        }
+      ]
+    }
+  },
+  "resetOdom": true,
+  "folder": null,
+  "choreoAuto": false
+}
