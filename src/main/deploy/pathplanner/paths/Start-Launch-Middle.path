@@ -33,6 +33,18 @@
   "pointTowardsZones": [],
   "eventMarkers": [
     {
+      "name": "IndexerIn",
+      "waypointRelativePos": 0,
+      "endWaypointRelativePos": null,
+      "command": null
+    },
+    {
+      "name": "Wait",
+      "waypointRelativePos": 0,
+      "endWaypointRelativePos": null,
+      "command": null
+    },
+    {
       "name": "LauncherOn",
       "waypointRelativePos": 1.0,
       "endWaypointRelativePos": null,

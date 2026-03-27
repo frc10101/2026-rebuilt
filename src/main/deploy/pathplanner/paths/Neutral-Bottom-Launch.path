@@ -80,6 +80,12 @@
       "command": null
     },
     {
+      "name": "IndexerIn",
+      "waypointRelativePos": 3.0,
+      "endWaypointRelativePos": null,
+      "command": null
+    },
+    {
       "name": "Wait",
       "waypointRelativePos": 3.0,
       "endWaypointRelativePos": null,

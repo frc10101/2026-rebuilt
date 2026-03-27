@@ -34,7 +34,7 @@
       "rotationDegrees": 180.0
     },
     {
-      "waypointRelativePos": 0.5437665782493372,
+      "waypointRelativePos": 0.7,
       "rotationDegrees": 0.0
     }
   ],
@@ -42,8 +42,20 @@
   "pointTowardsZones": [],
   "eventMarkers": [
     {
+      "name": "Wait",
+      "waypointRelativePos": 0,
+      "endWaypointRelativePos": null,
+      "command": null
+    },
+    {
       "name": "LauncherOn",
       "waypointRelativePos": 0.7550335570469809,
+      "endWaypointRelativePos": null,
+      "command": null
+    },
+    {
+      "name": "IndexerIn",
+      "waypointRelativePos": 1.0,
       "endWaypointRelativePos": null,
       "command": null
     }

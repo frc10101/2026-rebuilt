@@ -42,13 +42,19 @@
   "pointTowardsZones": [],
   "eventMarkers": [
     {
-      "name": "Wait",
-      "waypointRelativePos": 0,
+      "name": "LauncherOn",
+      "waypointRelativePos": 1.0,
       "endWaypointRelativePos": null,
       "command": null
     },
     {
-      "name": "LauncherOn",
+      "name": "IndexerIn",
+      "waypointRelativePos": 1.0,
+      "endWaypointRelativePos": null,
+      "command": null
+    },
+    {
+      "name": "Wait",
       "waypointRelativePos": 1.0,
       "endWaypointRelativePos": null,
       "command": null
@@ -69,7 +75,7 @@
   "reversed": false,
   "folder": null,
   "idealStartingState": {
-    "velocity": 0,
+    "velocity": 1.0,
     "rotation": -90.0
   },
   "useDefaultConstraints": true

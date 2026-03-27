@@ -33,18 +33,6 @@
           "data": {
             "pathName": "Bottom-Neutral-Second-Intake"
           }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "Neutral-Top-Launch"
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "Launch-Hang"
-          }
         }
       ]
     }
