@@ -7,6 +7,8 @@
 
 package frc.robot.commands;
 
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.path.PathConstraints;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.filter.SlewRateLimiter;
@@ -32,10 +34,10 @@ import java.util.function.Supplier;
 
 public class DriveCommands {
   private static final double DEADBAND = 0.1;
-  private static final double ANGLE_KP = 7.0;
-  private static final double ANGLE_KD = 0.4;
-  private static final double ANGLE_MAX_VELOCITY = 8.0;
-  private static final double ANGLE_MAX_ACCELERATION = 20.0;
+  private static final double ANGLE_KP = 5.0;
+  private static final double ANGLE_KD = 0.3;
+  private static final double ANGLE_MAX_VELOCITY = 10.0;
+  private static final double ANGLE_MAX_ACCELERATION = 15.0;
   private static final double FF_START_DELAY = 2.0; // Secs
   private static final double FF_RAMP_RATE = 0.1; // Volts/Sec
   private static final double WHEEL_RADIUS_MAX_VELOCITY = 0.25; // Rad/Sec
@@ -57,6 +59,9 @@ public class DriveCommands {
         .getTranslation();
   }
 
+  // Create the constraints to use while pathfinding
+  public static PathConstraints constraints =
+      new PathConstraints(3.0, 4.0, Units.degreesToRadians(540), Units.degreesToRadians(720));
   /**
    * Field relative drive command using two joysticks (controlling linear and angular velocities).
    */
@@ -286,5 +291,11 @@ public class DriveCommands {
     double[] positions = new double[4];
     Rotation2d lastAngle = Rotation2d.kZero;
     double gyroDelta = 0.0;
+  }
+
+  public static Command DriveToNeutralZone() {
+    Pose2d targetPose = new Pose2d(7.7, 1, Rotation2d.fromDegrees(90));
+    return AutoBuilder.pathfindToPose(
+        targetPose, constraints, 0.0); // Goal end velocity in meters/sec);
   }
 }

@@ -18,6 +18,8 @@ import static edu.wpi.first.units.Units.Volts;
 import com.ctre.phoenix6.hardware.TalonFX;
 import edu.wpi.first.math.Pair;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
@@ -65,6 +67,7 @@ public class Launcher extends SubsystemBase {
   private final ShooterInputsAutoLogged shooterInputs = new ShooterInputsAutoLogged();
   private ProjectileSimulator sim = new ProjectileSimulator(LauncherConstants.params);
   private ProjectileSimulator.GeneratedLUT lut = sim.generateLUT();
+  private double lastLaunchRPM = 0.0; // Store the last calculated launch RPM
 
   // in RobotContainer or wherever you set stuff up
   private ShotCalculator.Config config = new ShotCalculator.Config();
@@ -209,6 +212,7 @@ public class Launcher extends SubsystemBase {
     // This method will be called once per scheduler run
     updateInputs();
     Logger.processInputs("Shooter", shooterInputs);
+    Logger.recordOutput("LaunchRPM", Launcher.getSpeed().in(RPM));
     Launcher.updateTelemetry();
   }
 
@@ -261,13 +265,16 @@ public class Launcher extends SubsystemBase {
     return sysIdRoutine.dynamic(direction);
   }
 
-  public double Launch(Drive swerve) {
+  public Rotation2d Launch(Drive swerve) {
+    // Get the correct hub center based on alliance
+    Translation2d hubCenter = getAllianceHubCenter();
+
     ShotCalculator.ShotInputs inputs =
         new ShotCalculator.ShotInputs(
             swerve.getPose(),
             swerve.getFieldVelocity(),
             swerve.getRobotVelocity(),
-            LauncherConstants.hubCenter,
+            hubCenter,
             LauncherConstants.hubForward,
             0.9, // vision confidence, 0 to 1
             swerve.getPitch().getDegrees(), // pitch for tilt gate (0.0 if no gyro)
@@ -276,8 +283,38 @@ public class Launcher extends SubsystemBase {
 
     ShotCalculator.LaunchParameters shot = shotCalc.calculate(inputs);
     if (shot.isValid() && shot.confidence() > 50) {
-      return shot.rpm();
+      Launcher.setMechanismVelocitySetpoint(RPM.of(shot.rpm()));
+      lastLaunchRPM = shot.rpm(); // Store the target RPM for launch
+      return shot.driveAngle();
     }
-    return Launcher.getMechanismSetpointVelocity().get().in(RPM);
+
+    // Fallback: If ShotCalculator fails, just aim at hub
+    Translation2d robotPos = swerve.getPose().getTranslation();
+    Translation2d toHub = hubCenter.minus(robotPos);
+    return toHub.getAngle();
+  }
+
+  private Translation2d getAllianceHubCenter() {
+    double fieldLength = 16.54; // 2024-2025 field length in meters
+    boolean isRed =
+        edu.wpi.first.wpilibj.DriverStation.getAlliance()
+                .orElse(edu.wpi.first.wpilibj.DriverStation.Alliance.Blue)
+            == edu.wpi.first.wpilibj.DriverStation.Alliance.Red;
+
+    if (isRed) {
+      // Red hub is mirrored across field center
+      return new Translation2d(fieldLength - 4.6, 4.0);
+    } else {
+      // Blue hub
+      return new Translation2d(4.6, 4.0);
+    }
+  }
+
+  public double getLauncherSpeedRPM() {
+    return shooterInputs.velocity.in(RPM);
+  }
+
+  public double getTargetLaunchRPM() {
+    return lastLaunchRPM;
   }
 }

@@ -12,14 +12,17 @@ import com.pathplanner.lib.auto.NamedCommands;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.robot.Constants.Mode;
 import frc.robot.commands.DriveCommands;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.Feeder;
@@ -290,14 +293,27 @@ public class RobotContainer {
 
     // Lock to 0 degrees when A button is held
     alignToGoalButton.whileTrue(
+        new InstantCommand(
+                () -> {
+                  if (Constants.currentMode == Mode.SIM) {
+                    LaunchFuelSim();
+                  }
+                })
+            .andThen(
+                DriveCommands.joystickDriveAtAngle(
+                    drive,
+                    () -> -driverOneController.getLeftY(),
+                    () -> -driverOneController.getLeftX(),
+                    () -> launcher.Launch(drive))));
+    alignToGoalButton.whileFalse(
         DriveCommands.joystickDriveAtAngle(
             drive,
             () -> -driverOneController.getLeftY(),
             () -> -driverOneController.getLeftX(),
-            this::getRebuiltHubHeading));
-
+            () -> launcher.Launch(drive)));
     // Switch to X pattern when X button is pressed
-    xOutButton.onTrue(Commands.runOnce(drive::stopWithX, drive));
+    // xOutButton.onTrue(Commands.runOnce(drive::stopWithX, drive));
+    xOutButton.onTrue(DriveCommands.DriveToNeutralZone());
 
     // Reset gyro to 0° when B button is pressed
     resetIMUButton.onTrue(
@@ -472,6 +488,59 @@ public class RobotContainer {
 
   public void SimulationPeriodic() {
     ballSim.tick();
+  }
+
+  public void LaunchFuelSim() {
+    // Get launcher parameters
+    double slipFactor = Constants.LauncherConstants.params.slipFactor();
+    double wheelDiameterM = Constants.LauncherConstants.params.wheelDiameterM();
+    double launchAngleDeg = Constants.LauncherConstants.params.fixedLaunchAngleDeg();
+    double exitHeightM = Constants.LauncherConstants.params.exitHeightM();
+
+    // Get target launch RPM from ShotCalculator (not current velocity)
+    Rotation2d azimuth = launcher.Launch(drive);
+    double targetLauncherRPM = launcher.getTargetLaunchRPM();
+
+    Logger.recordOutput("Launch/TargetRPM", targetLauncherRPM);
+    Logger.recordOutput("Launch/Azimuth", azimuth.getDegrees());
+
+    double exitSpeed = slipFactor * targetLauncherRPM * Math.PI * wheelDiameterM / 60.0;
+    double launchRad = Math.toRadians(launchAngleDeg);
+
+    double vHorizontal = exitSpeed * Math.cos(launchRad);
+    double vVertical = exitSpeed * Math.sin(launchRad);
+
+    Logger.recordOutput("Launch/ExitSpeed", exitSpeed);
+    Logger.recordOutput("Launch/VHorizontal", vHorizontal);
+    Logger.recordOutput("Launch/VVertical", vVertical);
+
+    // Apply azimuth rotation to horizontal velocity
+    double vx = vHorizontal * azimuth.getCos();
+    double vy = vHorizontal * azimuth.getSin();
+
+    // Calculate launcher position in field frame
+    Pose2d robotPose = drive.getPose();
+    Translation2d launcherOffset =
+        new Translation2d(
+            Constants.LauncherConstants.LAUNCHER_OFFSET_X,
+            Constants.LauncherConstants.LAUNCHER_OFFSET_Y);
+    Translation2d launcherPos2d =
+        robotPose.getTranslation().plus(launcherOffset.rotateBy(robotPose.getRotation()));
+    Translation3d launchPos =
+        new Translation3d(launcherPos2d.getX(), launcherPos2d.getY(), exitHeightM);
+    Translation3d launchVel = new Translation3d(vx, vy, vVertical);
+
+    Logger.recordOutput("Launch/Position", launchPos);
+    Logger.recordOutput("Launch/Velocity", launchVel);
+    ballSim.launchBall(launchPos, launchVel, targetLauncherRPM);
+    ballSim.launchBall(
+        launchPos.plus(new Translation3d(0, Constants.LauncherConstants.LAUNCHER_TUBE_SPACING, 0)),
+        launchVel,
+        launchVel);
+    ballSim.launchBall(
+        launchPos.minus(new Translation3d(0, Constants.LauncherConstants.LAUNCHER_TUBE_SPACING, 0)),
+        launchVel,
+        launchVel);
   }
 
   /**

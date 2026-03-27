@@ -80,7 +80,7 @@ public final class Constants {
     public static final double FFW_kA = 0.0093485;
 
     // Motion constraints used in controllers (RPM, RPM/sec)
-    public static final double MAX_VELOCITY_RPM = 60.0;
+    public static final double MAX_VELOCITY_RPM = 6000.0;
     public static final double MAX_ACCEL_RPMPerS = 1800.0;
 
     // Telemetry names
@@ -123,13 +123,13 @@ public final class Constants {
             0.47, // drag coeff (smooth sphere)
             0.2, // Magnus coeff
             1.225, // air density
-            0.43, // exit height (m), floor to where the ball leaves the shooter
+            0.539, // exit height (m), floor to where the ball leaves the shooter
             0.1016, // flywheel diameter (m), measure with calipers
             1.83, // target height (m), from game manual
             0.6, // slip factor (0=no grip, 1=perfect), tune this on the real robot
-            30.0, // launch angle from horizontal, measure from CAD
+            60.0, // launch angle from horizontal, measure from CAD
             0.001, // sim timestep
-            1500,
+            1200,
             6000,
             25,
             5.0 // RPM search range, iterations, max sim time
