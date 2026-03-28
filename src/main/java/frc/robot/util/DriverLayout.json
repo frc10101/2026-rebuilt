@@ -1,0 +1,42 @@
+{
+  "PadCrafter": {
+    "": [
+      {
+        "templatename": "Driver 1",
+        "buttons": {
+          "leftStick": "Translation",
+          "rightStick": "Rotation",
+          "aButton": "Align to Hub",
+          "rightTrigger": "Launch Fuel",
+          "dpadDown": "Stow Intake",
+          "bButton": "",
+          "leftBumper": "",
+          "rightBumper": "",
+          "dpadLeft": "",
+          "yButton": "",
+          "xButton": "X out wheels",
+          "dpadUp": "",
+          "dpadRight": "",
+          "startButton": ""
+        }
+      },
+      {
+        "templatename": "Driver 2",
+        "buttons": {
+          "aButton": "",
+          "rightTrigger": "Launch Fuel",
+          "dpadDown": "Nudge Flywheel Speed Down",
+          "bButton": "Jitter Intake",
+          "leftBumper": "Intake Down",
+          "rightBumper": "Stow Intake",
+          "dpadLeft": "Toggle Intake Rollers",
+          "yButton": "Pass Fuel",
+          "xButton": "",
+          "dpadUp": "Nudge Flywheel Speed Up",
+          "dpadRight": "Rev Flywheel",
+          "startButton": "Flywheel Off"
+        }
+      }
+    ]
+  }
+}

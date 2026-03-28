@@ -109,6 +109,10 @@ public final class Constants {
     public static final double TRENCH_RPM = -4600.0;
     public static final double HUB_RPM = -3300.0;
     public static final double TOWER_RPM = -3500.0;
+    public static final double FLYWHEEL_IDLE_RPM = 800.0;
+    public static final double READY_TOLERANCE_RPM = 150.0;
+    public static final double SHOT_CONFIDENCE_THRESHOLD = 50.0;
+    public static final double PASS_TARGET_X_METERS = 1.5;
 
     // Shoot-on-the-move & simulation parameters
     public static final double LAUNCHER_OFFSET_X = -0.223; // meters forward from robot center
@@ -328,6 +332,8 @@ public final class Constants {
 
     public static final Voltage IntakeSpeed = Volts.of(6);
     public static final Voltage OuttakeSpeed = Volts.of(-3);
+    public static final Voltage IdleReverseSpeed = Volts.of(-1.0);
+    public static final double LaunchRampSeconds = 0.35;
 
     public final class Real {
       public static final double kp = 0.0;

@@ -28,12 +28,14 @@ import edu.wpi.first.units.measure.MutAngle;
 import edu.wpi.first.units.measure.MutAngularVelocity;
 import edu.wpi.first.units.measure.MutVoltage;
 import edu.wpi.first.units.measure.Voltage;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants.LauncherConstants;
 import frc.robot.subsystems.drive.Drive;
+import frc.robot.util.Helpers;
 import frc.robot.util.Launcher.ProjectileSimulator;
 import frc.robot.util.Launcher.ShotCalculator;
 import java.util.function.Supplier;
@@ -56,6 +58,12 @@ import yams.motorcontrollers.remote.TalonFXWrapper;
  */
 public class Launcher extends SubsystemBase {
 
+  public enum LauncherMode {
+    IDLE,
+    ALLIANCE_AUTO,
+    PASS
+  }
+
   @AutoLog
   public static class ShooterInputs {
     public AngularVelocity velocity = RPM.of(0);
@@ -68,6 +76,8 @@ public class Launcher extends SubsystemBase {
   private ProjectileSimulator sim = new ProjectileSimulator(LauncherConstants.params);
   private ProjectileSimulator.GeneratedLUT lut = sim.generateLUT();
   private double lastLaunchRPM = 0.0; // Store the last calculated launch RPM
+  private LauncherMode currentMode = LauncherMode.IDLE;
+  private double requestedRpm = LauncherConstants.FLYWHEEL_IDLE_RPM;
 
   // in RobotContainer or wherever you set stuff up
   private ShotCalculator.Config config = new ShotCalculator.Config();
@@ -213,6 +223,9 @@ public class Launcher extends SubsystemBase {
     updateInputs();
     Logger.processInputs("Shooter", shooterInputs);
     Logger.recordOutput("LaunchRPM", Launcher.getSpeed().in(RPM));
+    Logger.recordOutput("Shooter/Mode", currentMode.name());
+    Logger.recordOutput("Shooter/RequestedRPM", requestedRpm);
+    Logger.recordOutput("Shooter/Ready", isLaunchReady());
     Launcher.updateTelemetry();
   }
 
@@ -265,33 +278,107 @@ public class Launcher extends SubsystemBase {
     return sysIdRoutine.dynamic(direction);
   }
 
-  public Rotation2d Launch(Drive swerve) {
-    // Get the correct hub center based on alliance
-    Translation2d hubCenter = getAllianceHubCenter();
+  public Command runIdleControl() {
+    return run(this::applyIdleTarget);
+  }
 
+  public Command runAllianceAutoControl(Drive swerve) {
+    return run(
+        () -> {
+          if (Helpers.isPoseInAllianceZone(swerve.getPose())) {
+            currentMode = LauncherMode.ALLIANCE_AUTO;
+            var shot = calculateShotToTarget(swerve, getAllianceHubCenter());
+            if (shot != null) {
+              applyTargetRpm(shot.rpm());
+              lastLaunchRPM = shot.rpm();
+            } else {
+              applyIdleTarget();
+            }
+          } else {
+            applyIdleTarget();
+          }
+        });
+  }
+
+  public Command runPassControl(Drive swerve) {
+    return run(
+        () -> {
+          currentMode = LauncherMode.PASS;
+          Translation2d passTarget = getAlliancePassTarget(swerve);
+          var shot = calculateShotToTarget(swerve, passTarget);
+          if (shot != null) {
+            applyTargetRpm(shot.rpm());
+            lastLaunchRPM = shot.rpm();
+            Logger.recordOutput("Shooter/PassTargetX", passTarget.getX());
+            Logger.recordOutput("Shooter/PassTargetY", passTarget.getY());
+          } else {
+            applyIdleTarget();
+          }
+        });
+  }
+
+  public boolean isLaunchReady() {
+    if (currentMode == LauncherMode.IDLE) {
+      return false;
+    }
+
+    return Math.abs(getLauncherSpeedRPM() - requestedRpm) <= LauncherConstants.READY_TOLERANCE_RPM;
+  }
+
+  public Rotation2d Launch(Drive swerve) {
+    ShotCalculator.LaunchParameters shot = calculateShotToTarget(swerve, getAllianceHubCenter());
+    if (shot != null) {
+      lastLaunchRPM = shot.rpm();
+      return shot.driveAngle();
+    }
+
+    // Fallback: If ShotCalculator fails, just aim at hub
+    Translation2d hubCenter = getAllianceHubCenter();
+    Translation2d robotPos = swerve.getPose().getTranslation();
+    Translation2d toHub = hubCenter.minus(robotPos);
+    return toHub.getAngle();
+  }
+
+  private void applyIdleTarget() {
+    currentMode = LauncherMode.IDLE;
+    applyTargetRpm(LauncherConstants.FLYWHEEL_IDLE_RPM);
+  }
+
+  private void applyTargetRpm(double rpm) {
+    requestedRpm = rpm;
+    Launcher.setMechanismVelocitySetpoint(RPM.of(rpm));
+  }
+
+  private ShotCalculator.LaunchParameters calculateShotToTarget(
+      Drive swerve, Translation2d target) {
     ShotCalculator.ShotInputs inputs =
         new ShotCalculator.ShotInputs(
             swerve.getPose(),
             swerve.getFieldVelocity(),
             swerve.getRobotVelocity(),
-            hubCenter,
+            target,
             LauncherConstants.hubForward,
-            0.9, // vision confidence, 0 to 1
-            swerve.getPitch().getDegrees(), // pitch for tilt gate (0.0 if no gyro)
-            swerve.getRoll().getDegrees() // roll for tilt gate (0.0 if no gyro)
-            );
+            0.9,
+            swerve.getPitch().getDegrees(),
+            swerve.getRoll().getDegrees());
 
     ShotCalculator.LaunchParameters shot = shotCalc.calculate(inputs);
-    if (shot.isValid() && shot.confidence() > 50) {
-      Launcher.setMechanismVelocitySetpoint(RPM.of(shot.rpm()));
-      lastLaunchRPM = shot.rpm(); // Store the target RPM for launch
-      return shot.driveAngle();
+    if (shot.isValid() && shot.confidence() > LauncherConstants.SHOT_CONFIDENCE_THRESHOLD) {
+      return shot;
     }
+    return null;
+  }
 
-    // Fallback: If ShotCalculator fails, just aim at hub
-    Translation2d robotPos = swerve.getPose().getTranslation();
-    Translation2d toHub = hubCenter.minus(robotPos);
-    return toHub.getAngle();
+  private Translation2d getAlliancePassTarget(Drive swerve) {
+    double fieldLength = frc.robot.Constants.VisionConstants.aprilTagLayout.getFieldLength();
+    boolean isRed =
+        DriverStation.getAlliance().orElse(DriverStation.Alliance.Blue)
+            == DriverStation.Alliance.Red;
+    double targetX =
+        isRed
+            ? fieldLength - LauncherConstants.PASS_TARGET_X_METERS
+            : LauncherConstants.PASS_TARGET_X_METERS;
+    return new Translation2d(targetX, swerve.getPose().getY());
   }
 
   private Translation2d getAllianceHubCenter() {

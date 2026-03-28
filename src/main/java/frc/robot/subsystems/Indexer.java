@@ -24,6 +24,8 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants.BeltDexterConstants;
 import frc.robot.Constants.SparkMaxCanIDs;
+import org.littletonrobotics.junction.AutoLog;
+import org.littletonrobotics.junction.Logger;
 import yams.motorcontrollers.SmartMotorController;
 import yams.motorcontrollers.SmartMotorControllerConfig;
 import yams.motorcontrollers.SmartMotorControllerConfig.ControlMode;
@@ -37,6 +39,15 @@ import yams.motorcontrollers.local.SparkWrapper;
  * <p>It may also be referred to as <i>Clyde</i>.
  */
 public class Indexer extends SubsystemBase {
+  @AutoLog
+  public static class IndexerInputs {
+    public double setpointVolts = 0.0;
+    public double appliedVolts = 0.0;
+    public double mechanismVelocity = 0.0;
+    public double currentAmps = 0.0;
+  }
+
+  private final IndexerInputsAutoLogged indexerInputs = new IndexerInputsAutoLogged();
   private Voltage m_motorspeed = Volts.zero();
 
   private final MutVoltage m_appliedVoltage = new MutVoltage(0, 0, Volts);
@@ -82,6 +93,10 @@ public class Indexer extends SubsystemBase {
     return runOnce(() -> m_motorspeed = BeltDexterConstants.IntakeSpeed);
   }
 
+  public Command HoldIntakeFuel() {
+    return run(() -> m_motorspeed = BeltDexterConstants.IntakeSpeed);
+  }
+
   public Command OuttakeFuel() {
     return runOnce(() -> m_motorspeed = BeltDexterConstants.OuttakeSpeed);
   }
@@ -90,10 +105,19 @@ public class Indexer extends SubsystemBase {
     return runOnce(() -> m_motorspeed = Volts.zero());
   }
 
+  private void updateInputs() {
+    indexerInputs.setpointVolts = m_motorspeed.in(Volts);
+    indexerInputs.appliedVolts = motorController.getVoltage().in(Volts);
+    indexerInputs.mechanismVelocity = motorController.getMechanismVelocity().baseUnitMagnitude();
+    indexerInputs.currentAmps = m_motor.getOutputCurrent();
+  }
+
   @Override
   public void periodic() {
     // This method will be called once per scheduler run
     motorController.setVoltage(m_motorspeed);
+    updateInputs();
+    Logger.processInputs("Indexer", indexerInputs);
 
     SmartDashboard.putNumber("BeltDexter Setpoint", m_motorspeed.baseUnitMagnitude());
     SmartDashboard.putNumber(

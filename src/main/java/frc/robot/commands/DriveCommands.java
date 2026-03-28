@@ -11,6 +11,7 @@ import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.path.PathConstraints;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.ProfiledPIDController;
+import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -36,6 +37,9 @@ public class DriveCommands {
   private static final double DEADBAND = 0.1;
   private static final double ANGLE_KP = 5.0;
   private static final double ANGLE_KD = 0.3;
+  public static final double ANGLE_KS = 0.0;
+  public static final double ANGLE_KV = 0.0;
+  public static final double ANGLE_KA = 0.0;
   private static final double ANGLE_MAX_VELOCITY = 10.0;
   private static final double ANGLE_MAX_ACCELERATION = 15.0;
   private static final double FF_START_DELAY = 2.0; // Secs
@@ -119,6 +123,9 @@ public class DriveCommands {
             0.0,
             ANGLE_KD,
             new TrapezoidProfile.Constraints(ANGLE_MAX_VELOCITY, ANGLE_MAX_ACCELERATION));
+
+    SimpleMotorFeedforward angleFeedforward = new SimpleMotorFeedforward(ANGLE_KS, ANGLE_KV, ANGLE_KA);
+    
     angleController.enableContinuousInput(-Math.PI, Math.PI);
 
     // Construct command
@@ -131,7 +138,10 @@ public class DriveCommands {
               // Calculate angular speed
               double omega =
                   angleController.calculate(
-                      drive.getRotation().getRadians(), rotationSupplier.get().getRadians());
+                      drive.getRotation().getRadians(), rotationSupplier.get().getRadians()) +
+                  angleFeedforward.calculate(
+                      angleController.getSetpoint().velocity,
+                      angleController.getSetpoint().position);
 
               // Convert to field relative speeds & send command
               ChassisSpeeds speeds =

@@ -24,6 +24,8 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants.ColumnConstants;
 import frc.robot.Constants.SparkMaxCanIDs;
+import org.littletonrobotics.junction.AutoLog;
+import org.littletonrobotics.junction.Logger;
 import yams.motorcontrollers.SmartMotorController;
 import yams.motorcontrollers.SmartMotorControllerConfig;
 import yams.motorcontrollers.SmartMotorControllerConfig.ControlMode;
@@ -37,12 +39,31 @@ import yams.motorcontrollers.local.SparkWrapper;
  * <p>It may also be referred to as <i>Network Switch in between RoboRio and Radio</i>.
  */
 public class Feeder extends SubsystemBase {
+  @AutoLog
+  public static class FeederInputs {
+    public double setpointVolts = 0.0;
+    public double appliedVolts = 0.0;
+    public double mechanismVelocity = 0.0;
+    public double currentAmps = 0.0;
+    public String state = FeederState.IDLE_REVERSE.name();
+  }
+
+  private final FeederInputsAutoLogged feederInputs = new FeederInputsAutoLogged();
   private Voltage m_motorspeed = Volts.zero();
+
+  private enum FeederState {
+    IDLE_REVERSE,
+    RAMP_TO_LAUNCH,
+    LAUNCH,
+    STOP,
+    OUTTAKE
+  }
 
   private final MutVoltage m_appliedVoltage = new MutVoltage(0, 0, Volts);
   private final MutAngle m_position = new MutAngle(0, 0, Rotations);
   private final MutAngularVelocity m_velocity = new MutAngularVelocity(0, 0, RotationsPerSecond);
-  private Timer voltageRampTimer = new Timer();
+  private final Timer voltageRampTimer = new Timer();
+  private FeederState state = FeederState.IDLE_REVERSE;
 
   private SmartMotorControllerConfig MotorConfig =
       new SmartMotorControllerConfig(this)
@@ -75,56 +96,96 @@ public class Feeder extends SubsystemBase {
   public Feeder() {}
 
   public Command IntakeFuel() {
-    return runOnce(() -> m_motorspeed = ColumnConstants.IntakeSpeed);
+    return runOnce(() -> state = FeederState.LAUNCH);
   }
 
   public Command OuttakeFuel() {
-    return runOnce(() -> m_motorspeed = ColumnConstants.OuttakeSpeed);
+    return runOnce(() -> state = FeederState.OUTTAKE);
   }
 
   public Command NoFuel() {
-    return runOnce(() -> m_motorspeed = Volts.zero());
+    return runOnce(() -> state = FeederState.STOP);
+  }
+
+  public Command IdleReverse() {
+    return runOnce(
+        () -> {
+          resetLaunchRampTimer();
+          state = FeederState.IDLE_REVERSE;
+        });
+  }
+
+  public Command HoldIdleReverse() {
+    return run(
+        () -> {
+          state = FeederState.IDLE_REVERSE;
+        });
   }
 
   public Command VoltageRampDownLaunch() {
     return runOnce(
         () -> {
-          voltageRampDown();
+          resetLaunchRampTimer();
+          voltageRampTimer.start();
+          state = FeederState.RAMP_TO_LAUNCH;
+        });
+  }
+
+  public Command HoldLaunchWithRamp() {
+    return run(
+        () -> {
+          if (state != FeederState.RAMP_TO_LAUNCH && state != FeederState.LAUNCH) {
+            resetLaunchRampTimer();
+            voltageRampTimer.start();
+            state = FeederState.RAMP_TO_LAUNCH;
+          }
         });
   }
 
   public Command ResetVoltageRampDownLaunch() {
-    return runOnce(
-        () -> {
-          ResetVoltageRampDownLaunch();
-        });
+    return IdleReverse();
   }
 
-  private void voltageRampDown() {
-    double startVoltage = 6;
-    double endVoltage = 5;
-    double rampTime = 2;
-    voltageRampTimer.start();
-    if (!voltageRampTimer.hasElapsed(rampTime)) {
-      double Slope = (endVoltage - startVoltage) / rampTime;
-      m_motorspeed = Volts.of(startVoltage + Slope * voltageRampTimer.get());
-    } else {
-      m_motorspeed = Volts.of(endVoltage);
-    }
-  }
-
-  private void resetVoltageRampDown() {
+  private void resetLaunchRampTimer() {
     voltageRampTimer.stop();
     voltageRampTimer.reset();
   }
 
+  private void updateInputs() {
+    feederInputs.setpointVolts = m_motorspeed.in(Volts);
+    feederInputs.appliedVolts = motorController.getVoltage().in(Volts);
+    feederInputs.mechanismVelocity = motorController.getMechanismVelocity().baseUnitMagnitude();
+    feederInputs.currentAmps = m_motor.getOutputCurrent();
+    feederInputs.state = state.name();
+  }
+
   @Override
   public void periodic() {
-    // This method will be called once per scheduler run
+    if (state == FeederState.RAMP_TO_LAUNCH) {
+      double progress = Math.min(1.0, voltageRampTimer.get() / ColumnConstants.LaunchRampSeconds);
+      double startVoltage = ColumnConstants.IdleReverseSpeed.in(Volts);
+      double endVoltage = ColumnConstants.IntakeSpeed.in(Volts);
+      m_motorspeed = Volts.of(startVoltage + (endVoltage - startVoltage) * progress);
+      if (progress >= 1.0) {
+        state = FeederState.LAUNCH;
+      }
+    } else if (state == FeederState.IDLE_REVERSE) {
+      m_motorspeed = ColumnConstants.IdleReverseSpeed;
+    } else if (state == FeederState.LAUNCH) {
+      m_motorspeed = ColumnConstants.IntakeSpeed;
+    } else if (state == FeederState.OUTTAKE) {
+      m_motorspeed = ColumnConstants.OuttakeSpeed;
+    } else {
+      m_motorspeed = Volts.zero();
+    }
+
     motorController.setVoltage(m_motorspeed);
+    updateInputs();
+    Logger.processInputs("Feeder", feederInputs);
     SmartDashboard.putNumber("Column Setpoint", m_motorspeed.baseUnitMagnitude());
     SmartDashboard.putNumber(
         "Column Actual", motorController.getMechanismVelocity().baseUnitMagnitude());
+    SmartDashboard.putString("Column State", state.name());
 
     motorController.updateTelemetry();
   }

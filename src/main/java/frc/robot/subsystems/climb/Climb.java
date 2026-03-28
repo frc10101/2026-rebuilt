@@ -24,6 +24,8 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.ClimbConstants;
+import org.littletonrobotics.junction.AutoLog;
+import org.littletonrobotics.junction.Logger;
 import yams.mechanisms.config.ElevatorConfig;
 import yams.mechanisms.positional.Elevator;
 import yams.motorcontrollers.SmartMotorController;
@@ -39,6 +41,16 @@ import yams.motorcontrollers.local.SparkWrapper;
  * <p>It may also be referred to as <i>Level Up</i>.
  */
 public class Climb extends SubsystemBase {
+  @AutoLog
+  public static class ClimbInputs {
+    public double setpointInches = 0.0;
+    public double measuredInches = 0.0;
+    public double appliedVolts = 0.0;
+    public double currentAmps = 0.0;
+    public boolean isWorking = false;
+  }
+
+  private final ClimbInputsAutoLogged climbInputs = new ClimbInputsAutoLogged();
   private Distance distance = ClimbConstants.RestDistance;
   private boolean isWorking = false;
   private final String name;
@@ -185,9 +197,19 @@ public class Climb extends SubsystemBase {
     motor.close();
   }
 
+  private void updateInputs() {
+    climbInputs.setpointInches = distance.in(Inches);
+    climbInputs.measuredInches = getHeight().in(Inches);
+    climbInputs.appliedVolts = m_motorspeed.in(Volts);
+    climbInputs.currentAmps = motor.getOutputCurrent();
+    climbInputs.isWorking = isWorking;
+  }
+
   @Override
   public void periodic() {
     motor.setVoltage(m_motorspeed);
+    updateInputs();
+    Logger.processInputs("Climb/" + name, climbInputs);
     // This method will be called once per scheduler run
     SmartDashboard.putNumber(name + " Climb Distance Setpoint", distance.in(Inches));
     SmartDashboard.putNumber(name + " Climb Distance Actual", getHeight().in(Inches));

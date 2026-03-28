@@ -14,6 +14,8 @@ import static edu.wpi.first.units.Units.Volts;
 import com.ctre.phoenix6.hardware.TalonFX;
 import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
+import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
@@ -28,6 +30,8 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants;
+import org.littletonrobotics.junction.AutoLog;
+import org.littletonrobotics.junction.Logger;
 import yams.gearing.GearBox;
 import yams.gearing.MechanismGearing;
 import yams.mechanisms.config.ArmConfig;
@@ -45,6 +49,19 @@ import yams.motorcontrollers.remote.TalonFXWrapper;
  * <p>It may also be referred to as <i>Pacman</i>.
  */
 public class Intake extends SubsystemBase {
+
+  @AutoLog
+  public static class IntakeInputs {
+    public double pivotVoltage = 0.0;
+    public double pivotPosition = 0.0;
+    public double pivotAngleDeg = 0.0;
+    public double pivotAngleRad = 0.0;
+    public double rollerVelocity = 0.0;
+    public double pivotCurrentAmps = 0.0;
+    public double rollerCurrentAmps = 0.0;
+  }
+
+  private final IntakeInputsAutoLogged intakeInputs = new IntakeInputsAutoLogged();
 
   private SmartMotorControllerConfig SmartPivotMotorConfig =
       new SmartMotorControllerConfig(this)
@@ -238,10 +255,25 @@ public class Intake extends SubsystemBase {
   /** Creates a new Intake. */
   public Intake() {}
 
+  private void updateInputs() {
+    intakeInputs.pivotVoltage = pivot.getMotorVoltage().getValueAsDouble();
+    intakeInputs.pivotPosition = pivot.getPosition().getValueAsDouble();
+    intakeInputs.pivotAngleDeg = getPivotAngle().in(Degrees);
+    intakeInputs.pivotAngleRad = getPivotAngle().in(edu.wpi.first.units.Units.Radians);
+    intakeInputs.rollerVelocity = getRollerVelocity().baseUnitMagnitude();
+    intakeInputs.pivotCurrentAmps = pivot.getStatorCurrent().getValueAsDouble();
+    intakeInputs.rollerCurrentAmps = roller.getStatorCurrent().getValueAsDouble();
+  }
+
   @Override
   public void periodic() {
     intakePivot.updateTelemetry();
     rollerController.updateTelemetry();
+    updateInputs();
+    Logger.processInputs("Intake", intakeInputs);
+    Logger.recordOutput(
+        "IntakePivotOrigin",
+        new Pose3d(0.0, 0.0, 0.0, new Rotation3d(0.0, intakeInputs.pivotAngleDeg, 0.0)));
     SmartDashboard.putNumber("Pivot Voltage", pivot.getMotorVoltage().getValueAsDouble());
     SmartDashboard.putNumber("Pivot Position", pivot.getPosition().getValueAsDouble());
     SmartDashboard.putNumber("Roller Speed", getRollerVelocity().baseUnitMagnitude());
