@@ -7,19 +7,25 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Start-Depot-Top"
+            "pathName": "Start-Neutral-Half-Bottom-Bottom"
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "Depot-Launch"
+            "pathName": "Neutral-Half-Bottom-Launch-Bottom"
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "Launch-Hang"
+            "pathName": "Bottom-Launch-Chute"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Chute-Launch"
           }
         }
       ]

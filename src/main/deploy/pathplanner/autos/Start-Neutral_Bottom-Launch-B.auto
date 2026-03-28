@@ -13,19 +13,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Neutral-Bottom-Depot"
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "Depot-Launch"
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "Launch-Hang"
+            "pathName": "Neutral-Bottom-Launch"
           }
         }
       ]

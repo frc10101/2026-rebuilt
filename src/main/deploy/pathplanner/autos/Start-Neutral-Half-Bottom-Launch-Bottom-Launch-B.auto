@@ -1,0 +1,55 @@
+{
+  "version": "2025.0",
+  "command": {
+    "type": "sequential",
+    "data": {
+      "commands": [
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Start-Neutral-Half-Bottom-Bottom"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Neutral-Half-Bottom-Launch-Bottom"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Bottom-Pass"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Bottom-Neutral-Realign"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Bottom-Neutral-Second-Intake"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Bottom-Multiple-Launch"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Finisher-Bottom"
+          }
+        }
+      ]
+    }
+  },
+  "resetOdom": true,
+  "folder": null,
+  "choreoAuto": false
+}

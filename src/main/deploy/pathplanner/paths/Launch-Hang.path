@@ -36,43 +36,78 @@
       "name": "LauncherOff",
       "waypointRelativePos": 0,
       "endWaypointRelativePos": null,
-      "command": null
+      "command": {
+        "type": "named",
+        "data": {
+          "name": "LauncherOff"
+        }
+      }
     },
     {
       "name": "IndexerOff",
       "waypointRelativePos": 1.0,
       "endWaypointRelativePos": null,
-      "command": null
+      "command": {
+        "type": "named",
+        "data": {
+          "name": "IndexerOff"
+        }
+      }
     },
     {
       "name": "IntakeRollerStop",
       "waypointRelativePos": 1.0,
       "endWaypointRelativePos": null,
-      "command": null
+      "command": {
+        "type": "named",
+        "data": {
+          "name": "IntakeRollerStop"
+        }
+      }
     },
     {
       "name": "WaitClimb",
       "waypointRelativePos": 1.0,
       "endWaypointRelativePos": null,
-      "command": null
+      "command": {
+        "type": "named",
+        "data": {
+          "name": "WaitClimb"
+        }
+      }
     },
     {
       "name": "ClimbExtend",
       "waypointRelativePos": 1.0,
       "endWaypointRelativePos": null,
-      "command": null
+      "command": {
+        "type": "named",
+        "data": {
+          "name": "ClimbExtend"
+        }
+      }
     },
     {
       "name": "WaitExtend",
       "waypointRelativePos": 1.0,
       "endWaypointRelativePos": null,
-      "command": null
+      "command": {
+        "type": "named",
+        "data": {
+          "name": "WaitExtend"
+        }
+      }
     },
     {
       "name": "ClimbHang",
       "waypointRelativePos": 1.0,
       "endWaypointRelativePos": null,
-      "command": null
+      "command": {
+        "type": "named",
+        "data": {
+          "name": "ClimbHang"
+        }
+      }
     }
   ],
   "globalConstraints": {

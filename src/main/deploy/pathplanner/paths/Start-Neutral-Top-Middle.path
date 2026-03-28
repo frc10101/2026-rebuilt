@@ -73,13 +73,23 @@
       "name": "IntakeDown",
       "waypointRelativePos": 1.937919463087251,
       "endWaypointRelativePos": null,
-      "command": null
+      "command": {
+        "type": "named",
+        "data": {
+          "name": "IntakeDown"
+        }
+      }
     },
     {
       "name": "IntakeRollerIn",
       "waypointRelativePos": 2.2248322147651027,
       "endWaypointRelativePos": null,
-      "command": null
+      "command": {
+        "type": "named",
+        "data": {
+          "name": "IntakeRollerIn"
+        }
+      }
     }
   ],
   "globalConstraints": {

@@ -7,19 +7,19 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Start-Chute-Bottom"
+            "pathName": "Start-Neutral-Half-Top-Top"
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "Chute-Launch"
+            "pathName": "Neutral-Half-Top-Launch-Top"
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "Launch-Hang"
+            "pathName": "Top-Launch-Launch"
           }
         }
       ]

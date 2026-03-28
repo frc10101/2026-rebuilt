@@ -33,6 +33,18 @@
           "data": {
             "pathName": "Bottom-Neutral-Second-Intake"
           }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Bottom-Multiple-Launch"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Finisher-Bottom"
+          }
         }
       ]
     }

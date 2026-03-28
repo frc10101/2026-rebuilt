@@ -36,19 +36,34 @@
       "name": "LauncherOn",
       "waypointRelativePos": 1.0,
       "endWaypointRelativePos": null,
-      "command": null
+      "command": {
+        "type": "named",
+        "data": {
+          "name": "LauncherOn"
+        }
+      }
     },
     {
       "name": "IndexerIn",
       "waypointRelativePos": 1.0,
       "endWaypointRelativePos": null,
-      "command": null
+      "command": {
+        "type": "named",
+        "data": {
+          "name": "IndexerIn"
+        }
+      }
     },
     {
       "name": "Wait",
       "waypointRelativePos": 1.0,
       "endWaypointRelativePos": null,
-      "command": null
+      "command": {
+        "type": "named",
+        "data": {
+          "name": "Wait"
+        }
+      }
     }
   ],
   "globalConstraints": {

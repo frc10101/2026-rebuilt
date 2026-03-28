@@ -51,12 +51,6 @@
           "data": {
             "pathName": "Bottom-Neutral-Realign"
           }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "Bottom-Neutral-Second-Intake"
-          }
         }
       ]
     }

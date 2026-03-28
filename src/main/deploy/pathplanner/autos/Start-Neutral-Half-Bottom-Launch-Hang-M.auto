@@ -7,7 +7,19 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Start-Launch-Middle"
+            "pathName": "Start-Neutral-Half-Bottom-Middle"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Neutral-Half-Bottom-Launch-Bottom"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Bottom-Launch-Launch"
           }
         },
         {

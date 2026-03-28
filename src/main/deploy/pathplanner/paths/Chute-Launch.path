@@ -42,22 +42,37 @@
   "pointTowardsZones": [],
   "eventMarkers": [
     {
-      "name": "Wait",
-      "waypointRelativePos": 0,
-      "endWaypointRelativePos": null,
-      "command": null
-    },
-    {
       "name": "LauncherOn",
-      "waypointRelativePos": 0.7550335570469809,
+      "waypointRelativePos": 0.8397260273972609,
       "endWaypointRelativePos": null,
-      "command": null
+      "command": {
+        "type": "named",
+        "data": {
+          "name": "LauncherOn"
+        }
+      }
     },
     {
       "name": "IndexerIn",
       "waypointRelativePos": 1.0,
       "endWaypointRelativePos": null,
-      "command": null
+      "command": {
+        "type": "named",
+        "data": {
+          "name": "IndexerIn"
+        }
+      }
+    },
+    {
+      "name": "Wait",
+      "waypointRelativePos": 1.0,
+      "endWaypointRelativePos": null,
+      "command": {
+        "type": "named",
+        "data": {
+          "name": "Wait"
+        }
+      }
     }
   ],
   "globalConstraints": {

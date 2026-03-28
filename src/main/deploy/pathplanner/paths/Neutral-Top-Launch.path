@@ -55,21 +55,36 @@
   "eventMarkers": [
     {
       "name": "LauncherOn",
-      "waypointRelativePos": 0,
+      "waypointRelativePos": 1.8575342465753455,
       "endWaypointRelativePos": null,
-      "command": null
+      "command": {
+        "type": "named",
+        "data": {
+          "name": "LauncherOn"
+        }
+      }
     },
     {
       "name": "IndexerIn",
       "waypointRelativePos": 2.0,
       "endWaypointRelativePos": null,
-      "command": null
+      "command": {
+        "type": "named",
+        "data": {
+          "name": "IndexerIn"
+        }
+      }
     },
     {
       "name": "Wait",
       "waypointRelativePos": 2.0,
       "endWaypointRelativePos": null,
-      "command": null
+      "command": {
+        "type": "named",
+        "data": {
+          "name": "Wait"
+        }
+      }
     }
   ],
   "globalConstraints": {
