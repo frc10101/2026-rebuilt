@@ -23,7 +23,12 @@ public interface VisionIO {
       Logger.recordOutput("poseObservations", poseObservations);
       Logger.recordOutput("tagIds", tagIds);
 
-      Logger.recordOutput("latestTargetObservation", latestTargetObservation.isPresent() ? latestTargetObservation.get() : new TargetObservation(new Rotation2d(Double.MAX_VALUE),new Rotation2d(Double.MAX_VALUE)));
+      Logger.recordOutput(
+          "latestTargetObservation",
+          latestTargetObservation.isPresent()
+              ? latestTargetObservation.get()
+              : new TargetObservation(
+                  new Rotation2d(Double.MAX_VALUE), new Rotation2d(Double.MAX_VALUE)));
     }
   }
 
