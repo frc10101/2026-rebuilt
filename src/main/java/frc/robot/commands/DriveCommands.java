@@ -124,8 +124,9 @@ public class DriveCommands {
             ANGLE_KD,
             new TrapezoidProfile.Constraints(ANGLE_MAX_VELOCITY, ANGLE_MAX_ACCELERATION));
 
-    SimpleMotorFeedforward angleFeedforward = new SimpleMotorFeedforward(ANGLE_KS, ANGLE_KV, ANGLE_KA);
-    
+    SimpleMotorFeedforward angleFeedforward =
+        new SimpleMotorFeedforward(ANGLE_KS, ANGLE_KV, ANGLE_KA);
+
     angleController.enableContinuousInput(-Math.PI, Math.PI);
 
     // Construct command
@@ -138,10 +139,10 @@ public class DriveCommands {
               // Calculate angular speed
               double omega =
                   angleController.calculate(
-                      drive.getRotation().getRadians(), rotationSupplier.get().getRadians()) +
-                  angleFeedforward.calculate(
-                      angleController.getSetpoint().velocity,
-                      angleController.getSetpoint().position);
+                          drive.getRotation().getRadians(), rotationSupplier.get().getRadians())
+                      + angleFeedforward.calculate(
+                          angleController.getSetpoint().velocity,
+                          angleController.getSetpoint().position);
 
               // Convert to field relative speeds & send command
               ChassisSpeeds speeds =

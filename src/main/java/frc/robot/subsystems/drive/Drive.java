@@ -161,14 +161,21 @@ public class Drive extends SubsystemBase {
     sysIdRotation =
         new SysIdRoutine(
             new SysIdRoutine.Config(
-                Volts.of(Math.PI / 6.0).per(Second),
+                Volts.of(Math.PI / 6).per(Second),
                 Volts.of(Math.PI),
                 null,
-                (state) -> Logger.recordOutput("SysIdRotation_State", state.toString())),
+                (state) -> {
+                  Logger.recordOutput("Drive/SysIdRotation/State", state.toString());
+                }),
             new SysIdRoutine.Mechanism(
                 (voltage) -> {
                   runRotationCharacterization(voltage.in(Volts));
-                  Logger.recordOutput("Rotational_Rate", voltage.in(Volts));
+                  Logger.recordOutput("Drive/SysIdRotation/AppliedVolts", voltage.in(Volts));
+                  Logger.recordOutput(
+                      "Drive/SysIdRotation/MeasuredOmegaRadPerSec",
+                      getRobotVelocity().omegaRadiansPerSecond);
+                  Logger.recordOutput(
+                      "Drive/SysIdRotation/MeasuredRotationRad", getRotation().getRadians());
                 },
                 null,
                 this));

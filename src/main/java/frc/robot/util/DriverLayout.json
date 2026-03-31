@@ -17,7 +17,7 @@
           "xButton": "X out wheels",
           "dpadUp": "",
           "dpadRight": "",
-          "startButton": ""
+          "startButton": "reset IMU"
         }
       },
       {

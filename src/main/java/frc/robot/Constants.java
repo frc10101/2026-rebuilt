@@ -65,7 +65,7 @@ public final class Constants {
     public static final int MOTOR_ID_FOLLOW = 21;
 
     // Closed-loop gains (real robot)
-    public static final double REAL_kP = 0.0; // 0.91
+    public static final double REAL_kP = 0.1; // 0.18216 or 0.45
     public static final double REAL_kI = 0.0; // 0.1
     public static final double REAL_kD = 0.0;
 
@@ -75,9 +75,9 @@ public final class Constants {
     public static final double SIM_kD = 0.0;
 
     // Feedforward (ks, kv, ka) used by SimpleMotorFeedforward
-    public static final double FFW_kS = 0.25264;
-    public static final double FFW_kV = 0.12113;
-    public static final double FFW_kA = 0.0093485;
+    public static final double FFW_kS = 0.2196;
+    public static final double FFW_kV = 0.11953;
+    public static final double FFW_kA = 0.013135;
 
     // Motion constraints used in controllers (RPM, RPM/sec)
     public static final double MAX_VELOCITY_RPM = 6000.0;
@@ -89,7 +89,7 @@ public final class Constants {
 
     // Mechanical / motor configuration
     public static final int GEARING = 1;
-    public static final boolean MOTOR_INVERTED = false;
+    public static final boolean MOTOR_INVERTED = true;
     public static final boolean FOLLOWER_INVERTED = true;
     public static final int MOTOR_COUNT = 2; // motors per side used for DCMotor factory
 
@@ -130,7 +130,7 @@ public final class Constants {
             0.539, // exit height (m), floor to where the ball leaves the shooter
             0.1016, // flywheel diameter (m), measure with calipers
             1.83, // target height (m), from game manual
-            0.6, // slip factor (0=no grip, 1=perfect), tune this on the real robot
+            0.42, // slip factor (0=no grip, 1=perfect), tune this on the real robot
             60.0, // launch angle from horizontal, measure from CAD
             0.001, // sim timestep
             1200,
@@ -138,9 +138,11 @@ public final class Constants {
             25,
             5.0 // RPM search range, iterations, max sim time
             );
-    public static final Translation2d hubCenter = new Translation2d(4.6, 4.0); // your target
-    public static final Translation2d hubForward =
+    public static final Translation2d hubCenter = new Translation2d(4.623, 4.0); // your target
+    public static final Translation2d blueHubForward =
         new Translation2d(1, 0); // which way the hub faces
+    public static final Translation2d redHubForward =
+        new Translation2d(-1, 0); // which way the hub faces
   }
 
   public static final class IntakeConstants {
@@ -295,20 +297,21 @@ public final class Constants {
     /** Column Stall Current Limit */
     public static final Current currentLimit = Amps.of(40);
 
-    public static final Voltage IntakeSpeed = Volts.of(4);
-    public static final Voltage OuttakeSpeed = Volts.of(-3);
+    public static final AngularVelocity IntakeSpeed = RPM.of(1000);
+    public static final AngularVelocity OuttakeSpeed = RPM.of(-75);
+    public static final AngularVelocity IdleSpinSpeed = RPM.of(50);
 
     public final class Real {
-      public static final double kp = 0.0;
+      public static final double kp = 0;
       public static final double ki = 0.0;
       public static final double kd = 0.0;
       public static final AngularVelocity maxVelocity = DegreesPerSecond.of(90);
       public static final AngularAcceleration maxAcceleration = DegreesPerSecondPerSecond.of(45);
 
       // feedforward
-      public static final double ks = 0.25264;
-      public static final double ka = 0.0093485;
-      public static final double kv = 0.12113;
+      public static final double ks = 2.8752;
+      public static final double ka = 0.0;
+      public static final double kv = 0.46964;
     }
 
     public final class Sim {
@@ -332,7 +335,7 @@ public final class Constants {
 
     public static final Voltage IntakeSpeed = Volts.of(6);
     public static final Voltage OuttakeSpeed = Volts.of(-3);
-    public static final Voltage IdleReverseSpeed = Volts.of(-1.0);
+    public static final Voltage IdleReverseSpeed = Volts.of(-0.5);
     public static final double LaunchRampSeconds = 0.35;
 
     public final class Real {

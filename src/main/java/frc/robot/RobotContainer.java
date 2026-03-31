@@ -21,6 +21,7 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants.Mode;
 import frc.robot.commands.DriveCommands;
 import frc.robot.generated.TunerConstants;
@@ -28,8 +29,6 @@ import frc.robot.subsystems.Feeder;
 import frc.robot.subsystems.Indexer;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Launcher;
-// import frc.robot.subsystems.Launcher.LauncherState;
-import frc.robot.subsystems.climb.Climb;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.GyroIO;
 import frc.robot.subsystems.drive.GyroIOPigeon2;
@@ -61,8 +60,6 @@ public class RobotContainer {
   private final Intake m_intake;
   private final Feeder Column;
   private final Indexer BeltDexter;
-  private final Climb leftClimb;
-  private final Climb rightClimb;
   private FuelPhysicsSim ballSim;
 
   // Controller
@@ -100,23 +97,12 @@ public class RobotContainer {
   // Driver Two Right Trigger
   private final Trigger LaunchFuel2 = driverTwoController.axisGreaterThan(3, 0.3);
 
-  // Joystick Left Up Button
-  private final Trigger ClimbUp = testController.button(5);
-
-  // Joystick Left Down Button
-  private final Trigger ClimbDown = testController.button(3);
-
-  // Joystick Right Up Button
-  private final Trigger RClimbUp = testController.button(6);
-
-  // Joystick Right Down Button
-  private final Trigger RClimbDown = testController.button(4);
-
   // Dashboard inputs
   private final LoggedDashboardChooser<Command> autoChooser;
 
-  /** The container for the robot. Contains subsystems, OI devices, and commands. */
+  /** The container for the robot. Contains subsystems, IO devices, and commands. */
   public RobotContainer() {
+    DriverStation.silenceJoystickConnectionWarning(true);
     switch (Constants.currentMode) {
       case REAL:
         // Real robot, instantiate hardware IO implementations
@@ -149,8 +135,6 @@ public class RobotContainer {
         // new ModuleIOTalonFXS(TunerConstants.BackRight));
         Column = new Feeder();
         BeltDexter = new Indexer();
-        leftClimb = new Climb("Left", Constants.SparkMaxCanIDs.ClimbLeftMotor);
-        rightClimb = new Climb("Right", Constants.SparkMaxCanIDs.ClimbRightMotor);
         launcher = new Launcher();
         vision = new Vision(drive::addVisionMeasurement, VisionIOPhotonVision.createAllCameras());
         m_intake = new Intake();
@@ -191,8 +175,6 @@ public class RobotContainer {
                 new ModuleIOSim(TunerConstants.BackRight));
         Column = new Feeder();
         BeltDexter = new Indexer();
-        leftClimb = new Climb("Left", Constants.SparkMaxCanIDs.ClimbLeftMotor);
-        rightClimb = new Climb("Right", Constants.SparkMaxCanIDs.ClimbRightMotor);
         launcher = new Launcher();
         vision =
             new Vision(
@@ -213,8 +195,6 @@ public class RobotContainer {
                 new ModuleIO() {});
         Column = new Feeder();
         BeltDexter = new Indexer();
-        leftClimb = new Climb("Left", Constants.SparkMaxCanIDs.ClimbLeftMotor);
-        rightClimb = new Climb("Right", Constants.SparkMaxCanIDs.ClimbRightMotor);
         launcher = new Launcher();
         vision = new Vision(drive::addVisionMeasurement);
         m_intake = new Intake();
@@ -260,6 +240,7 @@ public class RobotContainer {
   private void configureButtonBindings() {
     launcher.setDefaultCommand(launcher.runIdleControl());
     Column.setDefaultCommand(Column.HoldIdleReverse());
+    BeltDexter.setDefaultCommand(BeltDexter.HoldIdleSpin());
     // m_intake.setDefaultCommand(m_intake.setAngle(Degrees.of(90)));
 
     // Default command, normal field-relative drive
@@ -316,7 +297,7 @@ public class RobotContainer {
             .andThen(Column.HoldLaunchWithRamp().alongWith(BeltDexter.HoldIntakeFuel())));
     launchRequest.whileFalse(
         Column.IdleReverse()
-            .alongWith(BeltDexter.NoFuel())
+            .alongWith(BeltDexter.HoldIdleSpin())
             .andThen(Column.ResetVoltageRampDownLaunch()));
 
     // (beltIntakeButton.or(beltOuttakeButton))
@@ -326,13 +307,13 @@ public class RobotContainer {
 
     IntakeUp.onTrue(m_intake.setAngle(Constants.IntakeConstants.Pivot.stowedPosition));
 
-    ClimbUp.whileTrue(leftClimb.goUp().alongWith(rightClimb.goUp()));
-    ClimbDown.onTrue(leftClimb.goDown().alongWith(rightClimb.goDown()));
-    ClimbDown.or(ClimbUp).whileFalse(leftClimb.No().alongWith(rightClimb.No()));
+    // ClimbUp.whileTrue(leftClimb.goUp().alongWith(rightClimb.goUp()));
+    // ClimbDown.onTrue(leftClimb.goDown().alongWith(rightClimb.goDown()));
+    // ClimbDown.or(ClimbUp).whileFalse(leftClimb.No().alongWith(rightClimb.No()));
 
-    RClimbUp.whileTrue(rightClimb.goUp());
-    RClimbDown.onTrue(rightClimb.goDown());
-    RClimbDown.or(RClimbUp).whileFalse(rightClimb.No());
+    // RClimbUp.whileTrue(rightClimb.goUp());
+    // RClimbDown.onTrue(rightClimb.goDown());
+    // RClimbDown.or(RClimbUp).whileFalse(rightClimb.No());
 
     // var speedTrigger = launcher.isAtSpeed();
     // speedTrigger.whileTrue(
@@ -365,12 +346,20 @@ public class RobotContainer {
     //     .whileTrue(drive.sysIdRotationQuasistatic(SysIdRoutine.Direction.kReverse));
 
     // Dynamic Rotation tests
-    // testController
-    //     .button(3)
-    //     .whileTrue(drive.sysIdRotationDynamic(SysIdRoutine.Direction.kForward));
-    // testController
-    //     .button(4)
-    //     .whileTrue(drive.sysIdRotationDynamic(SysIdRoutine.Direction.kReverse));
+    // testController.button(3).whileTrue(drive.sysIdRotationDynamic(SysIdRoutine.Direction.kForward));
+    // testController.button(4).whileTrue(drive.sysIdRotationDynamic(SysIdRoutine.Direction.kReverse));
+
+    // Quasistatic Rotation tests
+    testController
+        .button(1)
+        .whileTrue(BeltDexter.sysIdQuasistatic(SysIdRoutine.Direction.kForward));
+    testController
+        .button(2)
+        .whileTrue(BeltDexter.sysIdQuasistatic(SysIdRoutine.Direction.kReverse));
+
+    // Dynamic Rotation tests
+    testController.button(3).whileTrue(BeltDexter.sysIdDynamic(SysIdRoutine.Direction.kForward));
+    testController.button(4).whileTrue(BeltDexter.sysIdDynamic(SysIdRoutine.Direction.kReverse));
 
     // testController.button(7).whileTrue(DriveCommands.wheelRadiusCharacterization(drive));
   }

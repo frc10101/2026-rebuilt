@@ -13,6 +13,7 @@ import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.system.plant.DCMotor;
+import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.MutAngle;
 import edu.wpi.first.units.measure.MutAngularVelocity;
 import edu.wpi.first.units.measure.MutVoltage;
@@ -41,14 +42,14 @@ import yams.motorcontrollers.local.SparkWrapper;
 public class Indexer extends SubsystemBase {
   @AutoLog
   public static class IndexerInputs {
-    public double setpointVolts = 0.0;
+    public double setpointRPS = 0.0;
     public double appliedVolts = 0.0;
     public double mechanismVelocity = 0.0;
     public double currentAmps = 0.0;
   }
 
   private final IndexerInputsAutoLogged indexerInputs = new IndexerInputsAutoLogged();
-  private Voltage m_motorspeed = Volts.zero();
+  private AngularVelocity m_motorspeed = RotationsPerSecond.of(0);
 
   private final MutVoltage m_appliedVoltage = new MutVoltage(0, 0, Volts);
   private final MutAngle m_position = new MutAngle(0, 0, Rotations);
@@ -97,16 +98,20 @@ public class Indexer extends SubsystemBase {
     return run(() -> m_motorspeed = BeltDexterConstants.IntakeSpeed);
   }
 
+  public Command HoldIdleSpin() {
+    return run(() -> m_motorspeed = BeltDexterConstants.IdleSpinSpeed);
+  }
+
   public Command OuttakeFuel() {
     return runOnce(() -> m_motorspeed = BeltDexterConstants.OuttakeSpeed);
   }
 
   public Command NoFuel() {
-    return runOnce(() -> m_motorspeed = Volts.zero());
+    return runOnce(() -> m_motorspeed = RotationsPerSecond.of(0));
   }
 
   private void updateInputs() {
-    indexerInputs.setpointVolts = m_motorspeed.in(Volts);
+    indexerInputs.setpointRPS = m_motorspeed.in(RotationsPerSecond);
     indexerInputs.appliedVolts = motorController.getVoltage().in(Volts);
     indexerInputs.mechanismVelocity = motorController.getMechanismVelocity().baseUnitMagnitude();
     indexerInputs.currentAmps = m_motor.getOutputCurrent();
@@ -115,7 +120,7 @@ public class Indexer extends SubsystemBase {
   @Override
   public void periodic() {
     // This method will be called once per scheduler run
-    motorController.setVoltage(m_motorspeed);
+    motorController.setVelocity(m_motorspeed);
     updateInputs();
     Logger.processInputs("Indexer", indexerInputs);
 

@@ -6,7 +6,6 @@ package frc.robot.subsystems.climb;
 
 import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Rotations;
-import static edu.wpi.first.units.Units.RotationsPerSecond;
 import static edu.wpi.first.units.Units.Second;
 import static edu.wpi.first.units.Units.Seconds;
 import static edu.wpi.first.units.Units.Volts;
@@ -16,9 +15,6 @@ import com.revrobotics.spark.SparkMax;
 import edu.wpi.first.math.controller.ElevatorFeedforward;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.Distance;
-import edu.wpi.first.units.measure.MutAngle;
-import edu.wpi.first.units.measure.MutAngularVelocity;
-import edu.wpi.first.units.measure.MutVoltage;
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -55,10 +51,6 @@ public class Climb extends SubsystemBase {
   private boolean isWorking = false;
   private final String name;
   private Voltage m_motorspeed = Volts.zero();
-
-  private final MutVoltage m_appliedVoltage = new MutVoltage(0, 0, Volts);
-  private final MutAngle m_position = new MutAngle(0, 0, Rotations);
-  private final MutAngularVelocity m_velocity = new MutAngularVelocity(0, 0, RotationsPerSecond);
 
   private final SmartMotorControllerConfig motorConfig;
   private final SparkMax motor;

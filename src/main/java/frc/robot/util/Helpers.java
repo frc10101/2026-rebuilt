@@ -9,6 +9,7 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import frc.robot.Constants;
 import java.util.Optional;
+import org.littletonrobotics.junction.Logger;
 
 /** Add your docs here. */
 public class Helpers {
@@ -127,6 +128,7 @@ public class Helpers {
 
     double fieldLength = Constants.VisionConstants.aprilTagLayout.getFieldLength();
     boolean isRed = DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red;
+    Logger.recordOutput("isRed", isRed);
     double minY = 0.0;
     double maxY = 8.0;
     double minXBlue = 0.0;
@@ -135,7 +137,14 @@ public class Helpers {
     double minX = isRed ? fieldLength - maxXBlue : minXBlue;
     double maxX = isRed ? fieldLength - minXBlue : maxXBlue;
 
-    return pose.getX() >= minX && pose.getX() <= maxX && pose.getY() >= minY && pose.getY() <= maxY;
+    Logger.recordOutput("minX", minX);
+    Logger.recordOutput("maxX", maxX);
+    Logger.recordOutput("minY", minY);
+    Logger.recordOutput("maxY", maxY);
+    boolean isInZone =
+        pose.getX() >= minX && pose.getX() <= maxX && pose.getY() >= minY && pose.getY() <= maxY;
+    Logger.recordOutput("isAutoRev", isInZone);
+    return isInZone;
   }
 
   private static boolean getIsAllianceShiftEven(double matchTime) {

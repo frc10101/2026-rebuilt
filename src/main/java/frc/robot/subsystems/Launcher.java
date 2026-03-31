@@ -16,6 +16,8 @@ import static edu.wpi.first.units.Units.Seconds;
 import static edu.wpi.first.units.Units.Volts;
 
 import com.ctre.phoenix6.hardware.TalonFX;
+import edu.wpi.first.apriltag.AprilTagFieldLayout;
+import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.Pair;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -57,7 +59,6 @@ import yams.motorcontrollers.remote.TalonFXWrapper;
  * <p>It may also be referred to as <i>Blinky</i>.
  */
 public class Launcher extends SubsystemBase {
-
   public enum LauncherMode {
     IDLE,
     ALLIANCE_AUTO,
@@ -242,8 +243,8 @@ public class Launcher extends SubsystemBase {
           new SysIdRoutine.Config(
               Volts.of(1).per(Seconds), // Quasistatic ramp rate (1 V/s)
               Volts.of(4), // Dynamic step voltage
-              Seconds.of(10) // Timeout
-              ),
+              Seconds.of(10), // Timeout
+              (state) -> Logger.recordOutput("SysIdLauncher_State", state.toString())),
           new SysIdRoutine.Mechanism(
               // Drive callback - convert voltage to duty cycle
               // Using duty cycle instead of the motor controller's voltage control
@@ -287,7 +288,9 @@ public class Launcher extends SubsystemBase {
         () -> {
           if (Helpers.isPoseInAllianceZone(swerve.getPose())) {
             currentMode = LauncherMode.ALLIANCE_AUTO;
-            var shot = calculateShotToTarget(swerve, getAllianceHubCenter());
+            var hubCenter = getAllianceHubCenter();
+            Logger.recordOutput("Alliance Hub Center", hubCenter);
+            var shot = calculateShotToTarget(swerve, hubCenter);
             if (shot != null) {
               applyTargetRpm(shot.rpm());
               lastLaunchRPM = shot.rpm();
@@ -357,12 +360,17 @@ public class Launcher extends SubsystemBase {
             swerve.getFieldVelocity(),
             swerve.getRobotVelocity(),
             target,
-            LauncherConstants.hubForward,
+            DriverStation.getAlliance().orElse(DriverStation.Alliance.Blue)
+                    == DriverStation.Alliance.Red
+                ? LauncherConstants.redHubForward
+                : LauncherConstants.blueHubForward,
             0.9,
             swerve.getPitch().getDegrees(),
             swerve.getRoll().getDegrees());
 
     ShotCalculator.LaunchParameters shot = shotCalc.calculate(inputs);
+    Logger.recordOutput("isValid", shot.isValid());
+    Logger.recordOutput("Confidence", shot.confidence());
     if (shot.isValid() && shot.confidence() > LauncherConstants.SHOT_CONFIDENCE_THRESHOLD) {
       return shot;
     }
@@ -382,7 +390,9 @@ public class Launcher extends SubsystemBase {
   }
 
   private Translation2d getAllianceHubCenter() {
-    double fieldLength = 16.54; // 2024-2025 field length in meters
+    double fieldLength =
+        AprilTagFieldLayout.loadField(AprilTagFields.k2026RebuiltWelded)
+            .getFieldLength(); // 2024-2025 field length in meters
     boolean isRed =
         edu.wpi.first.wpilibj.DriverStation.getAlliance()
                 .orElse(edu.wpi.first.wpilibj.DriverStation.Alliance.Blue)
