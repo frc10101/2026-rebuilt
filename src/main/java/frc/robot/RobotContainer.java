@@ -9,7 +9,6 @@ package frc.robot;
 
 import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.commands.PathPlannerAuto;
-
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -19,6 +18,7 @@ import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
@@ -41,9 +41,6 @@ import frc.robot.subsystems.vision.VisionIOPhotonVision;
 import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
 import frc.robot.util.Helpers;
 import frc.robot.util.Launcher.FuelPhysicsSim;
-
-import static edu.wpi.first.units.Units.RPM;
-
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
@@ -90,16 +87,20 @@ public class RobotContainer {
   // Driver Two B  Button
   private final Trigger JitterIntake = driverTwoController.button(2);
 
-  // Driver Twp Left Bumper
-  private final Trigger IntakeDownButton = driverTwoController.button(5);
+  // Driver Twp Right Bumper
+  private final Trigger IntakeDownButton = driverTwoController.button(6);
 
-  // Driver Two Right Bumper
-  private final Trigger IntakeUp = driverTwoController.button(6);
+  // Driver Two Left Bumper
+  private final Trigger IntakeUp = driverTwoController.button(5);
 
   // Driver Two Left Button
   private final Trigger ToggleIntake = driverTwoController.axisGreaterThan(2, 0.3);
   // Driver Two Right Trigger
-  private final Trigger LaunchFuel2 = driverTwoController.axisGreaterThan(3, 0.3);
+  private final Trigger LaunchFuelOveride = driverTwoController.axisGreaterThan(3, 0.3);
+  // Driver Two Dpad Up
+  private final Trigger LaunchNudgeUp = driverTwoController.povUp();
+  // Driver Two Dpad Down
+  private final Trigger LaunchNudgeDown = driverTwoController.povDown();
 
   // Dashboard inputs
   private final LoggedDashboardChooser<Command> autoChooser;
@@ -158,101 +159,99 @@ public class RobotContainer {
                         .alongWith(m_intake.jitterIntakeAuto().repeatedly())));
         NamedCommands.registerCommand("LauncherIdle", launcher.runIdleControl());
         NamedCommands.registerCommand("ColumnIdle", Column.IdleReverse());
-         // Intake Pivot
-    NamedCommands.registerCommand(
-        "IntakeDown", m_intake.setAngle(Constants.IntakeConstants.Pivot.softLimitOne));
-    NamedCommands.registerCommand(
-        "IntakeUp", m_intake.setAngle(Constants.IntakeConstants.Pivot.startingPosition));
 
-    // Intake Roller
-    NamedCommands.registerCommand("IntakeRollerIn", m_intake.intake());
-    NamedCommands.registerCommand("IntakeRollerOut", m_intake.outtake());
-    NamedCommands.registerCommand("IntakeRollerStop", m_intake.stopRoller());
+        // Intake Roller
+        NamedCommands.registerCommand("IntakeRollerIn", m_intake.intake());
+        NamedCommands.registerCommand("IntakeRollerOut", m_intake.outtake());
+        NamedCommands.registerCommand("IntakeRollerStop", m_intake.stopRoller());
 
-    // Indexer (BeltDexter)
-    NamedCommands.registerCommand("IndexerIn", BeltDexter.IntakeFuel());
-    NamedCommands.registerCommand("IndexerStop", BeltDexter.NoFuel());
+        // Indexer (BeltDexter)
+        NamedCommands.registerCommand("IndexerIn", BeltDexter.IntakeFuel());
+        NamedCommands.registerCommand("IndexerStop", BeltDexter.NoFuel());
 
-    // Feeder
-    NamedCommands.registerCommand("FeedIn", Column.IntakeFuel());
-    NamedCommands.registerCommand("FeedOut", Column.OuttakeFuel());
-    NamedCommands.registerCommand("FeedStop", Column.NoFuel());
+        // Feeder
+        NamedCommands.registerCommand("FeedIn", Column.IntakeFuel());
+        NamedCommands.registerCommand("FeedOut", Column.OuttakeFuel());
+        NamedCommands.registerCommand("FeedStop", Column.NoFuel());
 
-    // Launcher
-    NamedCommands.registerCommand(
-        "LauncherOn", launcher.setVelocity(RPM.of(Constants.LauncherConstants.SOFT_LIMIT_RPM)));
-    NamedCommands.registerCommand("LauncherOff", launcher.set(0));
+        // Wait
+        NamedCommands.registerCommand("Wait", Commands.waitSeconds(4.0));
+        // Set up SysId routines
+        // autoChooser.addOption(
+        //     "Drive Wheel Radius Characterization",
+        // DriveCommands.wheelRadiusCharacterization(drive));
+        // autoChooser.addOption(
+        //     "Drive Simple FF Characterization",
+        // DriveCommands.feedforwardCharacterization(drive));
+        // autoChooser.addOption(
+        //     "Drive SysId (Quasistatic Forward)",
+        //     drive.sysIdQuasistatic(SysIdRoutine.Direction.kForward));
+        // autoChooser.addOption(
+        //     "Drive SysId (Quasistatic Reverse)",
+        //     drive.sysIdQuasistatic(SysIdRoutine.Direction.kReverse));
+        // autoChooser.addOption(
+        //     "Drive SysId (Dynamic Forward)",
+        // drive.sysIdDynamic(SysIdRoutine.Direction.kForward));
+        // autoChooser.addOption(
+        //     "Drive SysId (Dynamic Reverse)",
+        // drive.sysIdDynamic(SysIdRoutine.Direction.kReverse));
 
-    // Wait
-    NamedCommands.registerCommand("Wait", Commands.waitSeconds(4.0));
-    NamedCommands.registerCommand("WaitClimb", Commands.waitSeconds(0.5));
-    NamedCommands.registerCommand("WaitExtend", Commands.waitSeconds(1));
-    // Set up SysId routines
-    autoChooser.addOption(
-        "Drive Wheel Radius Characterization", DriveCommands.wheelRadiusCharacterization(drive));
-    autoChooser.addOption(
-        "Drive Simple FF Characterization", DriveCommands.feedforwardCharacterization(drive));
-    autoChooser.addOption(
-        "Drive SysId (Quasistatic Forward)",
-        drive.sysIdQuasistatic(SysIdRoutine.Direction.kForward));
-    autoChooser.addOption(
-        "Drive SysId (Quasistatic Reverse)",
-        drive.sysIdQuasistatic(SysIdRoutine.Direction.kReverse));
-    autoChooser.addOption(
-        "Drive SysId (Dynamic Forward)", drive.sysIdDynamic(SysIdRoutine.Direction.kForward));
-    autoChooser.addOption(
-        "Drive SysId (Dynamic Reverse)", drive.sysIdDynamic(SysIdRoutine.Direction.kReverse));
+        // most important autos
+        // === NEUTRAL TOP ===
+        autoChooser.addOption(
+            "NT > Launch > Launch T", new PathPlannerAuto("Start-Neutral-Top-Launch-T"));
+        autoChooser.addOption(
+            "NT > Depot > Launch T", new PathPlannerAuto("Start-Neutral-Top-Depot-Launch-T"));
+        autoChooser.addOption(
+            "NT > Chute > Launch T", new PathPlannerAuto("Start-Neutral-Top-Chute-Launch-T"));
 
-    // most important autos
-    // === NEUTRAL TOP ===
-    autoChooser.addOption(
-        "NT > Launch > Launch T", new PathPlannerAuto("Start-Neutral-Top-Launch-T"));
-    autoChooser.addOption(
-        "NT > Depot > Launch T", new PathPlannerAuto("Start-Neutral-Top-Depot-Launch-T"));
-    autoChooser.addOption(
-        "NT > Chute > Launch T", new PathPlannerAuto("Start-Neutral-Top-Chute-Launch-T"));
+        // === NEUTRAL HALF TOP ===
+        autoChooser.addOption(
+            "NHT > Launch > Launch T", new PathPlannerAuto("Start-Neutral-Half-Top-Launch-T"));
+        autoChooser.addOption(
+            "NHT > Depot > Launch T",
+            new PathPlannerAuto("Start-Neutral-Half-Top-Launch-Depot-Launch-T"));
+        autoChooser.addOption(
+            "NHT > Chute > Launch T",
+            new PathPlannerAuto("Start-Neutral-Half-Top-Launch-Chute-Launch-T"));
+        autoChooser.addOption(
+            "NHT > Top > Launch T",
+            new PathPlannerAuto("Start-Neutral-Half-Top-Launch-Top-Launch-T"));
 
-    // === NEUTRAL HALF TOP ===
-    autoChooser.addOption(
-        "NHT > Launch > Launch T", new PathPlannerAuto("Start-Neutral-Half-Top-Launch-T"));
-    autoChooser.addOption(
-        "NHT > Depot > Launch T",
-        new PathPlannerAuto("Start-Neutral-Half-Top-Launch-Depot-Launch-T"));
-    autoChooser.addOption(
-        "NHT > Chute > Launch T",
-        new PathPlannerAuto("Start-Neutral-Half-Top-Launch-Chute-Launch-T"));
-    autoChooser.addOption(
-        "NHT > Top > Launch T", new PathPlannerAuto("Start-Neutral-Half-Top-Launch-Top-Launch-T"));
+        // === NEUTRAL HALF BOTTOM ===
+        autoChooser.addOption(
+            "NHB > Launch B", new PathPlannerAuto("Start-Neutral-Half-Bottom-Launch-B"));
+        autoChooser.addOption(
+            "NHB > Depot B",
+            new PathPlannerAuto("Start-Neutral-Half-Bottom-Launch-Depot-Launch-B"));
+        autoChooser.addOption(
+            "NHB > Chute B",
+            new PathPlannerAuto("Start-Neutral-Half-Bottom-Launch-Chute-Launch-B"));
+        autoChooser.addOption(
+            "NHB > Bottom > Launch B",
+            new PathPlannerAuto("Start-Neutral-Half-Bottom-Launch-Bottom-Launch-B"));
 
-    // === NEUTRAL HALF BOTTOM ===
-    autoChooser.addOption(
-        "NHB > Launch B", new PathPlannerAuto("Start-Neutral-Half-Bottom-Launch-B"));
-    autoChooser.addOption(
-        "NHB > Depot B", new PathPlannerAuto("Start-Neutral-Half-Bottom-Launch-Depot-Launch-B"));
-    autoChooser.addOption(
-        "NHB > Chute B", new PathPlannerAuto("Start-Neutral-Half-Bottom-Launch-Chute-Launch-B"));
-    autoChooser.addOption(
-        "NHB > Bottom > Launch B",
-        new PathPlannerAuto("Start-Neutral-Half-Bottom-Launch-Bottom-Launch-B"));
+        // === NEUTRAL BOTTOM ===
+        autoChooser.addOption(
+            "NB > Launch > Launch B", new PathPlannerAuto("Start-Neutral_Bottom-Launch-B"));
+        autoChooser.addOption(
+            "NB > Depot > Launch B", new PathPlannerAuto("Start-Neutral_Bottom-Depot-Launch-B"));
+        autoChooser.addOption(
+            "NB > Chute > Launch B", new PathPlannerAuto("Start-Neutral-B-Launch-Chute-Launch-B"));
 
-    // === NEUTRAL BOTTOM ===
-    autoChooser.addOption(
-        "NB > Launch > Launch B", new PathPlannerAuto("Start-Neutral_Bottom-Launch-B"));
-    autoChooser.addOption(
-        "NB > Depot > Launch B", new PathPlannerAuto("Start-Neutral_Bottom-Depot-Launch-B"));
-    autoChooser.addOption(
-        "NB > Chute > Launch B", new PathPlannerAuto("Start-Neutral-B-Launch-Chute-Launch-B"));
+        // === LAUNCH ===
+        autoChooser.addOption("Launch T", new PathPlannerAuto("Start-Launch-T"));
+        autoChooser.addOption("Launch M", new PathPlannerAuto("Start-Launch-M"));
+        autoChooser.addOption("Launch B", new PathPlannerAuto("Start-Launch-B"));
 
-    // === LAUNCH ===
-    autoChooser.addOption("Launch T", new PathPlannerAuto("Start-Launch-T"));
-    autoChooser.addOption("Launch M", new PathPlannerAuto("Start-Launch-M"));
-    autoChooser.addOption("Launch B", new PathPlannerAuto("Start-Launch-B"));
+        // === DEPOT ===
+        autoChooser.addOption("Depot T", new PathPlannerAuto("Start-Depot_Launch-T"));
 
-    // === DEPOT ===
-    autoChooser.addOption("Depot T", new PathPlannerAuto("Start-Depot_Launch-T"));
+        // === CHUTE ===
+        autoChooser.addOption("Chute B", new PathPlannerAuto("Start-Chute-Launch-B"));
 
-    // === CHUTE ===
-    autoChooser.addOption("Chute B", new PathPlannerAuto("Start-Chute-Launch-B"));
+        // === STUPID SIMPLE ===
+        autoChooser.addOption("StupidSimple", new PathPlannerAuto("StupidSimple"));
 
         // NamedCommands.registerCommand(
         //     "StopAll",
@@ -358,8 +357,8 @@ public class RobotContainer {
             () -> -driverOneController.getLeftX(),
             () -> launcher.Launch(drive)));
     // Switch to X pattern when X button is pressed
-    // xOutButton.onTrue(Commands.runOnce(drive::stopWithX, drive));
-    xOutButton.onTrue(DriveCommands.DriveToNeutralZone());
+    xOutButton.onTrue(Commands.runOnce(drive::stopWithX, drive));
+    // xOutButton.onTrue(DriveCommands.DriveToNeutralZone());
 
     // Reset gyro to 0° when B button is pressed
     resetIMUButton.onTrue(
@@ -375,14 +374,18 @@ public class RobotContainer {
     ToggleIntake.onFalse(m_intake.stopRoller());
     JitterIntake.onTrue(m_intake.jitterIntake());
 
+    LaunchFuelOveride.whileTrue(new InstantCommand(launcher::OverrideConfidenceTrue));
+    LaunchFuelOveride.whileFalse(new InstantCommand(launcher::OverrideConfidenceFalse));
+
     Trigger allianceAutoRev =
         new Trigger(
             () -> DriverStation.isTeleopEnabled() && Helpers.isPoseInAllianceZone(drive.getPose()));
 
-    allianceAutoRev.and(LaunchFuel2.negate()).whileTrue(launcher.runAllianceAutoControl(drive));
-    LaunchFuel2.whileTrue(launcher.runPassControl(drive));
+    // allianceAutoRev.and(LaunchFuel2.negate()).whileTrue(launcher.runAllianceAutoControl(drive));
+    // LaunchFuel2.whileTrue(launcher.runPassControl(drive));
+    allianceAutoRev.whileTrue(launcher.runAllianceAutoControl(drive));
 
-    Trigger launchRequest = LaunchFuel.or(LaunchFuel2);
+    Trigger launchRequest = LaunchFuel;
     Trigger simLaunchTrigger =
         new Trigger(
             () ->
@@ -392,7 +395,7 @@ public class RobotContainer {
     simLaunchTrigger.onTrue(Commands.runOnce(this::LaunchFuelSim));
 
     launchRequest.whileTrue(
-        Commands.waitUntil(launcher::isLaunchReady)
+        Commands.waitUntil(() -> launcher.isLaunchReady())
             .andThen(Column.HoldLaunchWithRamp().alongWith(BeltDexter.HoldIntakeFuel())));
     launchRequest.whileFalse(
         Column.IdleReverse()
@@ -405,6 +408,17 @@ public class RobotContainer {
     // launcherVelocityButton.whileTrue(launcher.setVelocity(RPM.of(-5000)));
 
     IntakeUp.onTrue(m_intake.setAngle(Constants.IntakeConstants.Pivot.stowedPosition));
+
+    LaunchNudgeUp.onTrue(
+        new InstantCommand(
+            () -> {
+              launcher.shotCalc.adjustOffset(25);
+            }));
+    LaunchNudgeDown.onTrue(
+        new InstantCommand(
+            () -> {
+              launcher.shotCalc.adjustOffset(-25);
+            }));
 
     // ClimbUp.whileTrue(leftClimb.goUp().alongWith(rightClimb.goUp()));
     // ClimbDown.onTrue(leftClimb.goDown().alongWith(rightClimb.goDown()));

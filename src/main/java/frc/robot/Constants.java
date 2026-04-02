@@ -336,7 +336,8 @@ public final class Constants {
     public static final Voltage IntakeSpeed = Volts.of(6);
     public static final Voltage OuttakeSpeed = Volts.of(-3);
     public static final Voltage IdleReverseSpeed = Volts.of(-0.5);
-    public static final double LaunchRampSeconds = 0.35;
+    public static final Voltage FirstLaunchSpeed = Volts.of(7);
+    public static final double LaunchRampSeconds = 1.5;
 
     public final class Real {
       public static final double kp = 0.0;

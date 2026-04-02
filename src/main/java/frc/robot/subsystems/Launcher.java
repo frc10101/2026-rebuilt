@@ -40,6 +40,7 @@ import frc.robot.subsystems.drive.Drive;
 import frc.robot.util.Helpers;
 import frc.robot.util.Launcher.ProjectileSimulator;
 import frc.robot.util.Launcher.ShotCalculator;
+import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.AutoLog;
 import org.littletonrobotics.junction.Logger;
@@ -65,6 +66,12 @@ public class Launcher extends SubsystemBase {
     PASS
   }
 
+  public boolean OverrideConfidence = false;
+  public BooleanSupplier overrideConfidenceSupplier =
+      () -> {
+        return OverrideConfidence;
+      };
+
   @AutoLog
   public static class ShooterInputs {
     public AngularVelocity velocity = RPM.of(0);
@@ -83,7 +90,7 @@ public class Launcher extends SubsystemBase {
   // in RobotContainer or wherever you set stuff up
   private ShotCalculator.Config config = new ShotCalculator.Config();
 
-  ShotCalculator shotCalc;
+  public ShotCalculator shotCalc;
 
   /** Creates a new Launcher. */
   private TalonFX FlywheelLead = new TalonFX(LauncherConstants.MOTOR_ID_LEAD);
@@ -227,6 +234,8 @@ public class Launcher extends SubsystemBase {
     Logger.recordOutput("Shooter/Mode", currentMode.name());
     Logger.recordOutput("Shooter/RequestedRPM", requestedRpm);
     Logger.recordOutput("Shooter/Ready", isLaunchReady());
+    Logger.recordOutput("LauncherOffset", shotCalc.getOffset());
+    Logger.recordOutput("OverideConffidence", overrideConfidenceSupplier.getAsBoolean());
     Launcher.updateTelemetry();
   }
 
@@ -371,7 +380,8 @@ public class Launcher extends SubsystemBase {
     ShotCalculator.LaunchParameters shot = shotCalc.calculate(inputs);
     Logger.recordOutput("isValid", shot.isValid());
     Logger.recordOutput("Confidence", shot.confidence());
-    if (shot.isValid() && shot.confidence() > LauncherConstants.SHOT_CONFIDENCE_THRESHOLD) {
+    if (overrideConfidenceSupplier.getAsBoolean()
+        || (shot.isValid() && shot.confidence() > LauncherConstants.SHOT_CONFIDENCE_THRESHOLD)) {
       return shot;
     }
     return null;
@@ -413,5 +423,13 @@ public class Launcher extends SubsystemBase {
 
   public double getTargetLaunchRPM() {
     return lastLaunchRPM;
+  }
+
+  public void OverrideConfidenceTrue() {
+    OverrideConfidence = true;
+  }
+
+  public void OverrideConfidenceFalse() {
+    OverrideConfidence = false;
   }
 }

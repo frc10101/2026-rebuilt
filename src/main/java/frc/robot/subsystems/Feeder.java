@@ -163,7 +163,7 @@ public class Feeder extends SubsystemBase {
   public void periodic() {
     if (state == FeederState.RAMP_TO_LAUNCH) {
       double progress = Math.min(1.0, voltageRampTimer.get() / ColumnConstants.LaunchRampSeconds);
-      double startVoltage = ColumnConstants.IdleReverseSpeed.in(Volts);
+      double startVoltage = ColumnConstants.FirstLaunchSpeed.in(Volts);
       double endVoltage = ColumnConstants.IntakeSpeed.in(Volts);
       m_motorspeed = Volts.of(startVoltage + (endVoltage - startVoltage) * progress);
       if (progress >= 1.0) {

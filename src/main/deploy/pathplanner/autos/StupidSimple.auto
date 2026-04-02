@@ -46,7 +46,7 @@
                     {
                       "type": "named",
                       "data": {
-                        "name": "LauncherSpinUp"
+                        "name": "LauncherIdle"
                       }
                     }
                   ]
