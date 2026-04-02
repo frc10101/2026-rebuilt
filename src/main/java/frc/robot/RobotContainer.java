@@ -7,8 +7,9 @@
 
 package frc.robot;
 
-import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
+import com.pathplanner.lib.commands.PathPlannerAuto;
+
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -40,6 +41,9 @@ import frc.robot.subsystems.vision.VisionIOPhotonVision;
 import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
 import frc.robot.util.Helpers;
 import frc.robot.util.Launcher.FuelPhysicsSim;
+
+import static edu.wpi.first.units.Units.RPM;
+
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
@@ -103,6 +107,7 @@ public class RobotContainer {
   /** The container for the robot. Contains subsystems, IO devices, and commands. */
   public RobotContainer() {
     DriverStation.silenceJoystickConnectionWarning(true);
+    autoChooser = new LoggedDashboardChooser<>("Auto Choices");
     switch (Constants.currentMode) {
       case REAL:
         // Real robot, instantiate hardware IO implementations
@@ -153,6 +158,102 @@ public class RobotContainer {
                         .alongWith(m_intake.jitterIntakeAuto().repeatedly())));
         NamedCommands.registerCommand("LauncherIdle", launcher.runIdleControl());
         NamedCommands.registerCommand("ColumnIdle", Column.IdleReverse());
+         // Intake Pivot
+    NamedCommands.registerCommand(
+        "IntakeDown", m_intake.setAngle(Constants.IntakeConstants.Pivot.softLimitOne));
+    NamedCommands.registerCommand(
+        "IntakeUp", m_intake.setAngle(Constants.IntakeConstants.Pivot.startingPosition));
+
+    // Intake Roller
+    NamedCommands.registerCommand("IntakeRollerIn", m_intake.intake());
+    NamedCommands.registerCommand("IntakeRollerOut", m_intake.outtake());
+    NamedCommands.registerCommand("IntakeRollerStop", m_intake.stopRoller());
+
+    // Indexer (BeltDexter)
+    NamedCommands.registerCommand("IndexerIn", BeltDexter.IntakeFuel());
+    NamedCommands.registerCommand("IndexerStop", BeltDexter.NoFuel());
+
+    // Feeder
+    NamedCommands.registerCommand("FeedIn", Column.IntakeFuel());
+    NamedCommands.registerCommand("FeedOut", Column.OuttakeFuel());
+    NamedCommands.registerCommand("FeedStop", Column.NoFuel());
+
+    // Launcher
+    NamedCommands.registerCommand(
+        "LauncherOn", launcher.setVelocity(RPM.of(Constants.LauncherConstants.SOFT_LIMIT_RPM)));
+    NamedCommands.registerCommand("LauncherOff", launcher.set(0));
+
+    // Wait
+    NamedCommands.registerCommand("Wait", Commands.waitSeconds(4.0));
+    NamedCommands.registerCommand("WaitClimb", Commands.waitSeconds(0.5));
+    NamedCommands.registerCommand("WaitExtend", Commands.waitSeconds(1));
+    // Set up SysId routines
+    autoChooser.addOption(
+        "Drive Wheel Radius Characterization", DriveCommands.wheelRadiusCharacterization(drive));
+    autoChooser.addOption(
+        "Drive Simple FF Characterization", DriveCommands.feedforwardCharacterization(drive));
+    autoChooser.addOption(
+        "Drive SysId (Quasistatic Forward)",
+        drive.sysIdQuasistatic(SysIdRoutine.Direction.kForward));
+    autoChooser.addOption(
+        "Drive SysId (Quasistatic Reverse)",
+        drive.sysIdQuasistatic(SysIdRoutine.Direction.kReverse));
+    autoChooser.addOption(
+        "Drive SysId (Dynamic Forward)", drive.sysIdDynamic(SysIdRoutine.Direction.kForward));
+    autoChooser.addOption(
+        "Drive SysId (Dynamic Reverse)", drive.sysIdDynamic(SysIdRoutine.Direction.kReverse));
+
+    // most important autos
+    // === NEUTRAL TOP ===
+    autoChooser.addOption(
+        "NT > Launch > Launch T", new PathPlannerAuto("Start-Neutral-Top-Launch-T"));
+    autoChooser.addOption(
+        "NT > Depot > Launch T", new PathPlannerAuto("Start-Neutral-Top-Depot-Launch-T"));
+    autoChooser.addOption(
+        "NT > Chute > Launch T", new PathPlannerAuto("Start-Neutral-Top-Chute-Launch-T"));
+
+    // === NEUTRAL HALF TOP ===
+    autoChooser.addOption(
+        "NHT > Launch > Launch T", new PathPlannerAuto("Start-Neutral-Half-Top-Launch-T"));
+    autoChooser.addOption(
+        "NHT > Depot > Launch T",
+        new PathPlannerAuto("Start-Neutral-Half-Top-Launch-Depot-Launch-T"));
+    autoChooser.addOption(
+        "NHT > Chute > Launch T",
+        new PathPlannerAuto("Start-Neutral-Half-Top-Launch-Chute-Launch-T"));
+    autoChooser.addOption(
+        "NHT > Top > Launch T", new PathPlannerAuto("Start-Neutral-Half-Top-Launch-Top-Launch-T"));
+
+    // === NEUTRAL HALF BOTTOM ===
+    autoChooser.addOption(
+        "NHB > Launch B", new PathPlannerAuto("Start-Neutral-Half-Bottom-Launch-B"));
+    autoChooser.addOption(
+        "NHB > Depot B", new PathPlannerAuto("Start-Neutral-Half-Bottom-Launch-Depot-Launch-B"));
+    autoChooser.addOption(
+        "NHB > Chute B", new PathPlannerAuto("Start-Neutral-Half-Bottom-Launch-Chute-Launch-B"));
+    autoChooser.addOption(
+        "NHB > Bottom > Launch B",
+        new PathPlannerAuto("Start-Neutral-Half-Bottom-Launch-Bottom-Launch-B"));
+
+    // === NEUTRAL BOTTOM ===
+    autoChooser.addOption(
+        "NB > Launch > Launch B", new PathPlannerAuto("Start-Neutral_Bottom-Launch-B"));
+    autoChooser.addOption(
+        "NB > Depot > Launch B", new PathPlannerAuto("Start-Neutral_Bottom-Depot-Launch-B"));
+    autoChooser.addOption(
+        "NB > Chute > Launch B", new PathPlannerAuto("Start-Neutral-B-Launch-Chute-Launch-B"));
+
+    // === LAUNCH ===
+    autoChooser.addOption("Launch T", new PathPlannerAuto("Start-Launch-T"));
+    autoChooser.addOption("Launch M", new PathPlannerAuto("Start-Launch-M"));
+    autoChooser.addOption("Launch B", new PathPlannerAuto("Start-Launch-B"));
+
+    // === DEPOT ===
+    autoChooser.addOption("Depot T", new PathPlannerAuto("Start-Depot_Launch-T"));
+
+    // === CHUTE ===
+    autoChooser.addOption("Chute B", new PathPlannerAuto("Start-Chute-Launch-B"));
+
         // NamedCommands.registerCommand(
         //     "StopAll",
         //     launcher
@@ -202,8 +303,6 @@ public class RobotContainer {
     }
 
     // Set up auto routines
-    autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
-
     // Set up SysId routines
     // autoChooser.addOption(
     //     "Drive Wheel Radius Characterization", DriveCommands.wheelRadiusCharacterization(drive));
