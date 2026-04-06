@@ -106,6 +106,10 @@ public class Indexer extends SubsystemBase {
     return runOnce(() -> m_motorspeed = BeltDexterConstants.OuttakeSpeed);
   }
 
+  public Command LaunchFuel() {
+    return runOnce(() -> m_motorspeed = BeltDexterConstants.LaunchSpeed);
+  }
+
   public Command NoFuel() {
     return runOnce(() -> m_motorspeed = RotationsPerSecond.of(0));
   }

@@ -157,7 +157,8 @@ public class RobotContainer {
                     BeltDexter.IntakeFuel()
                         .alongWith(Column.VoltageRampDownLaunch())
                         .alongWith(m_intake.jitterIntakeAuto().repeatedly())));
-        NamedCommands.registerCommand("LauncherIdle", launcher.runIdleControl());
+        NamedCommands.registerCommand(
+            "LauncherIdle", launcher.runAllianceAutoControl(drive).repeatedly());
         NamedCommands.registerCommand("ColumnIdle", Column.IdleReverse());
 
         // Intake Roller
@@ -396,7 +397,7 @@ public class RobotContainer {
 
     launchRequest.whileTrue(
         Commands.waitUntil(() -> launcher.isLaunchReady())
-            .andThen(Column.HoldLaunchWithRamp().alongWith(BeltDexter.HoldIntakeFuel())));
+            .andThen(Column.HoldLaunchWithRamp().alongWith(BeltDexter.LaunchFuel())));
     launchRequest.whileFalse(
         Column.IdleReverse()
             .alongWith(BeltDexter.HoldIdleSpin())

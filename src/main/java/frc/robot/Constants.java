@@ -109,7 +109,7 @@ public final class Constants {
     public static final double TRENCH_RPM = -4600.0;
     public static final double HUB_RPM = -3300.0;
     public static final double TOWER_RPM = -3500.0;
-    public static final double FLYWHEEL_IDLE_RPM = 800.0;
+    public static final double FLYWHEEL_IDLE_RPM = 0.0; // 800
     public static final double READY_TOLERANCE_RPM = 150.0;
     public static final double SHOT_CONFIDENCE_THRESHOLD = 50.0;
     public static final double PASS_TARGET_X_METERS = 1.5;
@@ -292,14 +292,15 @@ public final class Constants {
   }
 
   public static final class BeltDexterConstants {
-    /** Column Gear Ratio */
+    /** Beltdexter Gear Ratio */
     public static final int gearRatio = 2;
-    /** Column Stall Current Limit */
+    /** Beltdexter Stall Current Limit */
     public static final Current currentLimit = Amps.of(40);
 
     public static final AngularVelocity IntakeSpeed = RPM.of(1000);
     public static final AngularVelocity OuttakeSpeed = RPM.of(-75);
     public static final AngularVelocity IdleSpinSpeed = RPM.of(50);
+    public static final AngularVelocity LaunchSpeed = RPM.of(75);
 
     public final class Real {
       public static final double kp = 0;
@@ -336,8 +337,8 @@ public final class Constants {
     public static final Voltage IntakeSpeed = Volts.of(6);
     public static final Voltage OuttakeSpeed = Volts.of(-3);
     public static final Voltage IdleReverseSpeed = Volts.of(-0.5);
-    public static final Voltage FirstLaunchSpeed = Volts.of(7);
-    public static final double LaunchRampSeconds = 1.5;
+    public static final Voltage FirstLaunchSpeed = Volts.of(10);
+    public static final double LaunchRampSeconds = 5;
 
     public final class Real {
       public static final double kp = 0.0;

@@ -15,36 +15,6 @@
           "data": {
             "pathName": "Neutral-Half-Bottom-Launch-Bottom"
           }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "Bottom-Pass"
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "Bottom-Neutral-Realign"
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "Bottom-Neutral-Second-Intake"
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "Bottom-Multiple-Launch"
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "Finisher-Bottom"
-          }
         }
       ]
     }
