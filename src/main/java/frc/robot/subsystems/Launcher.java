@@ -40,7 +40,6 @@ import frc.robot.subsystems.drive.Drive;
 import frc.robot.util.Helpers;
 import frc.robot.util.Launcher.ProjectileSimulator;
 import frc.robot.util.Launcher.ShotCalculator;
-import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.AutoLog;
 import org.littletonrobotics.junction.Logger;
@@ -65,12 +64,6 @@ public class Launcher extends SubsystemBase {
     ALLIANCE_AUTO,
     PASS
   }
-
-  public boolean OverrideConfidence = false;
-  public BooleanSupplier overrideConfidenceSupplier =
-      () -> {
-        return OverrideConfidence;
-      };
 
   @AutoLog
   public static class ShooterInputs {
@@ -235,7 +228,6 @@ public class Launcher extends SubsystemBase {
     Logger.recordOutput("Shooter/RequestedRPM", requestedRpm);
     Logger.recordOutput("Shooter/Ready", isLaunchReady());
     Logger.recordOutput("LauncherOffset", shotCalc.getOffset());
-    Logger.recordOutput("OverideConffidence", overrideConfidenceSupplier.getAsBoolean());
     Launcher.updateTelemetry();
   }
 
@@ -337,12 +329,15 @@ public class Launcher extends SubsystemBase {
     return Math.abs(getLauncherSpeedRPM() - requestedRpm) <= LauncherConstants.READY_TOLERANCE_RPM;
   }
 
-  public Rotation2d Launch(Drive swerve) {
+  public Rotation2d Launch(Drive swerve, boolean override) {
     ShotCalculator.LaunchParameters shot = calculateShotToTarget(swerve, getAllianceHubCenter());
-    if (shot != null) {
+    /*if (shot != null) {
       lastLaunchRPM = shot.rpm();
       return shot.driveAngle();
     }
+    */
+
+    if (shot.confidence() > 50) {}
 
     // Fallback: If ShotCalculator fails, just aim at hub
     Translation2d hubCenter = getAllianceHubCenter();
@@ -380,11 +375,7 @@ public class Launcher extends SubsystemBase {
     ShotCalculator.LaunchParameters shot = shotCalc.calculate(inputs);
     Logger.recordOutput("isValid", shot.isValid());
     Logger.recordOutput("Confidence", shot.confidence());
-    if (overrideConfidenceSupplier.getAsBoolean()
-        || (shot.isValid() && shot.confidence() > LauncherConstants.SHOT_CONFIDENCE_THRESHOLD)) {
-      return shot;
-    }
-    return null;
+    return shot;
   }
 
   private Translation2d getAlliancePassTarget(Drive swerve) {
@@ -423,13 +414,5 @@ public class Launcher extends SubsystemBase {
 
   public double getTargetLaunchRPM() {
     return lastLaunchRPM;
-  }
-
-  public void OverrideConfidenceTrue() {
-    OverrideConfidence = true;
-  }
-
-  public void OverrideConfidenceFalse() {
-    OverrideConfidence = false;
   }
 }

@@ -351,12 +351,23 @@ public class RobotContainer {
             () -> -driverOneController.getRawAxis(4) / 1.5));
 
     // Lock to 0 degrees when A button is held
-    alignToGoalButton.whileTrue(
-        DriveCommands.joystickDriveAtAngle(
-            drive,
-            () -> -driverOneController.getLeftY(),
-            () -> -driverOneController.getLeftX(),
-            () -> launcher.Launch(drive)));
+    alignToGoalButton
+        .and(LaunchFuelOveride.negate())
+        .whileTrue(
+            DriveCommands.joystickDriveAtAngle(
+                drive,
+                () -> -driverOneController.getLeftY(),
+                () -> -driverOneController.getLeftX(),
+                () -> launcher.Launch(drive, false)));
+
+    alignToGoalButton
+        .and(LaunchFuelOveride)
+        .whileTrue(
+            DriveCommands.joystickDriveAtAngle(
+                drive,
+                () -> -driverOneController.getLeftY(),
+                () -> -driverOneController.getLeftX(),
+                () -> launcher.Launch(drive, true)));
     // Switch to X pattern when X button is pressed
     xOutButton.onTrue(Commands.runOnce(drive::stopWithX, drive));
     // xOutButton.onTrue(DriveCommands.DriveToNeutralZone());
@@ -374,9 +385,6 @@ public class RobotContainer {
     ToggleIntake.onTrue(m_intake.intake());
     ToggleIntake.onFalse(m_intake.stopRoller());
     JitterIntake.onTrue(m_intake.jitterIntake());
-
-    LaunchFuelOveride.whileTrue(new InstantCommand(launcher::OverrideConfidenceTrue));
-    LaunchFuelOveride.whileFalse(new InstantCommand(launcher::OverrideConfidenceFalse));
 
     Trigger allianceAutoRev =
         new Trigger(
@@ -398,6 +406,7 @@ public class RobotContainer {
     launchRequest.whileTrue(
         Commands.waitUntil(() -> launcher.isLaunchReady())
             .andThen(Column.HoldLaunchWithRamp().alongWith(BeltDexter.LaunchFuel())));
+
     launchRequest.whileFalse(
         Column.IdleReverse()
             .alongWith(BeltDexter.HoldIdleSpin())
@@ -511,7 +520,7 @@ public class RobotContainer {
     double exitHeightM = Constants.LauncherConstants.params.exitHeightM();
 
     // Get target launch RPM from ShotCalculator (not current velocity)
-    Rotation2d azimuth = launcher.Launch(drive);
+    Rotation2d azimuth = launcher.Launch(drive, false);
     double targetLauncherRPM = launcher.getTargetLaunchRPM();
 
     Logger.recordOutput("Launch/TargetRPM", targetLauncherRPM);
