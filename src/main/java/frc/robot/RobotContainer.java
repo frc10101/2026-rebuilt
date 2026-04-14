@@ -520,7 +520,7 @@ public class RobotContainer {
     double exitHeightM = Constants.LauncherConstants.params.exitHeightM();
 
     // Get target launch RPM from ShotCalculator (not current velocity)
-    Rotation2d azimuth = launcher.Launch(drive, false);
+    Rotation2d azimuth = launcher.Launch(drive, true);
     double targetLauncherRPM = launcher.getTargetLaunchRPM();
 
     Logger.recordOutput("Launch/TargetRPM", targetLauncherRPM);
