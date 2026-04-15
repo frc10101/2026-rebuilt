@@ -271,12 +271,6 @@ public class ShotCalculator {
 
     double poseX = rawPose.getX();
     double poseY = rawPose.getY();
-    if (Double.isNaN(poseX)
-        || Double.isNaN(poseY)
-        || Double.isInfinite(poseX)
-        || Double.isInfinite(poseY)) {
-      return LaunchParameters.INVALID;
-    }
 
     // Second-order pose prediction. Instead of just v*dt, we use v*dt + 0.5*a*dt^2
     // where acceleration is estimated from the velocity delta between this cycle and last.
@@ -306,16 +300,9 @@ public class ShotCalculator {
     // Behind-hub detection: dot product with hub forward vector
     Translation2d hubForward = inputs.hubForward();
     double dot = (hubX - robotX) * hubForward.getX() + (hubY - robotY) * hubForward.getY();
-    if (dot < 0) {
-      return LaunchParameters.INVALID;
-    }
 
     // Tilt gate. Bumps and ramps knock the launcher off-axis, so
     // suppress firing when the chassis is tilted beyond the threshold.
-    if (Math.abs(inputs.pitchDeg()) > config.maxTiltDeg
-        || Math.abs(inputs.rollDeg()) > config.maxTiltDeg) {
-      return LaunchParameters.INVALID;
-    }
 
     // Transform robot center to launcher position
     double cosH = Math.cos(heading);
@@ -335,16 +322,9 @@ public class ShotCalculator {
     double ry = hubY - launcherY;
     double distance = Math.hypot(rx, ry);
 
-    if (distance < config.minScoringDistance || distance > config.maxScoringDistance) {
-      return LaunchParameters.INVALID;
-    }
-
     double robotSpeed = Math.hypot(vx, vy);
 
     // Speed cap: shots above this speed are out of calibration range
-    if (robotSpeed > config.maxSOTMSpeed) {
-      return LaunchParameters.INVALID;
-    }
 
     boolean velocityFiltered = robotSpeed < config.minSOTMSpeed;
 

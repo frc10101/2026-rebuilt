@@ -328,8 +328,6 @@ public class RobotContainer {
     Logger.recordOutput("isHubActive", Helpers.isAllianceHubActive());
     Logger.recordOutput("timeToNextShift", Helpers.getTimeToNextAllianceShift());
     Logger.recordOutput("currentShift", Helpers.getShift());
-    Logger.recordOutput(
-        "Target RPM", launcher.calculateShotToTarget(drive, launcher.getAllianceHubCenter()).rpm());
   }
 
   /**
@@ -511,6 +509,8 @@ public class RobotContainer {
   }
 
   public void SimulationPeriodic() {
+    Logger.recordOutput(
+        "Target RPM", launcher.calculateShotToTarget(drive, launcher.getAllianceHubCenter()).rpm());
     ballSim.tick();
   }
 
