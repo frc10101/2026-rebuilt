@@ -158,7 +158,7 @@ public class RobotContainer {
                         .alongWith(Column.VoltageRampDownLaunch())
                         .alongWith(m_intake.jitterIntakeAuto().repeatedly())));
         NamedCommands.registerCommand(
-            "LauncherIdle", launcher.runAllianceAutoControl(drive).repeatedly());
+            "LauncherIdle", launcher.runAllianceAutoControl(drive, false, true).repeatedly());
         NamedCommands.registerCommand("ColumnIdle", Column.IdleReverse());
 
         // Intake Roller
@@ -328,6 +328,8 @@ public class RobotContainer {
     Logger.recordOutput("isHubActive", Helpers.isAllianceHubActive());
     Logger.recordOutput("timeToNextShift", Helpers.getTimeToNextAllianceShift());
     Logger.recordOutput("currentShift", Helpers.getShift());
+    Logger.recordOutput(
+        "Target RPM", launcher.calculateShotToTarget(drive, launcher.getAllianceHubCenter()).rpm());
   }
 
   /**
@@ -391,8 +393,8 @@ public class RobotContainer {
             () -> DriverStation.isTeleopEnabled() && Helpers.isPoseInAllianceZone(drive.getPose()));
 
     // allianceAutoRev.and(LaunchFuel2.negate()).whileTrue(launcher.runAllianceAutoControl(drive));
-    // LaunchFuel2.whileTrue(launcher.runPassControl(drive));
-    allianceAutoRev.whileTrue(launcher.runAllianceAutoControl(drive));
+    allianceAutoRev.whileTrue(launcher.runAllianceAutoControl(drive, false, true));
+    allianceAutoRev.whileFalse(launcher.runAllianceAutoControl(drive, true, false));
 
     Trigger launchRequest = LaunchFuel;
     Trigger simLaunchTrigger =

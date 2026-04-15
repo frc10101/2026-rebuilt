@@ -284,15 +284,19 @@ public class Launcher extends SubsystemBase {
     return run(this::applyIdleTarget);
   }
 
-  public Command runAllianceAutoControl(Drive swerve) {
+  public Command runAllianceAutoControl(Drive swerve, boolean allianceFlip, boolean override) {
     return run(
         () -> {
-          if (Helpers.isPoseInAllianceZone(swerve.getPose())) {
+          if (Helpers.isPoseInAllianceZone(swerve.getPose()) || override) {
             currentMode = LauncherMode.ALLIANCE_AUTO;
             var hubCenter = getAllianceHubCenter();
+            if (allianceFlip) {
+              hubCenter = getNotAllianceHubCenter();
+            }
+
             Logger.recordOutput("Alliance Hub Center", hubCenter);
             var shot = calculateShotToTarget(swerve, hubCenter);
-            if (shot != null) {
+            if (shot != null || override) {
               applyTargetRpm(shot.rpm());
               lastLaunchRPM = shot.rpm();
             } else {
@@ -356,8 +360,7 @@ public class Launcher extends SubsystemBase {
     Launcher.setMechanismVelocitySetpoint(RPM.of(rpm));
   }
 
-  private ShotCalculator.LaunchParameters calculateShotToTarget(
-      Drive swerve, Translation2d target) {
+  public ShotCalculator.LaunchParameters calculateShotToTarget(Drive swerve, Translation2d target) {
     ShotCalculator.ShotInputs inputs =
         new ShotCalculator.ShotInputs(
             swerve.getPose(),
@@ -390,7 +393,7 @@ public class Launcher extends SubsystemBase {
     return new Translation2d(targetX, swerve.getPose().getY());
   }
 
-  private Translation2d getAllianceHubCenter() {
+  public Translation2d getAllianceHubCenter() {
     double fieldLength =
         AprilTagFieldLayout.loadField(AprilTagFields.k2026RebuiltWelded)
             .getFieldLength(); // 2024-2025 field length in meters
@@ -400,6 +403,24 @@ public class Launcher extends SubsystemBase {
             == edu.wpi.first.wpilibj.DriverStation.Alliance.Red;
 
     if (isRed) {
+      // Red hub is mirrored across field center
+      return new Translation2d(fieldLength - 4.6, 4.0);
+    } else {
+      // Blue hub
+      return new Translation2d(4.6, 4.0);
+    }
+  }
+
+  private Translation2d getNotAllianceHubCenter() {
+    double fieldLength =
+        AprilTagFieldLayout.loadField(AprilTagFields.k2026RebuiltWelded)
+            .getFieldLength(); // 2024-2025 field length in meters
+    boolean isRed =
+        edu.wpi.first.wpilibj.DriverStation.getAlliance()
+                .orElse(edu.wpi.first.wpilibj.DriverStation.Alliance.Blue)
+            == edu.wpi.first.wpilibj.DriverStation.Alliance.Red;
+
+    if (!isRed) {
       // Red hub is mirrored across field center
       return new Translation2d(fieldLength - 4.6, 4.0);
     } else {
