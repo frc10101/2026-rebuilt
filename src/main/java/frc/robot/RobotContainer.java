@@ -388,7 +388,10 @@ public class RobotContainer {
 
     Trigger allianceAutoRev =
         new Trigger(
-            () -> DriverStation.isTeleopEnabled() && Helpers.isPoseInAllianceZone(drive.getPose()));
+            () ->
+                DriverStation.isTeleopEnabled()
+                    && (Helpers.isPoseInAllianceZone(drive.getPose())
+                        || LaunchFuelOveride.getAsBoolean()));
 
     // allianceAutoRev.and(LaunchFuel2.negate()).whileTrue(launcher.runAllianceAutoControl(drive));
     allianceAutoRev.whileTrue(launcher.runAllianceAutoControl(drive, false, true));
