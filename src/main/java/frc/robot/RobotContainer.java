@@ -514,6 +514,7 @@ public class RobotContainer {
   public void SimulationPeriodic() {
     Logger.recordOutput(
         "Target RPM", launcher.calculateShotToTarget(drive, launcher.getAllianceHubCenter()).rpm());
+    Logger.recordOutput("Launch Override?", LaunchFuelOveride.getAsBoolean());
     ballSim.tick();
   }
 
