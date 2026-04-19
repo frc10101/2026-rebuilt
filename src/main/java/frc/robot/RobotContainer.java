@@ -96,7 +96,7 @@ public class RobotContainer {
   // Driver Two Left Button
   private final Trigger ToggleIntake = driverTwoController.axisGreaterThan(2, 0.3);
   // Driver Two Right Trigger
-  private final Trigger LaunchFuelOveride = driverTwoController.axisGreaterThan(3, 0.3);
+  private final Trigger LaunchFuelOveride = driverTwoController.axisLessThan(3, -0.3);
   // Driver Two Dpad Up
   private final Trigger LaunchNudgeUp = driverTwoController.povUp();
   // Driver Two Dpad Down
@@ -337,7 +337,10 @@ public class RobotContainer {
    * edu.wpi.first.wpilibj2.command.button.JoystickButton}.
    */
   private void configureButtonBindings() {
-    launcher.setDefaultCommand(launcher.runIdleControl());
+    launcher.setDefaultCommand(
+        LaunchFuelOveride.getAsBoolean()
+            ? launcher.runPassControl(drive, true)
+            : launcher.runIdleControl());
     Column.setDefaultCommand(Column.HoldIdleReverse());
     BeltDexter.setDefaultCommand(BeltDexter.HoldIdleSpin());
     // m_intake.setDefaultCommand(m_intake.setAngle(Degrees.of(90)));
@@ -358,7 +361,7 @@ public class RobotContainer {
                 drive,
                 () -> -driverOneController.getLeftY(),
                 () -> -driverOneController.getLeftX(),
-                () -> launcher.Launch(drive, false)));
+                () -> launcher.Launch(drive, true)));
 
     alignToGoalButton
         .and(LaunchFuelOveride)
@@ -390,8 +393,7 @@ public class RobotContainer {
         new Trigger(
             () ->
                 DriverStation.isTeleopEnabled()
-                    && (Helpers.isPoseInAllianceZone(drive.getPose())
-                        || LaunchFuelOveride.getAsBoolean()));
+                    && (Helpers.isPoseInAllianceZone(drive.getPose(), true)));
 
     // allianceAutoRev.and(LaunchFuel2.negate()).whileTrue(launcher.runAllianceAutoControl(drive));
     allianceAutoRev.whileTrue(launcher.runAllianceAutoControl(drive, false, true));
@@ -402,8 +404,9 @@ public class RobotContainer {
         new Trigger(
             () ->
                 Constants.currentMode == Mode.SIM
-                    && launchRequest.getAsBoolean()
-                    && launcher.isLaunchReady());
+                        && launchRequest.getAsBoolean()
+                        && (launcher.isLaunchReady())
+                    || LaunchFuelOveride.getAsBoolean());
     simLaunchTrigger.onTrue(Commands.runOnce(this::LaunchFuelSim));
 
     launchRequest.whileTrue(
