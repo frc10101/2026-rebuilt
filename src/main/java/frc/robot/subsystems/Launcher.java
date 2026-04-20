@@ -287,7 +287,7 @@ public class Launcher extends SubsystemBase {
   public Command runAllianceAutoControl(Drive swerve, boolean allianceFlip, boolean override) {
     return run(
         () -> {
-          if (Helpers.isPoseInAllianceZone(swerve.getPose(), override)) {
+          if (Helpers.isPoseInAllianceZone(swerve.getPose())) {
             currentMode = LauncherMode.ALLIANCE_AUTO;
             var hubCenter = getAllianceHubCenter();
             if (allianceFlip) {
@@ -297,14 +297,38 @@ public class Launcher extends SubsystemBase {
             Logger.recordOutput("Alliance Hub Center", hubCenter);
             Logger.recordOutput("Overide Run Alliance Auto Control", override);
             var shot = calculateShotToTarget(swerve, hubCenter);
-            if (shot != null || override) {
+            if (shot == null) {
+              applyIdleTarget();
+              return;
+            }
+
+            if (override || shot.confidence() > 0.49) {
               applyTargetRpm(shot.rpm());
               lastLaunchRPM = shot.rpm();
             } else {
               applyIdleTarget();
             }
           } else {
-            applyIdleTarget();
+            if (!override) {
+              applyIdleTarget();
+              return;
+            }
+            currentMode = LauncherMode.ALLIANCE_AUTO;
+            var hubCenter = getAllianceHubCenter();
+            if (allianceFlip) {
+              hubCenter = getNotAllianceHubCenter();
+            }
+
+            Logger.recordOutput("Alliance Hub Center", hubCenter);
+            Logger.recordOutput("Overide Run Alliance Auto Control", override);
+            var shot = calculateShotToTarget(swerve, hubCenter);
+            if (shot == null) {
+              applyIdleTarget();
+              return;
+            }
+            applyTargetRpm(shot.rpm());
+            lastLaunchRPM = shot.rpm();
+            return;
           }
         });
   }

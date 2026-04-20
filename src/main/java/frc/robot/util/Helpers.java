@@ -121,10 +121,7 @@ public class Helpers {
    *
    * <p>Blue zone bounds: (0, 0) to (4.6, 8.0) meters. Red side mirrors across field length.
    */
-  public static boolean isPoseInAllianceZone(Pose2d pose, boolean override) {
-    if (override) {
-      return true;
-    }
+  public static boolean isPoseInAllianceZone(Pose2d pose) {
     if (pose == null) {
       return false;
     }
