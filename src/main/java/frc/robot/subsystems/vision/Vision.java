@@ -17,7 +17,6 @@ import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.subsystems.vision.VisionIO.PoseObservationType;
-import frc.robot.subsystems.vision.VisionIO.VisionIOInputs;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
@@ -26,7 +25,7 @@ import org.littletonrobotics.junction.Logger;
 public class Vision extends SubsystemBase {
   private final VisionConsumer consumer;
   private final VisionIO[] io;
-  private final VisionIOInputs[] inputs;
+  private final VisionIOInputsAutoLogged[] inputs;
   private final Alert[] disconnectedAlerts;
 
   public Vision(VisionConsumer consumer, VisionIO... io) {
@@ -34,9 +33,9 @@ public class Vision extends SubsystemBase {
     this.io = io;
 
     // Initialize inputs
-    this.inputs = new VisionIOInputs[io.length];
+    this.inputs = new VisionIOInputsAutoLogged[io.length];
     for (int i = 0; i < inputs.length; i++) {
-      inputs[i] = new VisionIOInputs();
+      inputs[i] = new VisionIOInputsAutoLogged();
     }
 
     // Initialize disconnected alerts
@@ -57,11 +56,10 @@ public class Vision extends SubsystemBase {
     if (cameraIndex > 3 || cameraIndex < 0) {
       return Optional.empty();
     }
-    var observation = inputs[cameraIndex].latestTargetObservation;
-    if (observation.isEmpty()) {
+    if (!inputs[cameraIndex].hasLatestTargetObservation) {
       return Optional.empty();
     }
-    return Optional.of(observation.get().tx());
+    return Optional.of(inputs[cameraIndex].latestTargetObservation.tx());
   }
 
   public double getFiducialID(int cameraIndex) {
@@ -156,8 +154,7 @@ public class Vision extends SubsystemBase {
   public void periodic() {
     for (int i = 0; i < io.length; i++) {
       io[i].updateInputs(inputs[i]);
-      String path = "Vision/Camera" + Integer.toString(i);
-      inputs[i].log();
+      Logger.processInputs("Vision/Camera" + Integer.toString(i), inputs[i]);
     }
 
     // Initialize logging values
@@ -214,19 +211,10 @@ public class Vision extends SubsystemBase {
           continue;
         }
 
-        // Calculate standard deviations
-        double stdDevFactor =
-            Math.pow(observation.averageTagDistance(), 2.0) / observation.tagCount();
-        double linearStdDev = linearStdDevBaseline * stdDevFactor;
-        double angularStdDev = angularStdDevBaseline * stdDevFactor;
-        if (observation.type() == PoseObservationType.MEGATAG_2) {
-          linearStdDev *= linearStdDevMegatag2Factor;
-          angularStdDev *= angularStdDevMegatag2Factor;
-        }
-        if (cameraIndex < cameraStdDevFactors.length) {
-          linearStdDev *= cameraStdDevFactors[cameraIndex];
-          angularStdDev *= cameraStdDevFactors[cameraIndex];
-        }
+        // Calculate standard deviations (PhotonVision heuristic)
+        Matrix<N3, N1> stdDevs = updateEstimationStdDevs(cameraIndex, observation);
+        double linearStdDev = stdDevs.get(0, 0);
+        double angularStdDev = stdDevs.get(2, 0);
 
         // Send vision observation
         consumer.accept(
@@ -265,6 +253,46 @@ public class Vision extends SubsystemBase {
     Logger.recordOutput(
         "Vision/Summary/RobotPosesRejected",
         allRobotPosesRejected.toArray(new Pose3d[allRobotPosesRejected.size()]));
+  }
+
+  private Matrix<N3, N1> updateEstimationStdDevs(
+      int cameraIndex, VisionIO.PoseObservation observation) {
+    Matrix<N3, N1> singleTagStdDevs =
+        VecBuilder.fill(linearStdDevBaseline, linearStdDevBaseline, angularStdDevBaseline);
+    Matrix<N3, N1> multiTagStdDevs =
+        VecBuilder.fill(
+            linearStdDevBaseline * 0.5, linearStdDevBaseline * 0.5, angularStdDevBaseline * 0.5);
+
+    Matrix<N3, N1> estStdDevs = singleTagStdDevs;
+    int numTags = observation.tagCount();
+    double avgDist = observation.averageTagDistance();
+
+    if (numTags == 0) {
+      estStdDevs = singleTagStdDevs;
+    } else {
+      if (numTags > 1) {
+        estStdDevs = multiTagStdDevs;
+      }
+      if (numTags == 1 && avgDist > 2.0) {
+        estStdDevs = VecBuilder.fill(Double.MAX_VALUE, Double.MAX_VALUE, Double.MAX_VALUE);
+      } else {
+        estStdDevs = estStdDevs.times(1.0 + (avgDist * avgDist / 30.0));
+      }
+    }
+
+    if (observation.type() == PoseObservationType.MEGATAG_2) {
+      estStdDevs =
+          VecBuilder.fill(
+              estStdDevs.get(0, 0) * linearStdDevMegatag2Factor,
+              estStdDevs.get(1, 0) * linearStdDevMegatag2Factor,
+              estStdDevs.get(2, 0) * angularStdDevMegatag2Factor);
+    }
+
+    if (cameraIndex < cameraStdDevFactors.length) {
+      estStdDevs = estStdDevs.times(cameraStdDevFactors[cameraIndex]);
+    }
+
+    return estStdDevs;
   }
 
   @FunctionalInterface

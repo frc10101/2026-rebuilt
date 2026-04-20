@@ -3,6 +3,10 @@
   "waypoints": [
     {
       "anchor": {
+<<<<<<< HEAD
+<<<<<<<< HEAD:src/main/deploy/pathplanner/paths/Finisher-Bottom.path
+=======
+>>>>>>> origin/CodeRebuildCode
         "x": 3.0,
         "y": 0.8
       },
@@ -10,18 +14,45 @@
       "nextControl": {
         "x": 3.3287719239882474,
         "y": 0.878841971114287
+<<<<<<< HEAD
+========
+        "x": 10.495378038194444,
+        "y": 7.63819921875
+      },
+      "prevControl": null,
+      "nextControl": {
+        "x": 11.508660948370117,
+        "y": 7.165697637857498
+>>>>>>>> origin/CodeRebuildCode:src/main/deploy/pathplanner/paths/Example Path.path
+=======
+>>>>>>> origin/CodeRebuildCode
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
+<<<<<<< HEAD
+<<<<<<<< HEAD:src/main/deploy/pathplanner/paths/Finisher-Bottom.path
+=======
+>>>>>>> origin/CodeRebuildCode
         "x": 3.304436557231588,
         "y": 0.8
       },
       "prevControl": {
         "x": 3.060441829626649,
         "y": 0.7455337453004915
+<<<<<<< HEAD
+========
+        "x": 4.623,
+        "y": 4.032
+      },
+      "prevControl": {
+        "x": 7.528447227191404,
+        "y": 1.8821341681574246
+>>>>>>>> origin/CodeRebuildCode:src/main/deploy/pathplanner/paths/Example Path.path
+=======
+>>>>>>> origin/CodeRebuildCode
       },
       "nextControl": null,
       "isLocked": false,

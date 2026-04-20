@@ -3,7 +3,6 @@
   "waypoints": [
     {
       "anchor": {
-<<<<<<< HEAD
         "x": 3.617462797619048,
         "y": 7.46078125
       },
@@ -55,34 +54,12 @@
       "prevControl": {
         "x": 7.480438988095237,
         "y": 5.118199404761905
-=======
-        "x": 2.05,
-        "y": 2.125
-      },
-      "prevControl": null,
-      "nextControl": {
-        "x": 2.3370802610311294,
-        "y": 2.1926415124409844
-      },
-      "isLocked": false,
-      "linkedName": "LaunchPositionFromLoadingStation"
-    },
-    {
-      "anchor": {
-        "x": 4.623,
-        "y": 4.036
-      },
-      "prevControl": {
-        "x": 4.377214483343557,
-        "y": 3.9902891719400637
->>>>>>> origin/CodeRebuildCode
       },
       "nextControl": null,
       "isLocked": false,
       "linkedName": null
     }
   ],
-<<<<<<< HEAD
   "rotationTargets": [
     {
       "waypointRelativePos": 2.060810810810815,
@@ -152,12 +129,6 @@
       }
     }
   ],
-=======
-  "rotationTargets": [],
-  "constraintZones": [],
-  "pointTowardsZones": [],
-  "eventMarkers": [],
->>>>>>> origin/CodeRebuildCode
   "globalConstraints": {
     "maxVelocity": 3.0,
     "maxAcceleration": 3.0,
@@ -167,7 +138,6 @@
     "unlimited": false
   },
   "goalEndState": {
-<<<<<<< HEAD
     "velocity": 0.0,
     "rotation": 180.0
   },
@@ -176,16 +146,6 @@
   "idealStartingState": {
     "velocity": 0,
     "rotation": -90.0
-=======
-    "velocity": 0,
-    "rotation": 35.0
-  },
-  "reversed": false,
-  "folder": null,
-  "idealStartingState": {
-    "velocity": 0,
-    "rotation": 40.0
->>>>>>> origin/CodeRebuildCode
   },
   "useDefaultConstraints": true
 }

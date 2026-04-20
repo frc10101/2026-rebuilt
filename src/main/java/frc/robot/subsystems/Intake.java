@@ -4,6 +4,7 @@
 
 package frc.robot.subsystems;
 
+import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.Rotations;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
@@ -13,6 +14,8 @@ import static edu.wpi.first.units.Units.Volts;
 import com.ctre.phoenix6.hardware.TalonFX;
 import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
+import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
@@ -24,8 +27,11 @@ import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants;
+import org.littletonrobotics.junction.AutoLog;
+import org.littletonrobotics.junction.Logger;
 import yams.gearing.GearBox;
 import yams.gearing.MechanismGearing;
 import yams.mechanisms.config.ArmConfig;
@@ -43,6 +49,19 @@ import yams.motorcontrollers.remote.TalonFXWrapper;
  * <p>It may also be referred to as <i>Pacman</i>.
  */
 public class Intake extends SubsystemBase {
+
+  @AutoLog
+  public static class IntakeInputs {
+    public double pivotVoltage = 0.0;
+    public double pivotPosition = 0.0;
+    public double pivotAngleDeg = 0.0;
+    public double pivotAngleRad = 0.0;
+    public double rollerVelocity = 0.0;
+    public double pivotCurrentAmps = 0.0;
+    public double rollerCurrentAmps = 0.0;
+  }
+
+  private final IntakeInputsAutoLogged intakeInputs = new IntakeInputsAutoLogged();
 
   private SmartMotorControllerConfig SmartPivotMotorConfig =
       new SmartMotorControllerConfig(this)
@@ -77,7 +96,7 @@ public class Intake extends SubsystemBase {
           // Motor properties from tutorial to prevent over currenting
           .withMotorInverted(false)
           .withIdleMode(MotorMode.COAST)
-          .withStatorCurrentLimit(Constants.IntakeConstants.Pivot.currentLimit)
+          .withSupplyCurrentLimit(Constants.IntakeConstants.Pivot.currentLimit)
           .withClosedLoopRampRate(Constants.IntakeConstants.Pivot.closedLoopRampRate)
           .withOpenLoopRampRate(Constants.IntakeConstants.Pivot.openLoopRampRate);
 
@@ -95,7 +114,7 @@ public class Intake extends SubsystemBase {
                   Constants.IntakeConstants.Roller.kA))
           .withMotorInverted(false)
           .withIdleMode(MotorMode.BRAKE)
-          .withStatorCurrentLimit(Constants.IntakeConstants.Roller.currentLimit)
+          .withSupplyCurrentLimit(Constants.IntakeConstants.Roller.currentLimit)
           .withClosedLoopRampRate(Constants.IntakeConstants.Roller.closedLoopRampRate)
           .withOpenLoopRampRate(Constants.IntakeConstants.Roller.openLoopRampRate);
 
@@ -149,15 +168,32 @@ public class Intake extends SubsystemBase {
   }
 
   public Command goToIntakePosition() {
-    return setAngle(Constants.IntakeConstants.Pivot.intakePosition).andThen(intakePivot.set(0.0));
+    return setAngle(Constants.IntakeConstants.Pivot.intakePosition);
+  }
+
+  public Command jitterIntake() {
+    return setAngle(Constants.IntakeConstants.Pivot.jitterPosition)
+        .withTimeout(0.5)
+        .andThen(setAngle(Constants.IntakeConstants.Pivot.intakePosition).withTimeout(0.1));
+  }
+
+  public Command jitterIntakeAuto() {
+    return setAngle(Constants.IntakeConstants.Pivot.jitterPosition)
+        .withTimeout(0.5)
+        .andThen(setAngle(Constants.IntakeConstants.Pivot.intakePosition).withTimeout(0.1))
+        .andThen(new WaitCommand(.25));
+  }
+
+  public Command zeroPivot() {
+    return runOnce(() -> pivotController.setEncoderPosition(Degrees.of(0)));
   }
 
   // Roller Commands
 
   /**
-   * Set the roller to a specific duty cycle
+   * Set the roller to a specific Velocity
    *
-   * @param dutyCycle Duty cycle to set (-1 to 1)
+   * @param vel Velocity to set
    */
   public Command setRollerSpeed(AngularVelocity vel) {
     return runOnce(() -> rollerController.setVelocity(vel));
@@ -200,6 +236,17 @@ public class Intake extends SubsystemBase {
     return rollerController.getMechanismVelocity();
   }
 
+  public Command toggleIntake() {
+    return runOnce(
+        () -> {
+          if (getRollerVelocity().abs(RPM) > 0) {
+            rollerController.setVelocity(RPM.of(0));
+          } else {
+            rollerController.setVelocity(Constants.IntakeConstants.Roller.intakeSpeed);
+          }
+        });
+  }
+
   public void close() {
     pivot.close();
     roller.close();
@@ -208,12 +255,28 @@ public class Intake extends SubsystemBase {
   /** Creates a new Intake. */
   public Intake() {}
 
+  private void updateInputs() {
+    intakeInputs.pivotVoltage = pivot.getMotorVoltage().getValueAsDouble();
+    intakeInputs.pivotPosition = pivot.getPosition().getValueAsDouble();
+    intakeInputs.pivotAngleDeg = getPivotAngle().in(Degrees);
+    intakeInputs.pivotAngleRad = getPivotAngle().in(edu.wpi.first.units.Units.Radians);
+    intakeInputs.rollerVelocity = getRollerVelocity().baseUnitMagnitude();
+    intakeInputs.pivotCurrentAmps = pivot.getStatorCurrent().getValueAsDouble();
+    intakeInputs.rollerCurrentAmps = roller.getStatorCurrent().getValueAsDouble();
+  }
+
   @Override
   public void periodic() {
     intakePivot.updateTelemetry();
     rollerController.updateTelemetry();
+    updateInputs();
+    Logger.processInputs("Intake", intakeInputs);
+    Logger.recordOutput(
+        "IntakePivotOrigin",
+        new Pose3d(0.0, 0.0, 0.0, new Rotation3d(0.0, intakeInputs.pivotAngleDeg, 0.0)));
     SmartDashboard.putNumber("Pivot Voltage", pivot.getMotorVoltage().getValueAsDouble());
     SmartDashboard.putNumber("Pivot Position", pivot.getPosition().getValueAsDouble());
+    SmartDashboard.putNumber("Roller Speed", getRollerVelocity().baseUnitMagnitude());
   }
 
   @Override

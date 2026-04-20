@@ -25,6 +25,7 @@ import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.units.VoltageUnit;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularAcceleration;
@@ -36,6 +37,7 @@ import edu.wpi.first.units.measure.Time;
 import edu.wpi.first.units.measure.Velocity;
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.RobotBase;
+import frc.robot.util.Launcher.ProjectileSimulator;
 
 /**
  * This class defines the runtime mode used by AdvantageKit. The mode is always "real" when running
@@ -63,7 +65,7 @@ public final class Constants {
     public static final int MOTOR_ID_FOLLOW = 21;
 
     // Closed-loop gains (real robot)
-    public static final double REAL_kP = 0.0; // 0.91
+    public static final double REAL_kP = 0.1; // 0.18216 or 0.45
     public static final double REAL_kI = 0.0; // 0.1
     public static final double REAL_kD = 0.0;
 
@@ -73,12 +75,12 @@ public final class Constants {
     public static final double SIM_kD = 0.0;
 
     // Feedforward (ks, kv, ka) used by SimpleMotorFeedforward
-    public static final double FFW_kS = 0.25264;
-    public static final double FFW_kV = 0.12113;
-    public static final double FFW_kA = 0.0093485;
+    public static final double FFW_kS = 0.2196;
+    public static final double FFW_kV = 0.11953;
+    public static final double FFW_kA = 0.013135;
 
     // Motion constraints used in controllers (RPM, RPM/sec)
-    public static final double MAX_VELOCITY_RPM = 60.0;
+    public static final double MAX_VELOCITY_RPM = 6000.0;
     public static final double MAX_ACCEL_RPMPerS = 1800.0;
 
     // Telemetry names
@@ -87,7 +89,7 @@ public final class Constants {
 
     // Mechanical / motor configuration
     public static final int GEARING = 1;
-    public static final boolean MOTOR_INVERTED = false;
+    public static final boolean MOTOR_INVERTED = true;
     public static final boolean FOLLOWER_INVERTED = true;
     public static final int MOTOR_COUNT = 2; // motors per side used for DCMotor factory
 
@@ -102,9 +104,48 @@ public final class Constants {
 
     // Soft limits (RPM)
     public static final double SOFT_LIMIT_RPM = 5000.0;
+
+    public static final double ChangeNudgeFactor = -50;
+    public static final double TRENCH_RPM = -4600.0;
+    public static final double HUB_RPM = -3300.0;
+    public static final double TOWER_RPM = -3500.0;
+    public static final double FLYWHEEL_IDLE_RPM = 0.0; // 800
+    public static final double READY_TOLERANCE_RPM = 150.0;
+    public static final double SHOT_CONFIDENCE_THRESHOLD = 50.0;
+    public static final double PASS_TARGET_X_METERS = 1.5;
+
+    // Shoot-on-the-move & simulation parameters
+    public static final double LAUNCHER_OFFSET_X = -0.223; // meters forward from robot center
+    public static final double LAUNCHER_OFFSET_Y = 0.0; // meters left from center (0 if centered)
+    public static final double LAUNCHER_TUBE_SPACING =
+        0.155575; // meters between left/center/right tubes in parallel launcher
+
+    public static final ProjectileSimulator.SimParameters params =
+        new ProjectileSimulator.SimParameters(
+            0.215, // ball mass kg
+            0.1501, // ball diameter m
+            0.47, // drag coeff (smooth sphere)
+            0.2, // Magnus coeff
+            1.225, // air density
+            0.539, // exit height (m), floor to where the ball leaves the shooter
+            0.1016, // flywheel diameter (m), measure with calipers
+            1.83, // target height (m), from game manual
+            0.42, // slip factor (0=no grip, 1=perfect), tune this on the real robot
+            60.0, // launch angle from horizontal, measure from CAD
+            0.001, // sim timestep
+            1200,
+            6000,
+            25,
+            5.0 // RPM search range, iterations, max sim time
+            );
+    public static final Translation2d hubCenter = new Translation2d(4.623, 4.0); // your target
+    public static final Translation2d blueHubForward =
+        new Translation2d(1, 0); // which way the hub faces
+    public static final Translation2d redHubForward =
+        new Translation2d(-1, 0); // which way the hub faces
   }
 
-  public final class IntakeConstants {
+  public static final class IntakeConstants {
     public final class Pivot {
       public final class Real {
         public static final double kp = 100.0;
@@ -153,6 +194,7 @@ public final class Constants {
       public static final Angle startingPosition = Degrees.of(105);
       public static final Angle stowedPosition = Degrees.of(105);
       public static final Angle intakePosition = Degrees.of(0);
+      public static final Angle jitterPosition = Degrees.of(45);
       public static final Distance armLength = Feet.of(1);
       public static final Mass mass = Pounds.of(8);
 
@@ -185,7 +227,7 @@ public final class Constants {
       // Roller speeds (duty cycle -1 to 1)
       // public static final double intakeSpeed = 0.65;
       // public static final double outtakeSpeed = 0.3;
-      public static final AngularVelocity intakeSpeed = RPM.of(-4500);
+      public static final AngularVelocity intakeSpeed = RPM.of(-4000);
       public static final AngularVelocity outtakeSpeed = RPM.of(500);
     }
   }
@@ -203,43 +245,9 @@ public final class Constants {
     public static final int BeltDexterMotor = 15;
   }
 
-  public static final class ColumnConstants {
-    /** Column Gear Ratio */
-    public static final int gearRatio = 1;
-    /** Column Stall Current Limit */
-    public static final Current currentLimit = Amps.of(60);
-
-    public static final double IntakeSpeed = 0.3;
-    public static final double OuttakeSpeed = -0.3;
-
-    public final class Real {
-      public static final double kp = 50.0;
-      public static final double ki = 0.0;
-      public static final double kd = 0.0;
-      public static final AngularVelocity maxVelocity = DegreesPerSecond.of(90);
-      public static final AngularAcceleration maxAcceleration = DegreesPerSecondPerSecond.of(45);
-
-      public static final double ks = 0.0;
-      public static final double kg = 0.0;
-      public static final double kv = 0.0;
-    }
-
-    public final class Sim {
-      public static final double kp = 50.0;
-      public static final double ki = 0.0;
-      public static final double kd = 0.0;
-      public static final AngularVelocity maxVelocity = DegreesPerSecond.of(90);
-      public static final AngularAcceleration maxAcceleration = DegreesPerSecondPerSecond.of(45);
-
-      public static final double ks = 0.0;
-      public static final double kg = 0.0;
-      public static final double kv = 0.0;
-    }
-  }
-
   public static final class ClimbConstants {
     /** Column Gear Ratio */
-    public static final int gearRatio = 5;
+    public static final int gearRatio = 25;
     /** Column Stall Current Limit */
     public static final Current currentLimit = Amps.of(60);
 
@@ -248,14 +256,14 @@ public final class Constants {
 
     public static final Distance PreHangExtension = Inches.of(9.5);
     public static final Distance HangDistance = Inches.of(0);
-    public static final Distance ReleaseDistance = Inches.of(0);
+    public static final Distance ReleaseDistance = Inches.of(9.5);
     public static final Distance RestDistance = Inches.of(0);
 
     public static final Distance MechanismCircumference =
         Meters.of(Inches.of(0.25).in(Meters) * 22);
 
     public static final Distance hardMinimum = Inches.of(0);
-    public static final Distance hardMaximum = Inches.of(9.75);
+    public static final Distance hardMaximum = Inches.of(9.5);
     public static final Mass Weight = Pounds.of(1.02757);
 
     public final class Real {
@@ -271,48 +279,89 @@ public final class Constants {
     }
 
     public final class Sim {
-      public static final double kp = 50.0;
+      public static final double kp = 1.0;
       public static final double ki = 0.0;
       public static final double kd = 0.0;
       public static final AngularVelocity maxVelocity = DegreesPerSecond.of(90);
       public static final AngularAcceleration maxAcceleration = DegreesPerSecondPerSecond.of(45);
 
-      public static final double ks = 0.0;
-      public static final double kg = 0.0;
-      public static final double kv = 0.0;
+      public static final double ks = 0.5;
+      public static final double kg = 0.5;
+      public static final double kv = 0.5;
     }
   }
 
   public static final class BeltDexterConstants {
-    /** Column Gear Ratio */
+    /** Beltdexter Gear Ratio */
     public static final int gearRatio = 2;
-    /** Column Stall Current Limit */
-    public static final Current currentLimit = Amps.of(60);
+    /** Beltdexter Stall Current Limit */
+    public static final Current currentLimit = Amps.of(40);
 
-    public static final double IntakeSpeed = 0.3;
-    public static final double OuttakeSpeed = -0.3;
+    public static final AngularVelocity IntakeSpeed = RPM.of(1000);
+    public static final AngularVelocity OuttakeSpeed = RPM.of(-75);
+    public static final AngularVelocity IdleSpinSpeed = RPM.of(50);
+    public static final AngularVelocity LaunchSpeed = RPM.of(75);
 
     public final class Real {
-      public static final double kp = 50.0;
+      public static final double kp = 0;
+      public static final double ki = 0.0;
+      public static final double kd = 0.0;
+      public static final AngularVelocity maxVelocity = DegreesPerSecond.of(90);
+      public static final AngularAcceleration maxAcceleration = DegreesPerSecondPerSecond.of(45);
+
+      // feedforward
+      public static final double ks = 2.8752;
+      public static final double ka = 0.0;
+      public static final double kv = 0.46964;
+    }
+
+    public final class Sim {
+      public static final double kp = 0.0;
       public static final double ki = 0.0;
       public static final double kd = 0.0;
       public static final AngularVelocity maxVelocity = DegreesPerSecond.of(90);
       public static final AngularAcceleration maxAcceleration = DegreesPerSecondPerSecond.of(45);
 
       public static final double ks = 0.0;
-      public static final double kg = 0.0;
+      public static final double ka = 0.0;
+      public static final double kv = 0.0;
+    }
+  }
+
+  public static final class ColumnConstants {
+    /** Column Gear Ratio */
+    public static final int gearRatio = 2;
+    /** Column Stall Current Limit */
+    public static final Current currentLimit = Amps.of(40);
+
+    public static final Voltage IntakeSpeed = Volts.of(6);
+    public static final Voltage OuttakeSpeed = Volts.of(-3);
+    public static final Voltage IdleReverseSpeed = Volts.of(-0.5);
+    public static final Voltage FirstLaunchSpeed = Volts.of(10);
+    public static final double LaunchRampSeconds = 5;
+
+    public final class Real {
+      public static final double kp = 0.0;
+      public static final double ki = 0.0;
+      public static final double kd = 0.0;
+      public static final AngularVelocity maxVelocity = DegreesPerSecond.of(90);
+      public static final AngularAcceleration maxAcceleration = DegreesPerSecondPerSecond.of(45);
+
+      // Feedforward
+      public static final double ks = 0.0;
+      public static final double ka = 0.0;
       public static final double kv = 0.0;
     }
 
     public final class Sim {
-      public static final double kp = 50.0;
+      public static final double kp = 0.0;
       public static final double ki = 0.0;
       public static final double kd = 0.0;
       public static final AngularVelocity maxVelocity = DegreesPerSecond.of(90);
       public static final AngularAcceleration maxAcceleration = DegreesPerSecondPerSecond.of(45);
 
       public static final double ks = 0.0;
-      public static final double kg = 0.0;
+      public static final double ka = 0.0;
       public static final double kv = 0.0;
     }
   }
@@ -323,37 +372,37 @@ public final class Constants {
         AprilTagFieldLayout.loadField(AprilTagFields.kDefaultField);
 
     // Camera names, must match names configured on coprocessor
-    public static final String camera0Name = "cherry";
-    public static final String camera1Name = "orange";
-    public static final String camera2Name = "grape";
-    public static final String camera3Name = "strawberry";
+    public static final String camera0Name = "Cherry";
+    public static final String camera1Name = "Orange";
+    public static final String camera2Name = "Grape";
+    public static final String camera3Name = "Strawberry";
 
     // Robot to camera transforms
     // (Not used by Limelight, configure in web UI instead)
     public static final Transform3d robotToCamera0 =
         new Transform3d(
             Inches.of(12.25),
-            Inches.of(12.504),
-            Inches.of(13.5),
+            Inches.of(12.25),
+            Inches.of(13.375),
             new Rotation3d(Degrees.of(0), Degrees.of(0), Degrees.of(0)));
     public static final Transform3d robotToCamera1 =
         new Transform3d(
             Inches.of(12.25),
-            Inches.of(-12.504),
-            Inches.of(13.5),
+            Inches.of(-12.25),
+            Inches.of(13.375),
             new Rotation3d(Degrees.of(0), Degrees.of(0), Degrees.of(0)));
     public static final Transform3d robotToCamera2 =
         new Transform3d(
-            Inches.of(-8.425),
-            Inches.of(11),
-            Inches.of(7.495),
-            new Rotation3d(Degrees.of(0), Degrees.of(0), Degrees.of(180)));
+            Inches.of(-(9.25)),
+            Inches.of(11.25),
+            Inches.of(8.375),
+            new Rotation3d(Degrees.of(0), Degrees.of(-45), Degrees.of(180)));
     public static final Transform3d robotToCamera3 =
         new Transform3d(
-            Inches.of(-8.425),
-            Inches.of(-11),
-            Inches.of(7.495),
-            new Rotation3d(Degrees.of(0), Degrees.of(0), Degrees.of(180)));
+            Inches.of(-(9.25)),
+            Inches.of(-11.25),
+            Inches.of(8.375),
+            new Rotation3d(Degrees.of(0), Degrees.of(-45), Degrees.of(180)));
 
     // SIM Camera Constants
     public static final int resWidth = 1280;
@@ -383,5 +432,11 @@ public final class Constants {
     public static final double linearStdDevMegatag2Factor = 0.5; // More stable than full 3D solve
     public static final double angularStdDevMegatag2Factor =
         Double.POSITIVE_INFINITY; // No rotation data available
+  }
+
+  public static final class RobotConstants {
+    public static final double BumperWidth = 0.818; // Meters
+    public static final double BumperLength = 0.818; // Meters
+    public static final double BumperHeight = 0.127; // Meters
   }
 }

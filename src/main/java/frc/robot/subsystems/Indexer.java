@@ -4,14 +4,29 @@
 
 package frc.robot.subsystems;
 
+import static edu.wpi.first.units.Units.Rotations;
+import static edu.wpi.first.units.Units.RotationsPerSecond;
+import static edu.wpi.first.units.Units.Seconds;
+import static edu.wpi.first.units.Units.Volts;
+
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
+import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.system.plant.DCMotor;
+import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.MutAngle;
+import edu.wpi.first.units.measure.MutAngularVelocity;
+import edu.wpi.first.units.measure.MutVoltage;
+import edu.wpi.first.units.measure.Voltage;
+import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants.BeltDexterConstants;
 import frc.robot.Constants.SparkMaxCanIDs;
+import org.littletonrobotics.junction.AutoLog;
+import org.littletonrobotics.junction.Logger;
 import yams.motorcontrollers.SmartMotorController;
 import yams.motorcontrollers.SmartMotorControllerConfig;
 import yams.motorcontrollers.SmartMotorControllerConfig.ControlMode;
@@ -25,7 +40,20 @@ import yams.motorcontrollers.local.SparkWrapper;
  * <p>It may also be referred to as <i>Clyde</i>.
  */
 public class Indexer extends SubsystemBase {
-  private double m_motorspeed = 0.0;
+  @AutoLog
+  public static class IndexerInputs {
+    public double setpointRPS = 0.0;
+    public double appliedVolts = 0.0;
+    public double mechanismVelocity = 0.0;
+    public double currentAmps = 0.0;
+  }
+
+  private final IndexerInputsAutoLogged indexerInputs = new IndexerInputsAutoLogged();
+  private AngularVelocity m_motorspeed = RotationsPerSecond.of(0);
+
+  private final MutVoltage m_appliedVoltage = new MutVoltage(0, 0, Volts);
+  private final MutAngle m_position = new MutAngle(0, 0, Rotations);
+  private final MutAngularVelocity m_velocity = new MutAngularVelocity(0, 0, RotationsPerSecond);
 
   private SmartMotorControllerConfig MotorConfig =
       new SmartMotorControllerConfig(this)
@@ -42,11 +70,16 @@ public class Indexer extends SubsystemBase {
               BeltDexterConstants.Sim.kd,
               BeltDexterConstants.Sim.maxVelocity,
               BeltDexterConstants.Sim.maxAcceleration)
+          .withFeedforward(
+              new SimpleMotorFeedforward(
+                  BeltDexterConstants.Real.ks,
+                  BeltDexterConstants.Real.kv,
+                  BeltDexterConstants.Real.ka))
           .withTelemetry("BeltDexterMotor", TelemetryVerbosity.HIGH)
           .withGearing(BeltDexterConstants.gearRatio)
           .withMotorInverted(false)
           .withIdleMode(MotorMode.BRAKE)
-          .withStatorCurrentLimit(BeltDexterConstants.currentLimit);
+          .withSupplyCurrentLimit(BeltDexterConstants.currentLimit);
 
   private SparkMax m_motor = new SparkMax(SparkMaxCanIDs.BeltDexterMotor, MotorType.kBrushless);
 
@@ -61,19 +94,43 @@ public class Indexer extends SubsystemBase {
     return runOnce(() -> m_motorspeed = BeltDexterConstants.IntakeSpeed);
   }
 
+  public Command HoldIntakeFuel() {
+    return run(() -> m_motorspeed = BeltDexterConstants.IntakeSpeed);
+  }
+
+  public Command HoldIdleSpin() {
+    return run(() -> m_motorspeed = BeltDexterConstants.IdleSpinSpeed);
+  }
+
   public Command OuttakeFuel() {
     return runOnce(() -> m_motorspeed = BeltDexterConstants.OuttakeSpeed);
   }
 
+  public Command LaunchFuel() {
+    return runOnce(() -> m_motorspeed = BeltDexterConstants.LaunchSpeed);
+  }
+
   public Command NoFuel() {
-    return runOnce(() -> m_motorspeed = 0);
+    return runOnce(() -> m_motorspeed = RotationsPerSecond.of(0));
+  }
+
+  private void updateInputs() {
+    indexerInputs.setpointRPS = m_motorspeed.in(RotationsPerSecond);
+    indexerInputs.appliedVolts = motorController.getVoltage().in(Volts);
+    indexerInputs.mechanismVelocity = motorController.getMechanismVelocity().baseUnitMagnitude();
+    indexerInputs.currentAmps = m_motor.getOutputCurrent();
   }
 
   @Override
   public void periodic() {
     // This method will be called once per scheduler run
-    m_motor.set(m_motorspeed);
-    SmartDashboard.putNumber("BeltDexter Speed", m_motorspeed);
+    motorController.setVelocity(m_motorspeed);
+    updateInputs();
+    Logger.processInputs("Indexer", indexerInputs);
+
+    SmartDashboard.putNumber("BeltDexter Setpoint", m_motorspeed.baseUnitMagnitude());
+    SmartDashboard.putNumber(
+        "BeltDexter Actual", motorController.getMechanismVelocity().baseUnitMagnitude());
 
     motorController.updateTelemetry();
   }
@@ -81,5 +138,49 @@ public class Indexer extends SubsystemBase {
   @Override
   public void simulationPeriodic() {
     motorController.simIterate();
+  }
+
+  // Create the SysIdRoutine
+  private final SysIdRoutine sysIdRoutine =
+      new SysIdRoutine(
+          // Config: ramp rate, step voltage, timeout
+          new SysIdRoutine.Config(
+              Volts.of(1).per(Seconds), // Quasistatic ramp rate (1 V/s)
+              Volts.of(4), // Dynamic step voltage
+              Seconds.of(10) // Timeout
+              ),
+          new SysIdRoutine.Mechanism(
+              // Drive callback - convert voltage to duty cycle
+              // Using duty cycle instead of the motor controller's voltage control
+              // bypasses the internal closed-loop controller, resulting in cleaner data
+              (Voltage voltage) ->
+                  motorController.setDutyCycle(
+                      voltage.in(Volts) / RobotController.getBatteryVoltage()),
+              // Log callback - records position, velocity, and voltage
+              // updateTelemetry() and simIterate() ensure sensor data is fresh at logging time
+              log -> {
+                motorController.updateTelemetry();
+                motorController.simIterate();
+                log.motor("motor")
+                    .voltage(
+                        m_appliedVoltage.mut_replace(
+                            motorController.getDutyCycle() * RobotController.getBatteryVoltage(),
+                            Volts))
+                    .angularPosition(m_position.mut_replace(motorController.getMechanismPosition()))
+                    .angularVelocity(
+                        m_velocity.mut_replace(motorController.getMechanismVelocity()));
+              },
+              this, // Subsystem for requirements
+              "MyMechanism" // Name for logging
+              ));
+
+  /** Returns the quasistatic test command. */
+  public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {
+    return sysIdRoutine.quasistatic(direction);
+  }
+
+  /** Returns the dynamic test command. */
+  public Command sysIdDynamic(SysIdRoutine.Direction direction) {
+    return sysIdRoutine.dynamic(direction);
   }
 }

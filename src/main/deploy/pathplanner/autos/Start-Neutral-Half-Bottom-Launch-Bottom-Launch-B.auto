@@ -15,6 +15,7 @@
           "data": {
             "pathName": "Neutral-Half-Bottom-Launch-Bottom"
           }
+<<<<<<< HEAD
         },
         {
           "type": "path",
@@ -45,6 +46,8 @@
           "data": {
             "pathName": "Finisher-Bottom"
           }
+=======
+>>>>>>> origin/CodeRebuildCode
         }
       ]
     }
