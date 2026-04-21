@@ -6,7 +6,6 @@ package frc.robot.subsystems.vision;
 
 import static frc.robot.Constants.VisionConstants.*;
 
-import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform3d;
 import java.util.HashSet;
@@ -14,12 +13,15 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import org.photonvision.EstimatedRobotPose;
 import org.photonvision.PhotonCamera;
+import org.photonvision.PhotonPoseEstimator;
 
 /** Add your docs here. */
 public class VisionIOPhotonVision implements VisionIO {
   protected final PhotonCamera camera;
   protected final Transform3d robotToCamera;
+  protected final PhotonPoseEstimator poseEstimator;
 
   /** Creates IO instances for all predefined cameras (indices 0-3). */
   public static VisionIOPhotonVision[] createAllCameras() {
@@ -44,6 +46,7 @@ public class VisionIOPhotonVision implements VisionIO {
   public VisionIOPhotonVision(String name, Transform3d robotToCamera) {
     camera = new PhotonCamera(name);
     this.robotToCamera = robotToCamera;
+    poseEstimator = new PhotonPoseEstimator(aprilTagLayout, robotToCamera);
   }
 
   /**
@@ -78,6 +81,7 @@ public class VisionIOPhotonVision implements VisionIO {
 
     camera = new PhotonCamera(name);
     this.robotToCamera = transform;
+    poseEstimator = new PhotonPoseEstimator(aprilTagLayout, robotToCamera);
   }
 
   @Override
@@ -90,76 +94,48 @@ public class VisionIOPhotonVision implements VisionIO {
     for (var result : camera.getAllUnreadResults()) {
       // Update latest target observation
       if (result.hasTargets()) {
-
+        inputs.hasLatestTargetObservation = true;
         inputs.latestTargetObservation =
-            Optional.of(
-                new TargetObservation(
-                    Rotation2d.fromDegrees(result.getBestTarget().getYaw()),
-                    Rotation2d.fromDegrees(result.getBestTarget().getPitch())));
-        ;
+            new TargetObservation(
+                Rotation2d.fromDegrees(result.getBestTarget().getYaw()),
+                Rotation2d.fromDegrees(result.getBestTarget().getPitch()));
       } else {
-        inputs.latestTargetObservation = Optional.empty();
+        inputs.hasLatestTargetObservation = false;
+        inputs.latestTargetObservation = new TargetObservation(Rotation2d.kZero, Rotation2d.kZero);
       }
 
-      // Add pose observation
-      if (result.multitagResult.isPresent()) { // Multitag result
-        var multitagResult = result.multitagResult.get();
+      for (var target : result.targets) {
+        tagIds.add((short) target.fiducialId);
+      }
 
-        // Calculate robot pose
-        Transform3d fieldToCamera = multitagResult.estimatedPose.best;
-        Transform3d fieldToRobot = fieldToCamera.plus(robotToCamera.inverse());
-        Pose3d robotPose = new Pose3d(fieldToRobot.getTranslation(), fieldToRobot.getRotation());
+      Optional<EstimatedRobotPose> visionEst = poseEstimator.estimateCoprocMultiTagPose(result);
+      if (visionEst.isEmpty()) {
+        visionEst = poseEstimator.estimateLowestAmbiguityPose(result);
+      }
 
+      if (visionEst.isPresent()) {
         // Calculate average tag distance
         double totalTagDistance = 0.0;
         for (var target : result.targets) {
           totalTagDistance += target.bestCameraToTarget.getTranslation().getNorm();
         }
+        double averageTagDistance =
+            result.targets.isEmpty() ? 0.0 : totalTagDistance / result.targets.size();
+        double ambiguity = result.hasTargets() ? result.getBestTarget().getPoseAmbiguity() : 0.0;
 
-        // Add tag IDs
-        tagIds.addAll(multitagResult.fiducialIDsUsed);
-
-        // Add observation
         poseObservations.add(
             new PoseObservation(
-                result.getTimestampSeconds(), // Timestamp
-                robotPose, // 3D pose estimate
-                multitagResult.estimatedPose.ambiguity, // Ambiguity
-                multitagResult.fiducialIDsUsed.size(), // Tag count
-                totalTagDistance / result.targets.size(), // Average tag distance
-                PoseObservationType.PHOTONVISION)); // Observation type
-
-      } else if (!result.targets.isEmpty()) { // Single tag result
-        var target = result.targets.get(0);
-
-        // Calculate robot pose
-        var tagPose = aprilTagLayout.getTagPose(target.fiducialId);
-        if (tagPose.isPresent()) {
-          Transform3d fieldToTarget =
-              new Transform3d(tagPose.get().getTranslation(), tagPose.get().getRotation());
-          Transform3d cameraToTarget = target.bestCameraToTarget;
-          Transform3d fieldToCamera = fieldToTarget.plus(cameraToTarget.inverse());
-          Transform3d fieldToRobot = fieldToCamera.plus(robotToCamera.inverse());
-          Pose3d robotPose = new Pose3d(fieldToRobot.getTranslation(), fieldToRobot.getRotation());
-
-          // Add tag ID
-          tagIds.add((short) target.fiducialId);
-
-          // Add observation
-          poseObservations.add(
-              new PoseObservation(
-                  result.getTimestampSeconds(), // Timestamp
-                  robotPose, // 3D pose estimate
-                  target.poseAmbiguity, // Ambiguity
-                  1, // Tag count
-                  cameraToTarget.getTranslation().getNorm(), // Average tag distance
-                  PoseObservationType.PHOTONVISION)); // Observation type
-        }
+                visionEst.get().timestampSeconds,
+                visionEst.get().estimatedPose,
+                ambiguity,
+                result.targets.size(),
+                averageTagDistance,
+                PoseObservationType.PHOTONVISION));
       }
     }
 
     // Save pose observations to inputs object (clones the array)
-      inputs.poseObservations = poseObservations.toArray(new PoseObservation[0]);
+    inputs.poseObservations = poseObservations.toArray(new PoseObservation[0]);
 
     // Save tag IDs to inputs objects
     inputs.tagIds = new int[tagIds.size()];
