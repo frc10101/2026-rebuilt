@@ -73,15 +73,13 @@ public class Climb extends SubsystemBase {
             .withClosedLoopController(
                 ClimbConstants.Real.kp,
                 ClimbConstants.Real.ki,
-                ClimbConstants.Real.kd,
-                ClimbConstants.Real.maxVelocity,
-                ClimbConstants.Real.maxAcceleration)
+                ClimbConstants.Real.kd)
             .withSimClosedLoopController(
                 ClimbConstants.Sim.kp,
                 ClimbConstants.Sim.ki,
-                ClimbConstants.Sim.kd,
-                ClimbConstants.Sim.maxVelocity,
-                ClimbConstants.Sim.maxAcceleration)
+                ClimbConstants.Sim.kd)
+            .withTrapezoidalProfile(ClimbConstants.Real.maxVelocity,
+                ClimbConstants.Real.maxAcceleration)
             // Feedforward Constants
             .withFeedforward(
                 new ElevatorFeedforward(

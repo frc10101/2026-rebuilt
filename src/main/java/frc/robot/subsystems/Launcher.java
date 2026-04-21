@@ -98,15 +98,11 @@ public class Launcher extends SubsystemBase {
           .withClosedLoopController(
               LauncherConstants.REAL_kP,
               LauncherConstants.REAL_kI,
-              LauncherConstants.REAL_kD,
-              RPM.of(LauncherConstants.MAX_VELOCITY_RPM),
-              RPM.per(Second).of(LauncherConstants.MAX_ACCEL_RPMPerS))
+              LauncherConstants.REAL_kD)
           .withSimClosedLoopController(
               LauncherConstants.SIM_kP,
               LauncherConstants.SIM_kI,
-              LauncherConstants.SIM_kD,
-              RPM.of(LauncherConstants.MAX_VELOCITY_RPM),
-              RPM.per(Second).of(LauncherConstants.MAX_ACCEL_RPMPerS))
+              LauncherConstants.SIM_kD)
           // Feedforward Constants
           .withFeedforward(
               new SimpleMotorFeedforward(
