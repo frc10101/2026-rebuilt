@@ -96,7 +96,7 @@ public class RobotContainer {
   // Driver Two Left Button
   private final Trigger ToggleIntake = driverTwoController.axisGreaterThan(2, 0.3);
   // Driver Two Right Trigger
-  private final Trigger LaunchFuelOveride = driverTwoController.axisGreaterThan(3, 0.3);
+  private final Trigger LaunchFuelOveride = driverTwoController.axisLessThan(3, -0.3);
   // Driver Two Dpad Up
   private final Trigger LaunchNudgeUp = driverTwoController.povUp();
   // Driver Two Dpad Down
@@ -158,7 +158,10 @@ public class RobotContainer {
                         .alongWith(Column.VoltageRampDownLaunch())
                         .alongWith(m_intake.jitterIntakeAuto().repeatedly())));
         NamedCommands.registerCommand(
-            "LauncherIdle", launcher.runAllianceAutoControl(drive, false, true).repeatedly());
+            "LauncherIdle",
+            launcher
+                .runAllianceAutoControl(drive, false, LaunchFuelOveride.getAsBoolean())
+                .repeatedly());
         NamedCommands.registerCommand("ColumnIdle", Column.IdleReverse());
 
         // Intake Roller
@@ -337,7 +340,10 @@ public class RobotContainer {
    * edu.wpi.first.wpilibj2.command.button.JoystickButton}.
    */
   private void configureButtonBindings() {
-    launcher.setDefaultCommand(launcher.runIdleControl());
+    launcher.setDefaultCommand(
+        LaunchFuelOveride.getAsBoolean()
+            ? launcher.runPassControl(drive, LaunchFuelOveride.getAsBoolean())
+            : launcher.runIdleControl());
     Column.setDefaultCommand(Column.HoldIdleReverse());
     BeltDexter.setDefaultCommand(BeltDexter.HoldIdleSpin());
     // m_intake.setDefaultCommand(m_intake.setAngle(Degrees.of(90)));
@@ -358,7 +364,7 @@ public class RobotContainer {
                 drive,
                 () -> -driverOneController.getLeftY(),
                 () -> -driverOneController.getLeftX(),
-                () -> launcher.Launch(drive, false)));
+                () -> launcher.Launch(drive, LaunchFuelOveride.getAsBoolean())));
 
     alignToGoalButton
         .and(LaunchFuelOveride)
@@ -367,7 +373,7 @@ public class RobotContainer {
                 drive,
                 () -> -driverOneController.getLeftY(),
                 () -> -driverOneController.getLeftX(),
-                () -> launcher.Launch(drive, true)));
+                () -> launcher.Launch(drive, LaunchFuelOveride.getAsBoolean())));
     // Switch to X pattern when X button is pressed
     xOutButton.onTrue(Commands.runOnce(drive::stopWithX, drive));
     // xOutButton.onTrue(DriveCommands.DriveToNeutralZone());
@@ -388,19 +394,34 @@ public class RobotContainer {
 
     Trigger allianceAutoRev =
         new Trigger(
-            () -> DriverStation.isTeleopEnabled() && Helpers.isPoseInAllianceZone(drive.getPose()));
+            () ->
+                DriverStation.isTeleopEnabled() && (Helpers.isPoseInAllianceZone(drive.getPose())));
 
     // allianceAutoRev.and(LaunchFuel2.negate()).whileTrue(launcher.runAllianceAutoControl(drive));
-    allianceAutoRev.whileTrue(launcher.runAllianceAutoControl(drive, false, true));
-    allianceAutoRev.whileFalse(launcher.runAllianceAutoControl(drive, true, false));
+    allianceAutoRev
+        .and(LaunchFuelOveride)
+        .whileTrue(launcher.runAllianceAutoControl(drive, false, true));
+    allianceAutoRev
+        .and(LaunchFuelOveride.negate())
+        .whileTrue(launcher.runAllianceAutoControl(drive, false, false));
+
+    allianceAutoRev
+        .negate()
+        .and(LaunchFuelOveride)
+        .whileTrue(launcher.runAllianceAutoControl(drive, true, true));
+    allianceAutoRev
+        .negate()
+        .and(LaunchFuelOveride.negate())
+        .whileTrue(launcher.runAllianceAutoControl(drive, true, false));
 
     Trigger launchRequest = LaunchFuel;
     Trigger simLaunchTrigger =
         new Trigger(
             () ->
                 Constants.currentMode == Mode.SIM
-                    && launchRequest.getAsBoolean()
-                    && launcher.isLaunchReady());
+                        && launchRequest.getAsBoolean()
+                        && (launcher.isLaunchReady())
+                    || LaunchFuelOveride.getAsBoolean());
     simLaunchTrigger.onTrue(Commands.runOnce(this::LaunchFuelSim));
 
     launchRequest.whileTrue(
@@ -511,6 +532,7 @@ public class RobotContainer {
   public void SimulationPeriodic() {
     Logger.recordOutput(
         "Target RPM", launcher.calculateShotToTarget(drive, launcher.getAllianceHubCenter()).rpm());
+    Logger.recordOutput("Launch Override?", LaunchFuelOveride.getAsBoolean());
     ballSim.tick();
   }
 
@@ -522,7 +544,7 @@ public class RobotContainer {
     double exitHeightM = Constants.LauncherConstants.params.exitHeightM();
 
     // Get target launch RPM from ShotCalculator (not current velocity)
-    Rotation2d azimuth = launcher.Launch(drive, true);
+    Rotation2d azimuth = launcher.Launch(drive, LaunchFuelOveride.getAsBoolean());
     double targetLauncherRPM = launcher.getTargetLaunchRPM();
 
     Logger.recordOutput("Launch/TargetRPM", targetLauncherRPM);
