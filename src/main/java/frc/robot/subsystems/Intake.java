@@ -209,6 +209,11 @@ public class Intake extends SubsystemBase {
     return setRollerSpeed(Constants.IntakeConstants.Roller.outtakeSpeed);
   }
 
+  /** Reverse the roller to spit out fuel for passing */
+  public Command spitOut() {
+    return run(() -> rollerController.setVelocity(Constants.IntakeConstants.Roller.outtakeSpeed));
+  }
+
   /** Stop the roller */
   public Command stopRoller() {
     return runOnce(() -> rollerController.setVelocity(RPM.of(0)));

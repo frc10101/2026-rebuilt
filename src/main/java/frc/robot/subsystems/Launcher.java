@@ -88,7 +88,9 @@ public class Launcher extends SubsystemBase {
   /** Creates a new Launcher. */
   private TalonFX FlywheelLead = new TalonFX(LauncherConstants.MOTOR_ID_LEAD);
 
-  private TalonFX FlywheelFollow = new TalonFX(LauncherConstants.MOTOR_ID_FOLLOW);
+  private TalonFX FlywheelFollow0 = new TalonFX(LauncherConstants.MOTOR_ID_FOLLOW0);
+  private TalonFX FlywheelFollow1 = new TalonFX(LauncherConstants.MOTOR_ID_FOLLOW1);
+
   private SmartMotorControllerConfig smcConfig =
       new SmartMotorControllerConfig(this)
           .withControlMode(ControlMode.CLOSED_LOOP)
@@ -118,7 +120,9 @@ public class Launcher extends SubsystemBase {
           // Motor properties to prevent over currenting.
           .withMotorInverted(LauncherConstants.MOTOR_INVERTED)
           .withIdleMode(MotorMode.COAST)
-          .withFollowers(Pair.of(FlywheelFollow, LauncherConstants.FOLLOWER_INVERTED))
+          .withFollowers(
+              Pair.of(FlywheelFollow0, LauncherConstants.FOLLOWER0_INVERTED),
+              Pair.of(FlywheelFollow1, LauncherConstants.FOLLOWER1_INVERTED))
           .withSupplyCurrentLimit(Amps.of(LauncherConstants.STATOR_CURRENT_LIMIT_AMPS));
 
   private SmartMotorController shooterMotors =
