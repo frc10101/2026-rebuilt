@@ -69,15 +69,14 @@ public class Intake extends SubsystemBase {
           .withClosedLoopController(
               Constants.IntakeConstants.Pivot.Real.kp,
               Constants.IntakeConstants.Pivot.Real.ki,
-              Constants.IntakeConstants.Pivot.Real.kd,
-              Constants.IntakeConstants.Pivot.Real.maxVelocity,
-              Constants.IntakeConstants.Pivot.Real.maxAcceleration)
+              Constants.IntakeConstants.Pivot.Real.kd)
           .withSimClosedLoopController(
               Constants.IntakeConstants.Pivot.Sim.kp,
               Constants.IntakeConstants.Pivot.Sim.ki,
-              Constants.IntakeConstants.Pivot.Sim.kd,
-              Constants.IntakeConstants.Pivot.Sim.maxVelocity,
-              Constants.IntakeConstants.Pivot.Sim.maxAcceleration)
+              Constants.IntakeConstants.Pivot.Sim.kd)
+          .withTrapezoidalProfile(
+              Constants.IntakeConstants.Pivot.Real.maxVelocity,
+              Constants.IntakeConstants.Pivot.Real.maxAcceleration)
           .withFeedforward(
               new ArmFeedforward(
                   Constants.IntakeConstants.Pivot.Real.ks,
@@ -207,6 +206,11 @@ public class Intake extends SubsystemBase {
   /** Run the roller to outtake game pieces */
   public Command outtake() {
     return setRollerSpeed(Constants.IntakeConstants.Roller.outtakeSpeed);
+  }
+
+  /** Reverse the roller to spit out fuel for passing */
+  public Command spitOut() {
+    return run(() -> rollerController.setVelocity(Constants.IntakeConstants.Roller.outtakeSpeed));
   }
 
   /** Stop the roller */

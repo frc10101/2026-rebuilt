@@ -62,7 +62,8 @@ public final class Constants {
   public static class LauncherConstants {
 
     public static final int MOTOR_ID_LEAD = 20;
-    public static final int MOTOR_ID_FOLLOW = 21;
+    public static final int MOTOR_ID_FOLLOW0 = 21;
+    public static final int MOTOR_ID_FOLLOW1 = 22;
 
     // Closed-loop gains (real robot)
     public static final double REAL_kP = 0.1; // 0.18216 or 0.45
@@ -89,9 +90,10 @@ public final class Constants {
 
     // Mechanical / motor configuration
     public static final int GEARING = 1;
+    public static final boolean FOLLOWER0_INVERTED = true;
+    public static final boolean FOLLOWER1_INVERTED = true;
     public static final boolean MOTOR_INVERTED = true;
-    public static final boolean FOLLOWER_INVERTED = true;
-    public static final int MOTOR_COUNT = 2; // motors per side used for DCMotor factory
+    public static final int MOTOR_COUNT = 3; // motors per side used for DCMotor factory
 
     // Electrical limits
     public static final double STATOR_CURRENT_LIMIT_AMPS = 40.0;
@@ -438,5 +440,18 @@ public final class Constants {
     public static final double BumperWidth = 0.818; // Meters
     public static final double BumperLength = 0.818; // Meters
     public static final double BumperHeight = 0.127; // Meters
+  }
+
+  public static final class LEDConstants {
+    public static final int CANDLE_CAN_ID = 31;
+    public static final double BRIGHTNESS_SCALAR = 0.5;
+
+    // Slot 0 LED indices
+    public static final int SLOT0_START_IDX = 0;
+    public static final int SLOT0_END_IDX = 3;
+
+    // Slot 1 LED indices
+    public static final int SLOT1_START_IDX = 4;
+    public static final int SLOT1_END_IDX = 7;
   }
 }

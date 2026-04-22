@@ -11,7 +11,6 @@ import static edu.wpi.first.units.Units.KilogramSquareMeters;
 import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.Rotations;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
-import static edu.wpi.first.units.Units.Second;
 import static edu.wpi.first.units.Units.Seconds;
 import static edu.wpi.first.units.Units.Volts;
 
@@ -88,23 +87,17 @@ public class Launcher extends SubsystemBase {
   /** Creates a new Launcher. */
   private TalonFX FlywheelLead = new TalonFX(LauncherConstants.MOTOR_ID_LEAD);
 
-  private TalonFX FlywheelFollow = new TalonFX(LauncherConstants.MOTOR_ID_FOLLOW);
+  private TalonFX FlywheelFollow0 = new TalonFX(LauncherConstants.MOTOR_ID_FOLLOW0);
+  private TalonFX FlywheelFollow1 = new TalonFX(LauncherConstants.MOTOR_ID_FOLLOW1);
+
   private SmartMotorControllerConfig smcConfig =
       new SmartMotorControllerConfig(this)
           .withControlMode(ControlMode.CLOSED_LOOP)
           // Feedback Constants (PID Constants)
           .withClosedLoopController(
-              LauncherConstants.REAL_kP,
-              LauncherConstants.REAL_kI,
-              LauncherConstants.REAL_kD,
-              RPM.of(LauncherConstants.MAX_VELOCITY_RPM),
-              RPM.per(Second).of(LauncherConstants.MAX_ACCEL_RPMPerS))
+              LauncherConstants.REAL_kP, LauncherConstants.REAL_kI, LauncherConstants.REAL_kD)
           .withSimClosedLoopController(
-              LauncherConstants.SIM_kP,
-              LauncherConstants.SIM_kI,
-              LauncherConstants.SIM_kD,
-              RPM.of(LauncherConstants.MAX_VELOCITY_RPM),
-              RPM.per(Second).of(LauncherConstants.MAX_ACCEL_RPMPerS))
+              LauncherConstants.SIM_kP, LauncherConstants.SIM_kI, LauncherConstants.SIM_kD)
           // Feedforward Constants
           .withFeedforward(
               new SimpleMotorFeedforward(
@@ -118,7 +111,9 @@ public class Launcher extends SubsystemBase {
           // Motor properties to prevent over currenting.
           .withMotorInverted(LauncherConstants.MOTOR_INVERTED)
           .withIdleMode(MotorMode.COAST)
-          .withFollowers(Pair.of(FlywheelFollow, LauncherConstants.FOLLOWER_INVERTED))
+          .withFollowers(
+              Pair.of(FlywheelFollow0, LauncherConstants.FOLLOWER0_INVERTED),
+              Pair.of(FlywheelFollow1, LauncherConstants.FOLLOWER1_INVERTED))
           .withSupplyCurrentLimit(Amps.of(LauncherConstants.STATOR_CURRENT_LIMIT_AMPS));
 
   private SmartMotorController shooterMotors =

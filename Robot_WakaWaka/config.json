@@ -1,0 +1,155 @@
+{
+  "name": "WakaWaka",
+  "rotations": [
+    {
+      "axis": "x",
+      "degrees": 90
+    },
+    {
+      "axis": "y",
+      "degrees": 0
+    },
+    {
+      "axis": "z",
+      "degrees": 90
+    }
+  ],
+  "position": [
+    0,
+    0,
+    0
+  ],
+  "cameras": [
+    {
+      "name": "Cherry",
+      "fov": 70,
+      "resolution": [
+        1280,
+        800
+      ],
+      "position": [
+        0.31115,
+        0.31115,
+        0.339725
+      ],
+      "rotations": [
+        {
+          "axis": "x",
+          "degrees": 0
+        },
+        {
+          "axis": "y",
+          "degrees": 0
+        },
+        {
+          "axis": "z",
+          "degrees": 0
+        }
+      ]
+    },
+    {
+      "name": "Orange",
+      "fov": 70,
+      "resolution": [
+        1280,
+        800
+      ],
+      "position": [
+        0.31115,
+        -0.31115,
+        0.339725
+      ],
+      "rotations": [
+        {
+          "axis": "x",
+          "degrees": 0
+        },
+        {
+          "axis": "y",
+          "degrees": 0
+        },
+        {
+          "axis": "z",
+          "degrees": 0
+        }
+      ]
+    },
+    {
+      "name": "Grape",
+      "fov": 70,
+      "resolution": [
+        1280,
+        800
+      ],
+      "position": [
+        -0.23495,
+        0.28575,
+        0.212725
+      ],
+      "rotations": [
+        {
+          "axis": "x",
+          "degrees": 0
+        },
+        {
+          "axis": "y",
+          "degrees": 0
+        },
+        {
+          "axis": "z",
+          "degrees": 180
+        }
+      ]
+    },
+    {
+      "name": "Strawberry",
+      "fov": 70,
+      "resolution": [
+        1280,
+        800
+      ],
+      "position": [
+        -0.23495,
+        -0.28575,
+        0.212725
+      ],
+      "rotations": [
+        {
+          "axis": "x",
+          "degrees": 0
+        },
+        {
+          "axis": "y",
+          "degrees": 0
+        },
+        {
+          "axis": "z",
+          "degrees": 180
+        }
+      ]
+    }
+  ],
+  "components": [
+    {
+      "zeroedRotations": [
+        {
+          "axis": "x",
+          "degrees": 0
+        },
+        {
+          "axis": "y",
+          "degrees": 0
+        },
+        {
+          "axis": "z",
+          "degrees": 0
+        }
+      ],
+      "zeroedPosition": [
+        0,
+        0,
+        0
+      ]
+    }
+  ]
+}

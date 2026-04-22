@@ -69,17 +69,11 @@ public class Feeder extends SubsystemBase {
       new SmartMotorControllerConfig(this)
           .withControlMode(ControlMode.CLOSED_LOOP)
           .withClosedLoopController(
-              ColumnConstants.Real.kp,
-              ColumnConstants.Real.ki,
-              ColumnConstants.Real.kd,
-              ColumnConstants.Real.maxVelocity,
-              ColumnConstants.Real.maxAcceleration)
+              ColumnConstants.Real.kp, ColumnConstants.Real.ki, ColumnConstants.Real.kd)
           .withSimClosedLoopController(
-              ColumnConstants.Sim.kp,
-              ColumnConstants.Sim.ki,
-              ColumnConstants.Sim.kd,
-              ColumnConstants.Sim.maxVelocity,
-              ColumnConstants.Sim.maxAcceleration)
+              ColumnConstants.Sim.kp, ColumnConstants.Sim.ki, ColumnConstants.Sim.kd)
+          .withTrapezoidalProfile(
+              ColumnConstants.Real.maxVelocity, ColumnConstants.Real.maxAcceleration)
           .withTelemetry("ColumnMotor", TelemetryVerbosity.HIGH)
           .withGearing(ColumnConstants.gearRatio)
           .withMotorInverted(false)
