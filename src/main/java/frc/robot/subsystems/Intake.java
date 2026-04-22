@@ -74,7 +74,8 @@ public class Intake extends SubsystemBase {
               Constants.IntakeConstants.Pivot.Sim.kp,
               Constants.IntakeConstants.Pivot.Sim.ki,
               Constants.IntakeConstants.Pivot.Sim.kd)
-          .withTrapezoidalProfile(Constants.IntakeConstants.Pivot.Real.maxVelocity,
+          .withTrapezoidalProfile(
+              Constants.IntakeConstants.Pivot.Real.maxVelocity,
               Constants.IntakeConstants.Pivot.Real.maxAcceleration)
           .withFeedforward(
               new ArmFeedforward(

@@ -11,7 +11,6 @@ import static edu.wpi.first.units.Units.KilogramSquareMeters;
 import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.Rotations;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
-import static edu.wpi.first.units.Units.Second;
 import static edu.wpi.first.units.Units.Seconds;
 import static edu.wpi.first.units.Units.Volts;
 
@@ -96,13 +95,9 @@ public class Launcher extends SubsystemBase {
           .withControlMode(ControlMode.CLOSED_LOOP)
           // Feedback Constants (PID Constants)
           .withClosedLoopController(
-              LauncherConstants.REAL_kP,
-              LauncherConstants.REAL_kI,
-              LauncherConstants.REAL_kD)
+              LauncherConstants.REAL_kP, LauncherConstants.REAL_kI, LauncherConstants.REAL_kD)
           .withSimClosedLoopController(
-              LauncherConstants.SIM_kP,
-              LauncherConstants.SIM_kI,
-              LauncherConstants.SIM_kD)
+              LauncherConstants.SIM_kP, LauncherConstants.SIM_kI, LauncherConstants.SIM_kD)
           // Feedforward Constants
           .withFeedforward(
               new SimpleMotorFeedforward(

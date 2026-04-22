@@ -71,15 +71,11 @@ public class Climb extends SubsystemBase {
             .withControlMode(ControlMode.CLOSED_LOOP)
             .withMechanismCircumference(ClimbConstants.MechanismCircumference)
             .withClosedLoopController(
-                ClimbConstants.Real.kp,
-                ClimbConstants.Real.ki,
-                ClimbConstants.Real.kd)
+                ClimbConstants.Real.kp, ClimbConstants.Real.ki, ClimbConstants.Real.kd)
             .withSimClosedLoopController(
-                ClimbConstants.Sim.kp,
-                ClimbConstants.Sim.ki,
-                ClimbConstants.Sim.kd)
-            .withTrapezoidalProfile(ClimbConstants.Real.maxVelocity,
-                ClimbConstants.Real.maxAcceleration)
+                ClimbConstants.Sim.kp, ClimbConstants.Sim.ki, ClimbConstants.Sim.kd)
+            .withTrapezoidalProfile(
+                ClimbConstants.Real.maxVelocity, ClimbConstants.Real.maxAcceleration)
             // Feedforward Constants
             .withFeedforward(
                 new ElevatorFeedforward(

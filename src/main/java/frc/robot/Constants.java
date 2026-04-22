@@ -90,9 +90,10 @@ public final class Constants {
 
     // Mechanical / motor configuration
     public static final int GEARING = 1;
+    public static final boolean FOLLOWER0_INVERTED = true;
+    public static final boolean FOLLOWER1_INVERTED = true;
     public static final boolean MOTOR_INVERTED = true;
-    public static final boolean FOLLOWER_INVERTED = true;
-    public static final int MOTOR_COUNT = 2; // motors per side used for DCMotor factory
+    public static final int MOTOR_COUNT = 3; // motors per side used for DCMotor factory
 
     // Electrical limits
     public static final double STATOR_CURRENT_LIMIT_AMPS = 40.0;

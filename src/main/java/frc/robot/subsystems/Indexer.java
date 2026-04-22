@@ -59,15 +59,11 @@ public class Indexer extends SubsystemBase {
       new SmartMotorControllerConfig(this)
           .withControlMode(ControlMode.CLOSED_LOOP)
           .withClosedLoopController(
-              BeltDexterConstants.Real.kp,
-              BeltDexterConstants.Real.ki,
-              BeltDexterConstants.Real.kd)
+              BeltDexterConstants.Real.kp, BeltDexterConstants.Real.ki, BeltDexterConstants.Real.kd)
           .withSimClosedLoopController(
-              BeltDexterConstants.Sim.kp,
-              BeltDexterConstants.Sim.ki,
-              BeltDexterConstants.Sim.kd)
-          .withTrapezoidalProfile(BeltDexterConstants.Real.maxVelocity,
-              BeltDexterConstants.Real.maxAcceleration)
+              BeltDexterConstants.Sim.kp, BeltDexterConstants.Sim.ki, BeltDexterConstants.Sim.kd)
+          .withTrapezoidalProfile(
+              BeltDexterConstants.Real.maxVelocity, BeltDexterConstants.Real.maxAcceleration)
           .withFeedforward(
               new SimpleMotorFeedforward(
                   BeltDexterConstants.Real.ks,
