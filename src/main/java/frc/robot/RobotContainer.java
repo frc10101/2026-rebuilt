@@ -340,10 +340,7 @@ public class RobotContainer {
    * edu.wpi.first.wpilibj2.command.button.JoystickButton}.
    */
   private void configureButtonBindings() {
-    launcher.setDefaultCommand(
-        LaunchFuelOveride.getAsBoolean()
-            ? launcher.runPassControl(drive, LaunchFuelOveride.getAsBoolean())
-            : launcher.runIdleControl());
+    launcher.setDefaultCommand(launcher.runIdleControl());
     Column.setDefaultCommand(Column.HoldIdleReverse());
     BeltDexter.setDefaultCommand(BeltDexter.HoldIdleSpin());
     // m_intake.setDefaultCommand(m_intake.setAngle(Degrees.of(90)));
@@ -534,6 +531,7 @@ public class RobotContainer {
         "Target RPM", launcher.calculateShotToTarget(drive, launcher.getAllianceHubCenter()).rpm());
     Logger.recordOutput("Launch Override?", LaunchFuelOveride.getAsBoolean());
     ballSim.tick();
+    Helpers.getYCoordinate(drive.getPose());
   }
 
   public void LaunchFuelSim() {

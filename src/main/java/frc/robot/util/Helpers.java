@@ -157,4 +157,10 @@ public class Helpers {
 
     return matchTime <= 25.0; // is it the First shift on each half of "the 100"?
   }
+
+  public static double getYCoordinate(Pose2d pose) {
+    double ans = pose.getTranslation().getY();
+    Logger.recordOutput("Y Coordinate", ans);
+    return ans;
+  }
 }
