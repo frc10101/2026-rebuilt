@@ -31,6 +31,8 @@ import edu.wpi.first.units.measure.MutVoltage;
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotController;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.smartdashboard.FieldObject2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
@@ -39,6 +41,8 @@ import frc.robot.subsystems.drive.Drive;
 import frc.robot.util.Helpers;
 import frc.robot.util.Launcher.ProjectileSimulator;
 import frc.robot.util.Launcher.ShotCalculator;
+
+import java.lang.reflect.Field;
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.AutoLog;
 import org.littletonrobotics.junction.Logger;
@@ -292,6 +296,17 @@ public class Launcher extends SubsystemBase {
             Logger.recordOutput("Alliance Hub Center", hubCenter);
             Logger.recordOutput("Overide Run Alliance Auto Control", override);
             var shot = calculateShotToTarget(swerve, hubCenter);
+            /**
+             * Ok so like lets loot at this =
+             * we want to maybe pass in a different target position how do we do this well we ask for it duh
+             * create function that returns are desired target
+             * @Param pose the current robot pose 
+             * @Param current alliance our current allianc e
+             * 
+             * returns the position in cordinates and maybe rotation
+             * @return either translation 2d or {x,y}
+             * 
+            ) */
             if (shot == null) {
               applyIdleTarget();
               return;
@@ -457,5 +472,40 @@ public class Launcher extends SubsystemBase {
 
   public double getTargetLaunchRPM() {
     return lastLaunchRPM;
+  }
+
+  /*
+   * isPoseInAllinace
+   * hub center
+   * reference - autorevControl
+   * 
+   */
+  public Translation2d getTargetPostition(Drive swerve, double robotY) {
+    Translation2d targetPose;
+    double fieldLength = AprilTagFieldLayout.loadField(AprilTagFields.k2026RebuiltWelded)
+            .getFieldLength();
+    double targetX = fieldLength - ((7/8) * fieldLength); //This defaults for blue
+
+    //grab what alliance we are on to apply offsets to the x postion we select
+    var isBlue = DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue;
+    double offset = 0;
+    if(!isBlue){
+      targetX = fieldLength - ((1/8) * fieldLength);
+    }
+
+    double fieldHight = AprilTagFieldLayout.loadField(AprilTagFields.k2026RebuiltWelded).getFieldWidth();
+    double targetY = fieldHight - ((1/4) * fieldHight);  //default to top of board or y > fieldlength / 2
+    //see if we are in are alliance
+    //if yes give hub and leave
+    if(Helpers.isPoseInAllianceZone(swerve.getPose())){
+      return getAllianceHubCenter();
+    }
+    else if (robotY <= fieldHight / 2){
+      targetY = 
+        fieldHight - ((3/4) * fieldHight);
+    }
+
+    targetPose = new Translation2d(targetX, targetY);
+    return targetPose;
   }
 }
