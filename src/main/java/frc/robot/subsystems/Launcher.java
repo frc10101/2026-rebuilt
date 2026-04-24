@@ -496,6 +496,7 @@ public class Launcher extends SubsystemBase {
   public Command worldsAutoRev(Drive swerve, boolean override) {
     return run(
         () -> {
+          currentMode = LauncherMode.ALLIANCE_AUTO;
           Logger.recordOutput("Overide Run Alliance Auto Control", override);
           var shot =
               calculateShotToTarget(
