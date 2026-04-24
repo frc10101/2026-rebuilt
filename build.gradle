@@ -111,15 +111,7 @@ test {
 // The sim GUI is *disabled* by default to support running
 // AdvantageKit log replay, which requires that all HAL
 // sim extensions be disabled.
-
-//this is some maxwell using AI to sim on linux
-// On Linux, GUI is enabled by default for convenience.
-// Override with: ./gradlew simulateJava -PenableSimGui=false
-// or: ENABLE_SIM_GUI=false ./gradlew simulateJava
-def osName = System.getProperty("os.name").toLowerCase()
-def isLinux = osName.contains("linux")
-def enableSimGui = project.hasProperty('enableSimGui') ? project.property('enableSimGui').toBoolean() : System.getenv('ENABLE_SIM_GUI')?.toBoolean() ?: isLinux
-wpi.sim.addGui().defaultEnabled = enableSimGui
+wpi.sim.addGui().defaultEnabled = false
 wpi.sim.addDriverstation()
 
 // Setting up my Jar File. In this case, adding all libraries into the main jar ('fat jar')
@@ -135,7 +127,7 @@ jar {
 sourceSets {
     test {
         resources {
-            srcDir "src/test/resources"
+            srcDir "test"
         }
     }
 }
