@@ -30,9 +30,8 @@ import edu.wpi.first.units.measure.MutAngularVelocity;
 import edu.wpi.first.units.measure.MutVoltage;
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
-import edu.wpi.first.wpilibj.smartdashboard.FieldObject2d;
+import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
@@ -41,8 +40,6 @@ import frc.robot.subsystems.drive.Drive;
 import frc.robot.util.Helpers;
 import frc.robot.util.Launcher.ProjectileSimulator;
 import frc.robot.util.Launcher.ShotCalculator;
-
-import java.lang.reflect.Field;
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.AutoLog;
 import org.littletonrobotics.junction.Logger;
@@ -289,24 +286,15 @@ public class Launcher extends SubsystemBase {
           if (Helpers.isPoseInAllianceZone(swerve.getPose())) {
             currentMode = LauncherMode.ALLIANCE_AUTO;
             var hubCenter = getAllianceHubCenter();
-            if (allianceFlip) {
-              hubCenter = getNotAllianceHubCenter();
-            }
+            // if (allianceFlip) {
+            //   hubCenter = getNotAllianceHubCenter();
+            // }
+
+            Logger.recordOutput("This is is the greatest sow", allianceFlip);
 
             Logger.recordOutput("Alliance Hub Center", hubCenter);
             Logger.recordOutput("Overide Run Alliance Auto Control", override);
             var shot = calculateShotToTarget(swerve, hubCenter);
-            /**
-             * Ok so like lets loot at this =
-             * we want to maybe pass in a different target position how do we do this well we ask for it duh
-             * create function that returns are desired target
-             * @Param pose the current robot pose 
-             * @Param current alliance our current allianc e
-             * 
-             * returns the position in cordinates and maybe rotation
-             * @return either translation 2d or {x,y}
-             * 
-            ) */
             if (shot == null) {
               applyIdleTarget();
               return;
@@ -370,21 +358,20 @@ public class Launcher extends SubsystemBase {
   }
 
   public Rotation2d Launch(Drive swerve, boolean override) {
-    Logger.recordOutput("Override Launch Method", override);
-    ShotCalculator.LaunchParameters shot = calculateShotToTarget(swerve, getAllianceHubCenter());
-    /*if (shot != null) {
+    ShotCalculator.LaunchParameters shot =
+        calculateShotToTarget(
+            swerve, getTargetPostition(swerve, swerve.getPose().getTranslation().getY()));
+    if (shot != null) {
       lastLaunchRPM = shot.rpm();
       return shot.driveAngle();
     }
-    */
 
     if (shot.confidence() > 50) {}
 
-    // Fallback: If ShotCalculator fails, just aim at hub
-    Translation2d hubCenter = getAllianceHubCenter();
-    Translation2d robotPos = swerve.getPose().getTranslation();
-    Translation2d toHub = hubCenter.minus(robotPos);
-    return toHub.getAngle();
+    Translation2d target = getTargetPostition(swerve, swerve.getPose().getTranslation().getY());
+    Translation2d roboPos = swerve.getPose().getTranslation();
+    Translation2d toTarget = target.minus(roboPos);
+    return toTarget.getAngle();
   }
 
   private void applyIdleTarget() {
@@ -427,7 +414,7 @@ public class Launcher extends SubsystemBase {
         isRed
             ? fieldLength - LauncherConstants.PASS_TARGET_X_METERS
             : LauncherConstants.PASS_TARGET_X_METERS;
-    return new Translation2d(targetX, swerve.getPose().getY());
+    return new Translation2d(targetX, swerve.getPose().getTranslation().getY());
   }
 
   public Translation2d getAllianceHubCenter() {
@@ -478,34 +465,66 @@ public class Launcher extends SubsystemBase {
    * isPoseInAllinace
    * hub center
    * reference - autorevControl
-   * 
+   *
    */
   public Translation2d getTargetPostition(Drive swerve, double robotY) {
+    double fieldHight =
+        AprilTagFieldLayout.loadField(AprilTagFields.k2026RebuiltWelded).getFieldWidth();
     Translation2d targetPose;
-    double fieldLength = AprilTagFieldLayout.loadField(AprilTagFields.k2026RebuiltWelded)
-            .getFieldLength();
-    double targetX = fieldLength - ((7/8) * fieldLength); //This defaults for blue
+    double fieldLength =
+        AprilTagFieldLayout.loadField(AprilTagFields.k2026RebuiltWelded).getFieldLength();
+    double targetX = fieldLength - ((7 / 8) * fieldLength); // This defaults for blue
+    double targetY =
+        fieldHight - ((1 / 4) * fieldHight); // default to top of board or y > fieldlength / 2
 
-    //grab what alliance we are on to apply offsets to the x postion we select
+    // grab what alliance we are on to apply offsets to the x postion we select
     var isBlue = DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue;
     double offset = 0;
-    if(!isBlue){
-      targetX = fieldLength - ((1/8) * fieldLength);
+    if (!isBlue) {
+      targetX = fieldLength - ((1 / 8) * fieldLength);
     }
 
-    double fieldHight = AprilTagFieldLayout.loadField(AprilTagFields.k2026RebuiltWelded).getFieldWidth();
-    double targetY = fieldHight - ((1/4) * fieldHight);  //default to top of board or y > fieldlength / 2
-    //see if we are in are alliance
-    //if yes give hub and leave
-    if(Helpers.isPoseInAllianceZone(swerve.getPose())){
+    // see if we are in are alliance
+    // if yes give hub and leave
+    if (Helpers.isPoseInAllianceZone(swerve.getPose())) {
+      Logger.recordOutput("returning hub position for target", true);
       return getAllianceHubCenter();
+    } else if (robotY <= fieldHight / 2) {
+      Logger.recordOutput("we are on top", true);
+      targetY = fieldHight - ((3 / 4) * fieldHight);
     }
-    else if (robotY <= fieldHight / 2){
-      targetY = 
-        fieldHight - ((3/4) * fieldHight);
-    }
+    Logger.recordOutput("returning hub position for target", false);
+    Logger.recordOutput("we are on top", false);
 
     targetPose = new Translation2d(targetX, targetY);
+    // Logger.recordOutput("Target Position", targetPose);
+
     return targetPose;
+  }
+
+  public Command worldsAutoRev(Drive swerve, boolean override) {
+    return run(
+        () -> {
+          Logger.recordOutput("Overide Run Alliance Auto Control", override);
+          var shot =
+              calculateShotToTarget(
+                  swerve, getTargetPostition(swerve, swerve.getPose().getTranslation().getY()));
+
+          if (shot == null) {
+            return;
+          }
+          if (!override) {
+            if (Helpers.isPoseInAllianceZone(swerve.getPose()) && shot.confidence() > 0.49) {
+              applyTargetRpm(shot.rpm());
+              return;
+            } else {
+              applyIdleTarget();
+              return;
+            }
+          } else {
+            applyTargetRpm(shot.rpm());
+            return;
+          }
+        });
   }
 }

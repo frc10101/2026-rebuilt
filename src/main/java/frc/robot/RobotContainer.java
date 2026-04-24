@@ -159,9 +159,7 @@ public class RobotContainer {
                         .alongWith(m_intake.jitterIntakeAuto().repeatedly())));
         NamedCommands.registerCommand(
             "LauncherIdle",
-            launcher
-                .runAllianceAutoControl(drive, false, LaunchFuelOveride.getAsBoolean())
-                .repeatedly());
+            launcher.worldsAutoRev(drive, LaunchFuelOveride.getAsBoolean()).repeatedly());
         NamedCommands.registerCommand("ColumnIdle", Column.IdleReverse());
 
         // Intake Roller
@@ -395,21 +393,14 @@ public class RobotContainer {
                 DriverStation.isTeleopEnabled() && (Helpers.isPoseInAllianceZone(drive.getPose())));
 
     // allianceAutoRev.and(LaunchFuel2.negate()).whileTrue(launcher.runAllianceAutoControl(drive));
-    allianceAutoRev
-        .and(LaunchFuelOveride)
-        .whileTrue(launcher.runAllianceAutoControl(drive, false, true));
-    allianceAutoRev
-        .and(LaunchFuelOveride.negate())
-        .whileTrue(launcher.runAllianceAutoControl(drive, false, false));
+    allianceAutoRev.and(LaunchFuelOveride).whileTrue(launcher.worldsAutoRev(drive, true));
+    allianceAutoRev.and(LaunchFuelOveride.negate()).whileTrue(launcher.worldsAutoRev(drive, false));
 
-    allianceAutoRev
-        .negate()
-        .and(LaunchFuelOveride)
-        .whileTrue(launcher.runAllianceAutoControl(drive, true, true));
+    allianceAutoRev.negate().and(LaunchFuelOveride).whileTrue(launcher.worldsAutoRev(drive, true));
     allianceAutoRev
         .negate()
         .and(LaunchFuelOveride.negate())
-        .whileTrue(launcher.runAllianceAutoControl(drive, true, false));
+        .whileTrue(launcher.worldsAutoRev(drive, false));
 
     Trigger launchRequest = LaunchFuel;
     Trigger simLaunchTrigger =
@@ -528,10 +519,15 @@ public class RobotContainer {
 
   public void SimulationPeriodic() {
     Logger.recordOutput(
-        "Target RPM", launcher.calculateShotToTarget(drive, launcher.getAllianceHubCenter()).rpm());
+        "Target RPM",
+        launcher.calculateShotToTarget(
+            drive, launcher.getTargetPostition(drive, drive.getPose().getY())));
     Logger.recordOutput("Launch Override?", LaunchFuelOveride.getAsBoolean());
     ballSim.tick();
     Helpers.getYCoordinate(drive.getPose());
+    Logger.recordOutput(
+        "Target Position",
+        launcher.getTargetPostition(drive, Helpers.getYCoordinate(drive.getPose())));
   }
 
   public void LaunchFuelSim() {
