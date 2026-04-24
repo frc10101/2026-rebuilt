@@ -79,7 +79,7 @@ public class RobotContainer {
   private final Trigger xOutButton = driverOneController.button(3);
 
   // Driver One Right Trigger
-  private final Trigger LaunchFuel = driverOneController.axisGreaterThan(3, 0.3);
+  private final Trigger LaunchFuel = driverOneController.axisLessThan(3, -0.3);
 
   // Driver One Dpad Down Button
   private final Trigger IntakeStowed = driverOneController.povDown();
@@ -521,13 +521,13 @@ public class RobotContainer {
     Logger.recordOutput(
         "Target RPM",
         launcher.calculateShotToTarget(
-            drive, launcher.getTargetPostition(drive, drive.getPose().getY())));
+            drive, launcher.getTargetPosition(drive, drive.getPose().getY())));
     Logger.recordOutput("Launch Override?", LaunchFuelOveride.getAsBoolean());
+    Logger.recordOutput("Launch Button: ", LaunchFuel.getAsBoolean());
     ballSim.tick();
-    Helpers.getYCoordinate(drive.getPose());
     Logger.recordOutput(
         "Target Position",
-        launcher.getTargetPostition(drive, Helpers.getYCoordinate(drive.getPose())));
+        launcher.getTargetPosition(drive, Helpers.getYCoordinate(drive.getPose())));
   }
 
   public void LaunchFuelSim() {
@@ -539,6 +539,7 @@ public class RobotContainer {
 
     // Get target launch RPM from ShotCalculator (not current velocity)
     Rotation2d azimuth = launcher.Launch(drive, LaunchFuelOveride.getAsBoolean());
+    Logger.recordOutput("Launch/AzimuthDegrees", azimuth.getDegrees());
     double targetLauncherRPM = launcher.getTargetLaunchRPM();
 
     Logger.recordOutput("Launch/TargetRPM", targetLauncherRPM);
