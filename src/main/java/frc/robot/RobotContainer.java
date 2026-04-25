@@ -427,25 +427,26 @@ public class RobotContainer {
         .and(LaunchFuelOveride.negate())
         .whileTrue(launcher.worldsAutoRev(drive, false));
 
-   
-
-    Trigger launchRequest = LaunchFuel.or(LaunchFuel.and(LaunchFuelOveride));
+    Trigger launchRequest = LaunchFuel.or(LaunchFuelOveride);
     Logger.recordOutput("Launch Requested", launchRequest.getAsBoolean());
     Logger.recordOutput("is Launch Ready", launcher.isLaunchReady());
     if (Constants.currentMode == Mode.SIM) {
       Trigger simLaunchTrigger =
           new Trigger(
               () ->
-                  Constants.currentMode == Mode.SIM
-                          && launchRequest.getAsBoolean()
-                          && (launcher.isLaunchReady())
+                  Constants.currentMode == Mode.SIM && (launchRequest.getAsBoolean())
                       || LaunchFuelOveride.getAsBoolean());
       simLaunchTrigger.onTrue(Commands.runOnce(this::LaunchFuelSim));
     }
 
-    launchRequest.whileTrue(
-        Commands.waitUntil(() -> launcher.isLaunchReady())
-            .andThen(Column.HoldLaunchWithRamp().alongWith(BeltDexter.LaunchFuel())));
+    LaunchFuelOveride.onTrue(new InstantCommand(() -> launcher.Launch(drive, true)));
+    LaunchFuelOveride.whileTrue(Column.HoldLaunchWithRamp().alongWith(BeltDexter.LaunchFuel()));
+
+    launchRequest
+        .and(LaunchFuelOveride.negate())
+        .whileTrue(
+            Commands.waitUntil(() -> launcher.isLaunchReady())
+                .andThen(Column.HoldLaunchWithRamp().alongWith(BeltDexter.LaunchFuel())));
 
     launchRequest.whileFalse(
         Column.IdleReverse()

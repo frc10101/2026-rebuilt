@@ -63,7 +63,10 @@ public class Launcher extends SubsystemBase {
     IDLE,
     ALLIANCE_AUTO,
     PASS,
-    NOT_IDLE
+    NOT_IDLE,
+    WORLDS_AUTO_REV,
+    OVERRIDE_LAUNCH,
+    TARGET_LOCK
   }
 
   @AutoLog
@@ -365,12 +368,22 @@ public class Launcher extends SubsystemBase {
         calculateShotToTarget(
             swerve, getTargetPosition(swerve, swerve.getPose().getTranslation().getY()));
 
-    if (shot != null && shot.isValid()) {
-      lastLaunchRPM = shot.rpm();
-      return shot.driveAngle();
+    if (override) {
+      currentMode = LauncherMode.OVERRIDE_LAUNCH;
+      if (shot != null) {
+        lastLaunchRPM = shot.rpm();
+        applyTargetRpm(shot.rpm());
+        return shot.driveAngle();
+      }
+    } else {
+      currentMode = LauncherMode.NOT_IDLE;
+      if (shot != null && shot.isValid()) {
+        lastLaunchRPM = shot.rpm();
+        applyTargetRpm(shot.rpm());
+        return shot.driveAngle();
+      }
     }
 
-    // Fallback: aim directly at the chosen target position
     Translation2d target = getTargetPosition(swerve, swerve.getPose().getTranslation().getY());
     Translation2d roboPos = swerve.getPose().getTranslation();
     Translation2d toTarget = target.minus(roboPos);
@@ -515,8 +528,7 @@ public class Launcher extends SubsystemBase {
     return targetPose;
   }
 
-  public Command 
-  worldsAutoRev(Drive swerve, boolean override) {
+  public Command worldsAutoRev(Drive swerve, boolean override) {
     return run(
         () -> {
           Logger.recordOutput("Overide Run Alliance Auto Control", override);
@@ -525,10 +537,13 @@ public class Launcher extends SubsystemBase {
                   swerve, getTargetPosition(swerve, swerve.getPose().getTranslation().getY()));
 
           if (shot == null) {
+            applyIdleTarget();
             return;
           }
+
           if (!override) {
             if (Helpers.isPoseInAllianceZone(swerve.getPose()) && shot.confidence() > 0.49) {
+              currentMode = LauncherMode.WORLDS_AUTO_REV;
               applyTargetRpm(shot.rpm());
               return;
             } else {
@@ -536,6 +551,7 @@ public class Launcher extends SubsystemBase {
               return;
             }
           } else {
+            currentMode = LauncherMode.OVERRIDE_LAUNCH;
             applyTargetRpm(shot.rpm());
             return;
           }
