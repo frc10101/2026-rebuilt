@@ -62,7 +62,8 @@ public class Launcher extends SubsystemBase {
   public enum LauncherMode {
     IDLE,
     ALLIANCE_AUTO,
-    PASS
+    PASS,
+    NOT_IDLE
   }
 
   @AutoLog
@@ -295,7 +296,7 @@ public class Launcher extends SubsystemBase {
             Logger.recordOutput("Alliance Hub Center", hubCenter);
             Logger.recordOutput("Overide Run Alliance Auto Control", override);
             var shot = calculateShotToTarget(swerve, hubCenter);
-            if (shot == null) {
+            if (shot == null || !shot.isValid()) {
               applyIdleTarget();
               return;
             }
@@ -320,7 +321,7 @@ public class Launcher extends SubsystemBase {
             Logger.recordOutput("Alliance Hub Center", hubCenter);
             Logger.recordOutput("Overide Run Alliance Auto Control", override);
             var shot = calculateShotToTarget(swerve, hubCenter);
-            if (shot == null) {
+            if (shot == null || !shot.isValid()) {
               applyIdleTarget();
               return;
             }
@@ -337,9 +338,11 @@ public class Launcher extends SubsystemBase {
           currentMode = LauncherMode.PASS;
           Translation2d passTarget = getAlliancePassTarget(swerve);
           var shot = calculateShotToTarget(swerve, passTarget);
-          if (shot != null || override) {
-            applyTargetRpm(shot.rpm());
-            lastLaunchRPM = shot.rpm();
+          if ((shot != null && shot.isValid()) || override) {
+            if (shot != null && shot.isValid()) {
+              applyTargetRpm(shot.rpm());
+              lastLaunchRPM = shot.rpm();
+            }
             Logger.recordOutput("Shooter/PassTargetX", passTarget.getX());
             Logger.recordOutput("Shooter/PassTargetY", passTarget.getY());
             Logger.recordOutput("Overide Run Pass Control", override);
@@ -361,13 +364,13 @@ public class Launcher extends SubsystemBase {
     ShotCalculator.LaunchParameters shot =
         calculateShotToTarget(
             swerve, getTargetPostition(swerve, swerve.getPose().getTranslation().getY()));
-    if (shot != null) {
+
+    if (shot != null && shot.isValid()) {
       lastLaunchRPM = shot.rpm();
       return shot.driveAngle();
     }
 
-    if (shot.confidence() > 50) {}
-
+    // Fallback: aim directly at the chosen target position
     Translation2d target = getTargetPostition(swerve, swerve.getPose().getTranslation().getY());
     Translation2d roboPos = swerve.getPose().getTranslation();
     Translation2d toTarget = target.minus(roboPos);
@@ -377,6 +380,10 @@ public class Launcher extends SubsystemBase {
   private void applyIdleTarget() {
     currentMode = LauncherMode.IDLE;
     applyTargetRpm(LauncherConstants.FLYWHEEL_IDLE_RPM);
+  }
+
+  public void unIdleRobot() {
+    currentMode = LauncherMode.NOT_IDLE;
   }
 
   private void applyTargetRpm(double rpm) {
@@ -399,7 +406,16 @@ public class Launcher extends SubsystemBase {
             swerve.getPitch().getDegrees(),
             swerve.getRoll().getDegrees());
 
+    if (shotCalc == null) {
+      Logger.recordOutput("ShotCalc/Error", "shotCalc is null");
+      return ShotCalculator.LaunchParameters.INVALID;
+    }
     ShotCalculator.LaunchParameters shot = shotCalc.calculate(inputs);
+    if (shot == null) {
+      // Defensive: ShotCalculator should return INVALID rather than null, but guard anyway
+      Logger.recordOutput("ShotCalc/Error", "calculate returned null");
+      return ShotCalculator.LaunchParameters.INVALID;
+    }
     Logger.recordOutput("isValid", shot.isValid());
     Logger.recordOutput("Confidence", shot.confidence());
     return shot;
@@ -473,15 +489,14 @@ public class Launcher extends SubsystemBase {
     Translation2d targetPose;
     double fieldLength =
         AprilTagFieldLayout.loadField(AprilTagFields.k2026RebuiltWelded).getFieldLength();
-    double targetX = fieldLength - ((7 / 8) * fieldLength); // This defaults for blue
+    double targetX = fieldLength - ((7.0 / 8.0) * fieldLength); // This defaults for blue
     double targetY =
-        fieldHight - ((1 / 4) * fieldHight); // default to top of board or y > fieldlength / 2
+        fieldHight - ((1.0 / 4.0) * fieldHight); // default to top of board or y > fieldlength / 2
 
     // grab what alliance we are on to apply offsets to the x postion we select
     var isBlue = DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue;
-    double offset = 0;
     if (!isBlue) {
-      targetX = fieldLength - ((1 / 8) * fieldLength);
+      targetX = fieldLength - ((1.0 / 8.0) * fieldLength);
     }
 
     // see if we are in are alliance
@@ -489,12 +504,10 @@ public class Launcher extends SubsystemBase {
     if (Helpers.isPoseInAllianceZone(swerve.getPose())) {
       Logger.recordOutput("returning hub position for target", true);
       return getAllianceHubCenter();
-    } else if (robotY <= fieldHight / 2) {
-      Logger.recordOutput("we are on top", true);
-      targetY = fieldHight - ((3 / 4) * fieldHight);
+    } else if (robotY <= fieldHight / 2.0) {
+      targetY = fieldHight - ((3.0 / 4.0) * fieldHight);
     }
     Logger.recordOutput("returning hub position for target", false);
-    Logger.recordOutput("we are on top", false);
 
     targetPose = new Translation2d(targetX, targetY);
     // Logger.recordOutput("Target Position", targetPose);

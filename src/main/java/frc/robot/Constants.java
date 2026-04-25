@@ -398,13 +398,13 @@ public final class Constants {
             Inches.of(-(9.25)),
             Inches.of(11.25),
             Inches.of(8.375),
-            new Rotation3d(Degrees.of(0), Degrees.of(-45), Degrees.of(180)));
+            new Rotation3d(Degrees.of(0), Degrees.of(0), Degrees.of(180)));
     public static final Transform3d robotToCamera3 =
         new Transform3d(
             Inches.of(-(9.25)),
             Inches.of(-11.25),
             Inches.of(8.375),
-            new Rotation3d(Degrees.of(0), Degrees.of(-45), Degrees.of(180)));
+            new Rotation3d(Degrees.of(0), Degrees.of(0), Degrees.of(180)));
 
     // SIM Camera Constants
     public static final int resWidth = 1280;

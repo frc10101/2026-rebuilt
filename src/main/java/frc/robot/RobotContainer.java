@@ -9,6 +9,8 @@ package frc.robot;
 
 import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.commands.PathPlannerAuto;
+import edu.wpi.first.apriltag.AprilTagFieldLayout;
+import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -96,7 +98,7 @@ public class RobotContainer {
   // Driver Two Left Button
   private final Trigger ToggleIntake = driverTwoController.axisGreaterThan(2, 0.3);
   // Driver Two Right Trigger
-  private final Trigger LaunchFuelOveride = driverTwoController.axisLessThan(3, -0.3);
+  private final Trigger LaunchFuelOveride = driverTwoController.axisGreaterThan(3, 0.3);
   // Driver Two Dpad Up
   private final Trigger LaunchNudgeUp = driverTwoController.povUp();
   // Driver Two Dpad Down
@@ -359,7 +361,15 @@ public class RobotContainer {
                 drive,
                 () -> -driverOneController.getLeftY(),
                 () -> -driverOneController.getLeftX(),
-                () -> launcher.Launch(drive, LaunchFuelOveride.getAsBoolean())));
+                () -> {
+                  try {
+                    var az = launcher.Launch(drive, LaunchFuelOveride.getAsBoolean());
+                    return az != null ? az : Rotation2d.kZero;
+                  } catch (Exception e) {
+                    Logger.recordOutput("LaunchSupplier/Error", e.toString());
+                    return Rotation2d.kZero;
+                  }
+                }));
 
     alignToGoalButton
         .and(LaunchFuelOveride)
@@ -368,7 +378,15 @@ public class RobotContainer {
                 drive,
                 () -> -driverOneController.getLeftY(),
                 () -> -driverOneController.getLeftX(),
-                () -> launcher.Launch(drive, LaunchFuelOveride.getAsBoolean())));
+                () -> {
+                  try {
+                    var az = launcher.Launch(drive, LaunchFuelOveride.getAsBoolean());
+                    return az != null ? az : Rotation2d.kZero;
+                  } catch (Exception e) {
+                    Logger.recordOutput("LaunchSupplier/Error", e.toString());
+                    return Rotation2d.kZero;
+                  }
+                }));
     // Switch to X pattern when X button is pressed
     xOutButton.onTrue(Commands.runOnce(drive::stopWithX, drive));
     // xOutButton.onTrue(DriveCommands.DriveToNeutralZone());
@@ -395,22 +413,35 @@ public class RobotContainer {
     // allianceAutoRev.and(LaunchFuel2.negate()).whileTrue(launcher.runAllianceAutoControl(drive));
     allianceAutoRev.and(LaunchFuelOveride).whileTrue(launcher.worldsAutoRev(drive, true));
     allianceAutoRev.and(LaunchFuelOveride.negate()).whileTrue(launcher.worldsAutoRev(drive, false));
-
+    Logger.recordOutput(
+        "Passing Target Position",
+        launcher.getTargetPostition(drive, Helpers.getYCoordinate(drive.getPose())));
+    Logger.recordOutput(
+        "we are on top fr this time",
+        (Helpers.getYCoordinate(drive.getPose())
+            > AprilTagFieldLayout.loadField(AprilTagFields.k2026RebuiltWelded).getFieldWidth()
+                / 2));
     allianceAutoRev.negate().and(LaunchFuelOveride).whileTrue(launcher.worldsAutoRev(drive, true));
     allianceAutoRev
         .negate()
         .and(LaunchFuelOveride.negate())
         .whileTrue(launcher.worldsAutoRev(drive, false));
 
-    Trigger launchRequest = LaunchFuel;
-    Trigger simLaunchTrigger =
-        new Trigger(
-            () ->
-                Constants.currentMode == Mode.SIM
-                        && launchRequest.getAsBoolean()
-                        && (launcher.isLaunchReady())
-                    || LaunchFuelOveride.getAsBoolean());
-    simLaunchTrigger.onTrue(Commands.runOnce(this::LaunchFuelSim));
+   
+
+    Trigger launchRequest = LaunchFuel.or(LaunchFuel.and(LaunchFuelOveride));
+    Logger.recordOutput("Launch Requested", launchRequest.getAsBoolean());
+    Logger.recordOutput("is Launch Ready", launcher.isLaunchReady());
+    if (Constants.currentMode == Mode.SIM) {
+      Trigger simLaunchTrigger =
+          new Trigger(
+              () ->
+                  Constants.currentMode == Mode.SIM
+                          && launchRequest.getAsBoolean()
+                          && (launcher.isLaunchReady())
+                      || LaunchFuelOveride.getAsBoolean());
+      simLaunchTrigger.onTrue(Commands.runOnce(this::LaunchFuelSim));
+    }
 
     launchRequest.whileTrue(
         Commands.waitUntil(() -> launcher.isLaunchReady())
@@ -538,7 +569,14 @@ public class RobotContainer {
     double exitHeightM = Constants.LauncherConstants.params.exitHeightM();
 
     // Get target launch RPM from ShotCalculator (not current velocity)
-    Rotation2d azimuth = launcher.Launch(drive, LaunchFuelOveride.getAsBoolean());
+    Rotation2d azimuth;
+    try {
+      azimuth = launcher.Launch(drive, LaunchFuelOveride.getAsBoolean());
+      if (azimuth == null) azimuth = Rotation2d.kZero;
+    } catch (Exception e) {
+      Logger.recordOutput("LaunchSim/Error", e.toString());
+      azimuth = Rotation2d.kZero;
+    }
     double targetLauncherRPM = launcher.getTargetLaunchRPM();
 
     Logger.recordOutput("Launch/TargetRPM", targetLauncherRPM);
