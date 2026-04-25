@@ -415,7 +415,7 @@ public class RobotContainer {
     allianceAutoRev.and(LaunchFuelOveride.negate()).whileTrue(launcher.worldsAutoRev(drive, false));
     Logger.recordOutput(
         "Passing Target Position",
-        launcher.getTargetPostition(drive, Helpers.getYCoordinate(drive.getPose())));
+        launcher.getTargetPosition(drive, Helpers.getYCoordinate(drive.getPose())));
     Logger.recordOutput(
         "we are on top fr this time",
         (Helpers.getYCoordinate(drive.getPose())

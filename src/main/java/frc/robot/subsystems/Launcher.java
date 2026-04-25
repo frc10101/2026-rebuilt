@@ -363,26 +363,15 @@ public class Launcher extends SubsystemBase {
   public Rotation2d Launch(Drive swerve, boolean override) {
     ShotCalculator.LaunchParameters shot =
         calculateShotToTarget(
-<<<<<<< HEAD
-            swerve, getTargetPostition(swerve, swerve.getPose().getTranslation().getY()));
+            swerve, getTargetPosition(swerve, swerve.getPose().getTranslation().getY()));
 
     if (shot != null && shot.isValid()) {
-=======
-            swerve, getTargetPosition(swerve, swerve.getPose().getTranslation().getY()));
-    if (shot != null) {
->>>>>>> dc50c330db4f81c693c374ec7a2392bd317fea67
       lastLaunchRPM = shot.rpm();
       return shot.driveAngle();
     }
 
-<<<<<<< HEAD
     // Fallback: aim directly at the chosen target position
-    Translation2d target = getTargetPostition(swerve, swerve.getPose().getTranslation().getY());
-=======
-    if (shot.confidence() > 50) {}
-
     Translation2d target = getTargetPosition(swerve, swerve.getPose().getTranslation().getY());
->>>>>>> dc50c330db4f81c693c374ec7a2392bd317fea67
     Translation2d roboPos = swerve.getPose().getTranslation();
     Translation2d toTarget = target.minus(roboPos);
     return toTarget.getAngle();
@@ -489,23 +478,17 @@ public class Launcher extends SubsystemBase {
   }
 
   /*
-   * Important NOTE:
-   * the coordinate system starts with 0,0 on the corener closest to blue driver station 3
-   * not the bottom right corner
+   * isPoseInAllinace
+   * hub center
+   * reference - autorevControl
+   *
    */
-
   public Translation2d getTargetPosition(Drive swerve, double robotY) {
-    if (Helpers.isPoseInAllianceZone(swerve.getPose())) {
-      Logger.recordOutput("returning hub position for target", true);
-      return getAllianceHubCenter();
-    }
-
-    double fieldWidth =
+    double fieldHight =
         AprilTagFieldLayout.loadField(AprilTagFields.k2026RebuiltWelded).getFieldWidth();
     Translation2d targetPose;
     double fieldLength =
         AprilTagFieldLayout.loadField(AprilTagFields.k2026RebuiltWelded).getFieldLength();
-<<<<<<< HEAD
     double targetX = fieldLength - ((7.0 / 8.0) * fieldLength); // This defaults for blue
     double targetY =
         fieldHight - ((1.0 / 4.0) * fieldHight); // default to top of board or y > fieldlength / 2
@@ -525,27 +508,17 @@ public class Launcher extends SubsystemBase {
       targetY = fieldHight - ((3.0 / 4.0) * fieldHight);
     }
     Logger.recordOutput("returning hub position for target", false);
-=======
-
-    double targetY =
-        (swerve.getPose().getTranslation().getY() >= (fieldWidth / 2.0))
-            ? (fieldWidth - (fieldWidth * (1.0 / 4.0)))
-            : (fieldWidth - (fieldWidth * (3.0 / 4.0)));
-
-    double targetX =
-        ((DriverStation.getAlliance()).orElse(Alliance.Blue) == Alliance.Blue)
-            ? (fieldLength - (fieldLength * (7.0 / 8.0)))
-            : (fieldLength - (fieldLength * (1.0 / 8.0)));
->>>>>>> dc50c330db4f81c693c374ec7a2392bd317fea67
 
     targetPose = new Translation2d(targetX, targetY);
+    // Logger.recordOutput("Target Position", targetPose);
+
     return targetPose;
   }
 
-  public Command worldsAutoRev(Drive swerve, boolean override) {
+  public Command 
+  worldsAutoRev(Drive swerve, boolean override) {
     return run(
         () -> {
-          currentMode = LauncherMode.ALLIANCE_AUTO;
           Logger.recordOutput("Overide Run Alliance Auto Control", override);
           var shot =
               calculateShotToTarget(
