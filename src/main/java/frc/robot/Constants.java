@@ -66,7 +66,7 @@ public final class Constants {
     public static final int MOTOR_ID_FOLLOW1 = 22;
 
     // Closed-loop gains (real robot)
-    public static final double REAL_kP = 0.1; // 0.18216 or 0.45
+    public static final double REAL_kP = 0.1879; // 0.18216 or 0.45
     public static final double REAL_kI = 0.0; // 0.1
     public static final double REAL_kD = 0.0;
 
@@ -76,9 +76,9 @@ public final class Constants {
     public static final double SIM_kD = 0.0;
 
     // Feedforward (ks, kv, ka) used by SimpleMotorFeedforward
-    public static final double FFW_kS = 0.2196;
-    public static final double FFW_kV = 0.11953;
-    public static final double FFW_kA = 0.013135;
+    public static final double FFW_kS = 0.24566;
+    public static final double FFW_kV = 0.12251;
+    public static final double FFW_kA = 0.014885;
 
     // Motion constraints used in controllers (RPM, RPM/sec)
     public static final double MAX_VELOCITY_RPM = 6000.0;
@@ -417,17 +417,17 @@ public final class Constants {
 
     // Standard deviation baselines, for 1 meter distance and 1 tag
     // (Adjusted automatically based on distance and # of tags)
-    public static final double linearStdDevBaseline = 0.02; // Meters
-    public static final double angularStdDevBaseline = 0.06; // Radians
+    public static final double linearStdDevBaseline = 0.000501; // Meters 0.02
+    public static final double angularStdDevBaseline = Math.toRadians(0.1743); // Radians
 
     // Standard deviation multipliers for each camera
     // (Adjust to trust some cameras more than others)
     public static final double[] cameraStdDevFactors =
         new double[] {
           1.0, // Camera 0
-          1.0, // Camera 1
-          1.0, // Camera 2
-          1.0 // Camera 3
+          3.5, // Camera 1
+          3.5, // Camera 2
+          7 // Camera 3
         };
 
     // Multipliers to apply for MegaTag 2 observations
