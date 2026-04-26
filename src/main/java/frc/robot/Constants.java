@@ -153,7 +153,7 @@ public final class Constants {
         public static final double kp = 100.0;
         public static final double ki = 0.0;
         public static final double kd = 0.0;
-        public static final AngularVelocity maxVelocity = DegreesPerSecond.of(180);
+        public static final AngularVelocity maxVelocity = DegreesPerSecond.of(120);
         public static final AngularAcceleration maxAcceleration = DegreesPerSecondPerSecond.of(360);
 
         public static final double ks = 0.0;
@@ -313,7 +313,7 @@ public final class Constants {
 
       // feedforward
       public static final double ks = 0.77793;
-      public static final double ka = 0.097298 ;
+      public static final double ka = 0.097298;
       public static final double kv = 0.29211;
     }
 
@@ -417,17 +417,17 @@ public final class Constants {
 
     // Standard deviation baselines, for 1 meter distance and 1 tag
     // (Adjusted automatically based on distance and # of tags)
-    public static final double linearStdDevBaseline = 0.02; // Meters
-    public static final double angularStdDevBaseline = 0.06; // Radians
+    public static final double linearStdDevBaseline = 0.00501; // Meters
+    public static final double angularStdDevBaseline = Math.toRadians(0.1743); // Radians
 
     // Standard deviation multipliers for each camera
     // (Adjust to trust some cameras more than others)
     public static final double[] cameraStdDevFactors =
         new double[] {
           1.0, // Camera 0
-          1.0, // Camera 1
-          1.0, // Camera 2
-          1.0 // Camera 3
+          3.5, // Camera 1
+          3.5, // Camera 2
+          7 // Camera 3
         };
 
     // Multipliers to apply for MegaTag 2 observations
