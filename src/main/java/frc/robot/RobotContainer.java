@@ -9,8 +9,6 @@ package frc.robot;
 
 import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.commands.PathPlannerAuto;
-import edu.wpi.first.apriltag.AprilTagFieldLayout;
-import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -81,7 +79,7 @@ public class RobotContainer {
   private final Trigger xOutButton = driverOneController.button(3);
 
   // Driver One Right Trigger
-  private final Trigger LaunchFuel = driverOneController.axisLessThan(3, -0.3);
+  private final Trigger LaunchFuel = driverOneController.axisGreaterThan(3, 0.3);
 
   // Driver One Dpad Down Button
   private final Trigger IntakeStowed = driverOneController.povDown();
@@ -342,7 +340,7 @@ public class RobotContainer {
   private void configureButtonBindings() {
     launcher.setDefaultCommand(launcher.runIdleControl());
     Column.setDefaultCommand(Column.HoldIdleReverse());
-    BeltDexter.setDefaultCommand(BeltDexter.HoldIdleSpin());
+    // BeltDexter.setDefaultCommand(BeltDexter.HoldIdleSpin());
     // m_intake.setDefaultCommand(m_intake.setAngle(Degrees.of(90)));
 
     // Default command, normal field-relative drive
@@ -416,11 +414,6 @@ public class RobotContainer {
     Logger.recordOutput(
         "Passing Target Position",
         launcher.getTargetPosition(drive, Helpers.getYCoordinate(drive.getPose())));
-    Logger.recordOutput(
-        "we are on top fr this time",
-        (Helpers.getYCoordinate(drive.getPose())
-            > AprilTagFieldLayout.loadField(AprilTagFields.k2026RebuiltWelded).getFieldWidth()
-                / 2));
     allianceAutoRev.negate().and(LaunchFuelOveride).whileTrue(launcher.worldsAutoRev(drive, true));
     allianceAutoRev
         .negate()
@@ -428,8 +421,7 @@ public class RobotContainer {
         .whileTrue(launcher.worldsAutoRev(drive, false));
 
     Trigger launchRequest = LaunchFuel.or(LaunchFuelOveride);
-    Logger.recordOutput("Launch Requested", launchRequest.getAsBoolean());
-    Logger.recordOutput("is Launch Ready", launcher.isLaunchReady());
+
     if (Constants.currentMode == Mode.SIM) {
       Trigger simLaunchTrigger =
           new Trigger(
@@ -441,7 +433,7 @@ public class RobotContainer {
 
     LaunchFuelOveride.onTrue(new InstantCommand(() -> launcher.Launch(drive, true)));
     LaunchFuelOveride.whileTrue(Column.HoldLaunchWithRamp().alongWith(BeltDexter.LaunchFuel()));
-
+    Logger.recordOutput("Launch Request", launchRequest);
     launchRequest
         .and(LaunchFuelOveride.negate())
         .whileTrue(
