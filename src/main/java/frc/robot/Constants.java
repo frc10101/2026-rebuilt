@@ -312,9 +312,9 @@ public final class Constants {
       public static final AngularAcceleration maxAcceleration = DegreesPerSecondPerSecond.of(45);
 
       // feedforward
-      public static final double ks = 2.8752;
-      public static final double ka = 0.0;
-      public static final double kv = 0.46964;
+      public static final double ks = 0.77793;
+      public static final double ka = 0.097298 ;
+      public static final double kv = 0.29211;
     }
 
     public final class Sim {
