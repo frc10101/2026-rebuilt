@@ -420,7 +420,7 @@ public class RobotContainer {
         .and(LaunchFuelOveride.negate())
         .whileTrue(launcher.worldsAutoRev(drive, false));
 
-    Trigger launchRequest = LaunchFuel.or(LaunchFuelOveride);
+    Trigger launchRequest = LaunchFuel;
 
     if (Constants.currentMode == Mode.SIM) {
       Trigger simLaunchTrigger =
