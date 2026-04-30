@@ -19,6 +19,7 @@ import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
@@ -431,8 +432,13 @@ public class RobotContainer {
       simLaunchTrigger.onTrue(Commands.runOnce(this::LaunchFuelSim));
     }
 
-    LaunchFuelOveride.onTrue(new InstantCommand(() -> launcher.Launch(drive, true)));
-    LaunchFuelOveride.whileTrue(Column.HoldLaunchWithRamp().alongWith(BeltDexter.LaunchFuel()));
+    launchRequest
+        .and(LaunchFuelOveride)
+        .whileTrue(
+            new RunCommand(() -> launcher.Launch(drive, true))
+                .alongWith(Column.HoldLaunchWithRamp())
+                .alongWith(BeltDexter.LaunchFuel()));
+    LaunchFuelOveride.whileTrue(Column.HoldIdleReverse().alongWith(BeltDexter.HoldIdleSpin()));
     Logger.recordOutput("Launch Request", launchRequest);
     launchRequest
         .and(LaunchFuelOveride.negate())

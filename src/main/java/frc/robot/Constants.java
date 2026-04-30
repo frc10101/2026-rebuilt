@@ -196,7 +196,7 @@ public final class Constants {
       public static final Angle startingPosition = Degrees.of(105);
       public static final Angle stowedPosition = Degrees.of(105);
       public static final Angle intakePosition = Degrees.of(0);
-      public static final Angle jitterPosition = Degrees.of(45);
+      public static final Angle jitterPosition = Degrees.of(30);
       public static final Distance armLength = Feet.of(1);
       public static final Mass mass = Pounds.of(8);
 
@@ -299,10 +299,10 @@ public final class Constants {
     /** Beltdexter Stall Current Limit */
     public static final Current currentLimit = Amps.of(40);
 
-    public static final AngularVelocity IntakeSpeed = RPM.of(1000);
+    public static final AngularVelocity IntakeSpeed = RPM.of(1100);
     public static final AngularVelocity OuttakeSpeed = RPM.of(-75);
-    public static final AngularVelocity IdleSpinSpeed = RPM.of(300);
-    public static final AngularVelocity LaunchSpeed = RPM.of(900);
+    public static final AngularVelocity IdleSpinSpeed = RPM.of(500);
+    public static final AngularVelocity LaunchSpeed = RPM.of(1100);
 
     public final class Real {
       public static final double kp = 0;
