@@ -299,7 +299,7 @@ public final class Constants {
     /** Beltdexter Stall Current Limit */
     public static final Current currentLimit = Amps.of(40);
 
-    public static final AngularVelocity IntakeSpeed = RPM.of(1100);
+    public static final AngularVelocity IntakeSpeed = RPM.of(1500);
     public static final AngularVelocity OuttakeSpeed = RPM.of(-75);
     public static final AngularVelocity IdleSpinSpeed = RPM.of(500);
     public static final AngularVelocity LaunchSpeed = RPM.of(2200);
