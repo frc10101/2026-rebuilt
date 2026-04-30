@@ -23,7 +23,6 @@ import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
-import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants.Mode;
 import frc.robot.commands.DriveCommands;
 import frc.robot.generated.TunerConstants;
@@ -102,6 +101,9 @@ public class RobotContainer {
   private final Trigger LaunchNudgeUp = driverTwoController.povUp();
   // Driver Two Dpad Down
   private final Trigger LaunchNudgeDown = driverTwoController.povDown();
+
+  // Driver Three Right Trigger
+  private final Trigger PitTesting = testController.axisGreaterThan(3, 0.3);
 
   // Dashboard inputs
   private final LoggedDashboardChooser<Command> autoChooser;
@@ -469,6 +471,13 @@ public class RobotContainer {
               launcher.shotCalc.adjustOffset(-25);
             }));
 
+    PitTesting.whileTrue(
+        launcher
+            .set(0.3)
+            .alongWith(Column.HoldLaunchWithRamp())
+            .alongWith(BeltDexter.LaunchFuel()));
+    PitTesting.whileFalse(launcher.set(0));
+
     // ClimbUp.whileTrue(leftClimb.goUp().alongWith(rightClimb.goUp()));
     // ClimbDown.onTrue(leftClimb.goDown().alongWith(rightClimb.goDown()));
     // ClimbDown.or(ClimbUp).whileFalse(leftClimb.No().alongWith(rightClimb.No()));
@@ -512,16 +521,16 @@ public class RobotContainer {
     // testController.button(4).whileTrue(drive.sysIdRotationDynamic(SysIdRoutine.Direction.kReverse));
 
     // Quasistatic Rotation tests
-    testController
-        .button(1)
-        .whileTrue(BeltDexter.sysIdQuasistatic(SysIdRoutine.Direction.kForward));
-    testController
-        .button(2)
-        .whileTrue(BeltDexter.sysIdQuasistatic(SysIdRoutine.Direction.kReverse));
+    // testController
+    //     .button(1)
+    //     .whileTrue(BeltDexter.sysIdQuasistatic(SysIdRoutine.Direction.kForward));
+    // testController
+    //     .button(2)
+    //     .whileTrue(BeltDexter.sysIdQuasistatic(SysIdRoutine.Direction.kReverse));
 
-    // Dynamic Rotation tests
-    testController.button(3).whileTrue(BeltDexter.sysIdDynamic(SysIdRoutine.Direction.kForward));
-    testController.button(4).whileTrue(BeltDexter.sysIdDynamic(SysIdRoutine.Direction.kReverse));
+    // // Dynamic Rotation tests
+    // testController.button(3).whileTrue(BeltDexter.sysIdDynamic(SysIdRoutine.Direction.kForward));
+    // testController.button(4).whileTrue(BeltDexter.sysIdDynamic(SysIdRoutine.Direction.kReverse));
 
     // testController.button(7).whileTrue(DriveCommands.wheelRadiusCharacterization(drive));
   }

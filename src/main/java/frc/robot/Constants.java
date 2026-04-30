@@ -302,7 +302,7 @@ public final class Constants {
     public static final AngularVelocity IntakeSpeed = RPM.of(1100);
     public static final AngularVelocity OuttakeSpeed = RPM.of(-75);
     public static final AngularVelocity IdleSpinSpeed = RPM.of(500);
-    public static final AngularVelocity LaunchSpeed = RPM.of(1100);
+    public static final AngularVelocity LaunchSpeed = RPM.of(2200);
 
     public final class Real {
       public static final double kp = 0;
