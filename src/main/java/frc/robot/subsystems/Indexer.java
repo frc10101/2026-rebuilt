@@ -13,7 +13,6 @@ import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.system.plant.DCMotor;
-import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.MutAngle;
 import edu.wpi.first.units.measure.MutAngularVelocity;
 import edu.wpi.first.units.measure.MutVoltage;
@@ -48,12 +47,23 @@ public class Indexer extends SubsystemBase {
     public double currentAmps = 0.0;
   }
 
+  private enum DexterState {
+    INTAKE,
+    IDLE,
+    OUTTAKE,
+    LAUNCH,
+    STOP
+  }
+
   private final IndexerInputsAutoLogged indexerInputs = new IndexerInputsAutoLogged();
-  private AngularVelocity m_motorspeed = RotationsPerSecond.of(0);
+  // private AngularVelocity m_motorspeed = RotationsPerSecond.of(0);
+  private Voltage m_motorspeed = Volts.of(0);
 
   private final MutVoltage m_appliedVoltage = new MutVoltage(0, 0, Volts);
   private final MutAngle m_position = new MutAngle(0, 0, Rotations);
   private final MutAngularVelocity m_velocity = new MutAngularVelocity(0, 0, RotationsPerSecond);
+
+  private DexterState state = DexterState.IDLE;
 
   private SmartMotorControllerConfig MotorConfig =
       new SmartMotorControllerConfig(this)
@@ -85,31 +95,48 @@ public class Indexer extends SubsystemBase {
   public Indexer() {}
 
   public Command IntakeFuel() {
-    return runOnce(() -> m_motorspeed = BeltDexterConstants.IntakeSpeed);
+    // return runOnce(() -> m_motorspeed = BeltDexterConstants.IntakeSpeed);
+    return runOnce(() -> state = DexterState.INTAKE);
   }
 
   public Command HoldIntakeFuel() {
-    return run(() -> m_motorspeed = BeltDexterConstants.IntakeSpeed);
+    // return runOnce(() -> m_motorspeed = BeltDexterConstants.IntakeSpeed);
+    return runOnce(() -> state = DexterState.INTAKE);
   }
 
   public Command HoldIdleSpin() {
-    return run(() -> m_motorspeed = BeltDexterConstants.IdleSpinSpeed);
+    // return runOnce(() -> m_motorspeed = BeltDexterConstants.IdleSpinSpeed);
+    return runOnce(() -> state = DexterState.IDLE);
   }
 
   public Command OuttakeFuel() {
-    return runOnce(() -> m_motorspeed = BeltDexterConstants.OuttakeSpeed);
+    // return runOnce(() -> m_motorspeed = BeltDexterConstants.OuttakeSpeed);
+    return runOnce(() -> state = DexterState.OUTTAKE);
   }
 
   public Command LaunchFuel() {
-    return runOnce(() -> m_motorspeed = BeltDexterConstants.LaunchSpeed);
+    // return runOnce(() -> m_motorspeed = BeltDexterConstants.LaunchSpeed);
+    return runOnce(() -> state = DexterState.LAUNCH);
   }
 
   public Command NoFuel() {
-    return runOnce(() -> m_motorspeed = RotationsPerSecond.of(0));
+    // return runOnce(() -> m_motorspeed = RotationsPerSecond.of(0));
+    return runOnce(() -> state = DexterState.STOP);
+  }
+
+  public Command toggleDexter() {
+    return runOnce(
+        () -> {
+          if (state == DexterState.IDLE) {
+            state = DexterState.STOP;
+          } else {
+            state = DexterState.IDLE;
+          }
+        });
   }
 
   private void updateInputs() {
-    indexerInputs.setpointRPS = m_motorspeed.in(RotationsPerSecond);
+    // indexerInputs.setpointRPS = m_motorspeed.in(RotationsPerSecond);
     indexerInputs.appliedVolts = motorController.getVoltage().in(Volts);
     indexerInputs.mechanismVelocity = motorController.getMechanismVelocity().baseUnitMagnitude();
     indexerInputs.currentAmps = m_motor.getOutputCurrent();
@@ -118,7 +145,20 @@ public class Indexer extends SubsystemBase {
   @Override
   public void periodic() {
     // This method will be called once per scheduler run
-    motorController.setVelocity(m_motorspeed);
+    // motorController.setVelocity(m_motorspeed);
+    if (state == DexterState.IDLE) {
+      m_motorspeed = Volts.of(4);
+    } else if (state == DexterState.INTAKE) {
+      m_motorspeed = Volts.of(6);
+    } else if (state == DexterState.OUTTAKE) {
+      m_motorspeed = Volts.of(-2);
+    } else if (state == DexterState.LAUNCH) {
+      m_motorspeed = Volts.of(8);
+    } else {
+      m_motorspeed = Volts.zero();
+    }
+    motorController.setVoltage(m_motorspeed);
+
     updateInputs();
     Logger.processInputs("Indexer", indexerInputs);
 

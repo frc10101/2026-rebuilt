@@ -16,6 +16,7 @@ import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
@@ -23,6 +24,7 @@ import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants.Mode;
 import frc.robot.commands.DriveCommands;
 import frc.robot.generated.TunerConstants;
@@ -82,7 +84,7 @@ public class RobotContainer {
   private final Trigger LaunchFuel = driverOneController.axisGreaterThan(3, 0.3);
 
   // Driver One Dpad Down Button
-  private final Trigger IntakeStowed = driverOneController.povDown();
+  // private final Trigger IntakeStowed = driverOneController.povDown();
 
   // Driver Two B  Button
   private final Trigger JitterIntake = driverTwoController.button(2);
@@ -101,6 +103,8 @@ public class RobotContainer {
   private final Trigger LaunchNudgeUp = driverTwoController.povUp();
   // Driver Two Dpad Down
   private final Trigger LaunchNudgeDown = driverTwoController.povDown();
+  // Driver Two Options Button
+  private final Trigger Defense = driverTwoController.button(8);
 
   // Driver Three Right Trigger
   private final Trigger PitTesting = testController.axisGreaterThan(3, 0.3);
@@ -342,7 +346,7 @@ public class RobotContainer {
    */
   private void configureButtonBindings() {
     launcher.setDefaultCommand(launcher.runIdleControl());
-    Column.setDefaultCommand(Column.HoldIdleReverse());
+    // Column.setDefaultCommand(Column.HoldIdleReverse());
     // BeltDexter.setDefaultCommand(BeltDexter.HoldIdleSpin());
     // m_intake.setDefaultCommand(m_intake.setAngle(Degrees.of(90)));
 
@@ -399,12 +403,14 @@ public class RobotContainer {
                 drive)
             .ignoringDisable(true));
 
-    IntakeStowed.onTrue(((m_intake.setAngle(Constants.IntakeConstants.Pivot.stowedPosition))));
+    // IntakeStowed.onTrue(((m_intake.setAngle(Constants.IntakeConstants.Pivot.stowedPosition))));
     IntakeDownButton.onTrue(((m_intake.goToIntakePosition())));
 
     ToggleIntake.onTrue(m_intake.intake());
     ToggleIntake.onFalse(m_intake.stopRoller());
     JitterIntake.onTrue(m_intake.jitterIntake());
+
+    Defense.onTrue(Column.toggleColumn().alongWith(BeltDexter.toggleDexter()));
 
     Trigger allianceAutoRev =
         new Trigger(
@@ -426,11 +432,7 @@ public class RobotContainer {
     Trigger launchRequest = LaunchFuel;
 
     if (Constants.currentMode == Mode.SIM) {
-      Trigger simLaunchTrigger =
-          new Trigger(
-              () ->
-                  Constants.currentMode == Mode.SIM && (launchRequest.getAsBoolean())
-                      || LaunchFuelOveride.getAsBoolean());
+      Trigger simLaunchTrigger = launchRequest.and(LaunchFuelOveride);
       simLaunchTrigger.onTrue(Commands.runOnce(this::LaunchFuelSim));
     }
 
@@ -473,10 +475,16 @@ public class RobotContainer {
 
     PitTesting.whileTrue(
         launcher
-            .set(0.3)
+            .set(0.1)
             .alongWith(Column.HoldLaunchWithRamp())
             .alongWith(BeltDexter.LaunchFuel()));
     PitTesting.whileFalse(launcher.set(0));
+    testController
+        .button(6)
+        .onTrue(m_intake.setAngle(Constants.IntakeConstants.Pivot.intakePosition));
+    testController
+        .button(5)
+        .onTrue(m_intake.setAngle(Constants.IntakeConstants.Pivot.stowedPosition));
 
     // ClimbUp.whileTrue(leftClimb.goUp().alongWith(rightClimb.goUp()));
     // ClimbDown.onTrue(leftClimb.goDown().alongWith(rightClimb.goDown()));
@@ -521,18 +529,19 @@ public class RobotContainer {
     // testController.button(4).whileTrue(drive.sysIdRotationDynamic(SysIdRoutine.Direction.kReverse));
 
     // Quasistatic Rotation tests
-    // testController
-    //     .button(1)
-    //     .whileTrue(BeltDexter.sysIdQuasistatic(SysIdRoutine.Direction.kForward));
-    // testController
-    //     .button(2)
-    //     .whileTrue(BeltDexter.sysIdQuasistatic(SysIdRoutine.Direction.kReverse));
+    testController
+        .button(1)
+        .whileTrue(BeltDexter.sysIdQuasistatic(SysIdRoutine.Direction.kForward));
+    testController
+        .button(2)
+        .whileTrue(BeltDexter.sysIdQuasistatic(SysIdRoutine.Direction.kReverse));
 
     // // Dynamic Rotation tests
-    // testController.button(3).whileTrue(BeltDexter.sysIdDynamic(SysIdRoutine.Direction.kForward));
-    // testController.button(4).whileTrue(BeltDexter.sysIdDynamic(SysIdRoutine.Direction.kReverse));
+    testController.button(3).whileTrue(BeltDexter.sysIdDynamic(SysIdRoutine.Direction.kForward));
+    testController.button(4).whileTrue(BeltDexter.sysIdDynamic(SysIdRoutine.Direction.kReverse));
 
     // testController.button(7).whileTrue(DriveCommands.wheelRadiusCharacterization(drive));
+
   }
 
   /**
@@ -567,6 +576,7 @@ public class RobotContainer {
     Logger.recordOutput(
         "Target Position",
         launcher.getTargetPosition(drive, Helpers.getYCoordinate(drive.getPose())));
+    SmartDashboard.putBoolean("DEFENSE?", Defense.getAsBoolean());
   }
 
   public void LaunchFuelSim() {

@@ -184,6 +184,17 @@ public class Feeder extends SubsystemBase {
     motorController.updateTelemetry();
   }
 
+  public Command toggleColumn() {
+    return runOnce(
+        () -> {
+          if (state == FeederState.IDLE_REVERSE) {
+            state = FeederState.STOP;
+          } else {
+            state = FeederState.IDLE_REVERSE;
+          }
+        });
+  }
+
   @Override
   public void simulationPeriodic() {
     motorController.simIterate();
