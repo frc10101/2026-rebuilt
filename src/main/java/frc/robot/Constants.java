@@ -132,7 +132,7 @@ public final class Constants {
             0.539, // exit height (m), floor to where the ball leaves the shooter
             0.1016, // flywheel diameter (m), measure with calipers
             1.83, // target height (m), from game manual
-            0.42, // slip factor (0=no grip, 1=perfect), tune this on the real robot
+            0.43, // slip factor (0=no grip, 1=perfect), tune this on the real robot
             60.0, // launch angle from horizontal, measure from CAD
             0.001, // sim timestep
             1200,
@@ -196,7 +196,7 @@ public final class Constants {
       public static final Angle startingPosition = Degrees.of(105);
       public static final Angle stowedPosition = Degrees.of(105);
       public static final Angle intakePosition = Degrees.of(0);
-      public static final Angle jitterPosition = Degrees.of(45);
+      public static final Angle jitterPosition = Degrees.of(30);
       public static final Distance armLength = Feet.of(1);
       public static final Mass mass = Pounds.of(8);
 
@@ -229,7 +229,7 @@ public final class Constants {
       // Roller speeds (duty cycle -1 to 1)
       // public static final double intakeSpeed = 0.65;
       // public static final double outtakeSpeed = 0.3;
-      public static final AngularVelocity intakeSpeed = RPM.of(-4000);
+      public static final AngularVelocity intakeSpeed = RPM.of(-3000);
       public static final AngularVelocity outtakeSpeed = RPM.of(500);
     }
   }
@@ -301,32 +301,38 @@ public final class Constants {
 
     public static final AngularVelocity IntakeSpeed = RPM.of(1000);
     public static final AngularVelocity OuttakeSpeed = RPM.of(-75);
-    public static final AngularVelocity IdleSpinSpeed = RPM.of(50);
-    public static final AngularVelocity LaunchSpeed = RPM.of(75);
+    public static final AngularVelocity IdleSpinSpeed = RPM.of(500);
+    public static final AngularVelocity LaunchSpeed = RPM.of(750);
 
     public final class Real {
-      public static final double kp = 0;
+      public static final double kp = 0.3;
       public static final double ki = 0.0;
-      public static final double kd = 0.0;
+      public static final double kd = 0.002;
       public static final AngularVelocity maxVelocity = DegreesPerSecond.of(90);
       public static final AngularAcceleration maxAcceleration = DegreesPerSecondPerSecond.of(45);
 
       // feedforward
-      public static final double ks = 0.77793;
-      public static final double ka = 0.097298;
-      public static final double kv = 0.29211;
+      // public static final double ks = 0.45971;
+      public static final double ks = 0.2;
+      // public static final double ka = 0.040546;
+      public static final double ka = 0.0;
+      // public static final double kv = 0.25543;
+      public static final double kv = 0.0;
     }
 
     public final class Sim {
-      public static final double kp = 0.0;
+      public static final double kp = 0.2;
       public static final double ki = 0.0;
       public static final double kd = 0.0;
       public static final AngularVelocity maxVelocity = DegreesPerSecond.of(90);
       public static final AngularAcceleration maxAcceleration = DegreesPerSecondPerSecond.of(45);
 
-      public static final double ks = 0.0;
-      public static final double ka = 0.0;
-      public static final double kv = 0.0;
+      // public static final double ks = 0.77793;
+      public static final double ks = 0.77793;
+      // public static final double ka = 0.097298;
+      public static final double ka = 0.097298;
+      // public static final double kv = 0.29211;
+      public static final double kv = 0.29211;
     }
   }
 
