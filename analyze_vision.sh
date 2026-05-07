@@ -1,0 +1,88 @@
+#!/bin/bash
+# Vision System Accuracy Analysis Script
+# Analyzes vision log data to find accuracy issues
+
+LOG_FILE="/Users/cohenhill/Desktop/Code/2026-rebuilt/logs/akit_26-04-29_23-18-10_milstein_p8.wpilog"
+
+echo "🔍 VISION SYSTEM ACCURACY ANALYSIS"
+echo "═══════════════════════════════════════════"
+echo "Log File: $(basename $LOG_FILE)"
+echo "Size: $(ls -lh $LOG_FILE | awk '{print $5}')"
+echo ""
+
+# Analysis 1: Check tag detection rates
+echo "📊 STEP 1: Checking Tag Detection Rates"
+echo "───────────────────────────────────────────"
+cd /Users/cohenhill/Desktop/Code/2026-rebuilt
+
+# Try to extract vision data
+echo "Extracting vision data..."
+./gradlew runLogDumper -Pargs="--log $LOG_FILE --keys /Vision/Camera" --compact-json 2>&1 | tail -20 || echo "Note: Full key list unavailable due to log size"
+
+echo ""
+echo "📈 STEP 2: Key Metrics to Check"
+echo "───────────────────────────────────────────"
+echo "✓ Tag Ambiguity - should be < 0.3"
+echo "✓ Z-Error - should be < 0.75 meters"
+echo "✓ Tag Distance - average distance to tags"
+echo "✓ Tag Count - number of tags visible per frame"
+echo "✓ Pose Accuracy - estimated vs actual position"
+echo ""
+
+echo "💡 STEP 3: Common Vision Issues to Check"
+echo "───────────────────────────────────────────"
+echo "❌ Issue 1: High ambiguity (ambiguity > 0.3)"
+echo "   → Multiple tags look similar from camera angle"
+echo "   → Fix: Improve camera calibration or position"
+echo ""
+echo "❌ Issue 2: High Z-Error (Z > 0.75m)"
+echo "   → Tag height estimation off"
+echo "   → Fix: Check camera/tag calibration"
+echo ""
+echo "❌ Issue 3: Single tag detections (tagCount == 1)"
+echo "   → Seeing only one tag at a time"
+echo "   → Fix: Improve camera field of view or speed"
+echo ""
+echo "❌ Issue 4: Long tag distances (distance > 5m)"
+echo "   → Tags too far away to accurately locate"
+echo "   → Fix: Move closer or upgrade camera"
+echo ""
+echo "❌ Issue 5: Rejected poses (many discarded)"
+echo "   → Vision system filtering out measurements"
+echo "   → Fix: Relax thresholds if appropriate"
+echo ""
+
+echo "🔧 STEP 4: Filtering Thresholds in Code"
+echo "───────────────────────────────────────────"
+echo "Current Vision Constants (from Constants.java):"
+echo "  • maxAmbiguity = 0.3"
+echo "  • maxZError = 0.75"
+echo "  • linearStdDevBaseline = 0.02"
+echo "  • angularStdDevBaseline = 0.06"
+echo ""
+
+echo "📋 STEP 5: What to Look For in Log"
+echo "───────────────────────────────────────────"
+echo "Search for these patterns:"
+echo "  1. /Vision/Camera[0-3]/RobotPosesAccepted - Good measurements"
+echo "  2. /Vision/Camera[0-3]/RobotPosesRejected - Bad measurements"
+echo "  3. /Vision/Summary/TagPoses - All detected tags"
+echo "  4. Look for gaps or long stretches with no detections"
+echo "  5. Compare against /RealOutputs/Drive/Pose for error magnitude"
+echo ""
+
+echo "✅ NEXT STEPS"
+echo "───────────────────────────────────────────"
+echo "1. Extract vision-related data:"
+echo "   ./gradlew runLogDumper --log $LOG_FILE --keys '/Vision/*' --compact-json"
+echo ""
+echo "2. Generate visualization:"
+echo "   ./gradlew runGraphing --log $LOG_FILE --keys '/Vision/Summary/RobotPoses' --plot"
+echo ""
+echo "3. Check for specific issues:"
+echo "   ./gradlew runMathAnalysis --log $LOG_FILE --keys '/Vision/Camera0/Ambiguity' --threshold 0.3 --above"
+echo ""
+echo "4. Compare vision vs odometry:"
+echo "   ./gradlew runGraphing --logs $LOG_FILE --keys '/Vision/Summary/RobotPoses,/RealOutputs/Drive/Pose' --overlay --plot"
+echo ""
+

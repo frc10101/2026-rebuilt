@@ -227,3 +227,36 @@ spotless {
         endWithNewline()
     }
 }
+
+// Gradle task to run LogDumper utility
+task runLogDumper(type: JavaExec) {
+    mainClass = "frc.robot.util.LogDumper"
+    classpath = sourceSets.main.runtimeClasspath
+    def args = project.findProperty("args") ?: ""
+    args = args.split(" ") as List
+    if (args && args[0]) {
+        setArgs(args)
+    }
+}
+
+// Gradle task to run ListKeys utility
+task runListKeys(type: JavaExec) {
+    mainClass = "frc.robot.util.ListKeys"
+    classpath = sourceSets.main.runtimeClasspath
+    def args = project.findProperty("args") ?: ""
+    args = args.split(" ") as List
+    if (args && args[0]) {
+        setArgs(args)
+    }
+}
+
+// Gradle task to run VisionAnalyzer utility
+task runVisionAnalyzer(type: JavaExec) {
+    mainClass = "frc.robot.util.VisionAnalyzer"
+    classpath = sourceSets.main.runtimeClasspath
+    def args = project.findProperty("args") ?: ""
+    args = args.split(" ") as List
+    if (args && args[0]) {
+        setArgs(args)
+    }
+}
