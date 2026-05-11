@@ -41,6 +41,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants;
 import frc.robot.Constants.Mode;
+import frc.robot.Robot;
 import frc.robot.generated.TunerConstants;
 import frc.robot.util.LocalADStarAK;
 import java.util.concurrent.locks.Lock;
@@ -243,6 +244,19 @@ public class Drive extends SubsystemBase {
 
     // Update gyro alert
     gyroDisconnectedAlert.set(!gyroInputs.connected && Constants.currentMode != Mode.SIM);
+
+    // Log battery usage
+    if (Robot.batteryLogger != null) {
+      for (int i = 0; i < 4; i++) {
+        ModuleIOInputsAutoLogged inputs = modules[i].getInputs();
+
+        double driveAmps = inputs.driveConnected ? inputs.driveCurrentAmps : 0.0;
+        double turnAmps = inputs.turnConnected ? inputs.turnCurrentAmps : 0.0;
+
+        Robot.batteryLogger.reportCurrentUsage("Drive/Module" + i + "/Drive", true, driveAmps);
+        Robot.batteryLogger.reportCurrentUsage("Drive/Module" + i + "/Turn", true, turnAmps);
+      }
+    }
   }
 
   /**
