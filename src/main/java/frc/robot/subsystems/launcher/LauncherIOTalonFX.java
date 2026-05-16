@@ -11,6 +11,7 @@ import static edu.wpi.first.units.Units.KilogramSquareMeters;
 import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.Volts;
 
+import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.hardware.TalonFX;
 import edu.wpi.first.math.Pair;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
@@ -68,6 +69,7 @@ public class LauncherIOTalonFX implements LauncherIO {
             .withFollowers(
                 Pair.of(FlywheelFollow0, LauncherConstants.FOLLOWER0_INVERTED),
                 Pair.of(FlywheelFollow1, LauncherConstants.FOLLOWER1_INVERTED))
+                .withVendorConfig(new TalonFXConfiguration().ClosedLoopRamps.TorqueClosedLoopRampPeriod)
             .withSupplyCurrentLimit(Amps.of(LauncherConstants.STATOR_CURRENT_LIMIT_AMPS));
 
     // Step 2: Create SmartMotorController (TalonFXWrapper)

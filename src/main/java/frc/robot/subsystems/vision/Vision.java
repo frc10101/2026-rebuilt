@@ -17,7 +17,7 @@ import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.subsystems.vision.VisionIO.PoseObservationType;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import org.littletonrobotics.junction.Logger;
@@ -63,29 +63,9 @@ public class Vision extends SubsystemBase {
   }
 
   public double getFiducialID(int cameraIndex) {
-    if (cameraIndex > 3 || cameraIndex < 0) {
-      System.out.println("No Camera");
-      return -1;
-    }
-    // Check if there are any pose observations available
-    if (inputs[cameraIndex].poseObservations.length == 0) {
-      return -1; // Return -1 if no tags are detected
-    }
-
-    // Find the closest tag based on averageTagDistance
-    VisionIO.PoseObservation closestObservation = inputs[cameraIndex].poseObservations[0];
-    for (VisionIO.PoseObservation observation : inputs[cameraIndex].poseObservations) {
-      if (observation.averageTagDistance() < closestObservation.averageTagDistance()) {
-        closestObservation = observation;
-      }
-    }
-
-    // Return the ID of the closest tag
-    if (closestObservation.tagCount() > 0) {
-      return inputs[cameraIndex].tagIds[0]; // Assuming tagIds correspond to poseObservations
-    }
-
-    return -1; // Return -1 if no valid tag is found
+    if (cameraIndex < 0 || cameraIndex > 3) return -1;
+    int[] ids = inputs[cameraIndex].tagIds;
+    return ids.length > 0 ? ids[0] : -1;
   }
 
   public boolean getTV(int cameraIndex) {
@@ -100,54 +80,40 @@ public class Vision extends SubsystemBase {
    *     pitch, yaw, roll] (meters, degrees).
    */
   public Optional<double[]> getBotPose_TargetSpace(int cameraIndex) {
-    Optional<double[]> WrongTag = Optional.empty();
-    if (cameraIndex > 3 || cameraIndex < 0) {
-      return null;
+    Optional<double[]> empty = Optional.empty();
+    if (cameraIndex < 0 || cameraIndex > 3) {
+      return empty;
     }
 
-    // Check if there are any tag IDs available
     if (inputs[cameraIndex].tagIds.length == 0) {
-      // return new double[] {0.0, 0.0, 0.0, 0.0, 0.0, 0.0}; // Return zero array if no tag is
-      // detected
-      return WrongTag;
+      return empty;
     }
 
-    // Get the primary tag ID and its pose
     int primaryTagId = inputs[cameraIndex].tagIds[0];
     var tagPoseOptional = aprilTagLayout.getTagPose(primaryTagId);
 
     if (tagPoseOptional.isEmpty()) {
-      return WrongTag; // Return zero array if tag pose is unavailable
+      return empty;
+    }
+
+    if (inputs[cameraIndex].poseObservations.length == 0) {
+      return empty;
     }
 
     Pose3d tagPose = tagPoseOptional.get();
-
-    // Get the robot's pose relative to the camera
-    if (inputs[cameraIndex].poseObservations.length == 0) {
-      return WrongTag; // Return zero array if no pose observations
-    }
-
     Pose3d robotPoseRelativeToCamera = inputs[cameraIndex].poseObservations[0].pose();
-
-    // Transform the robot's pose into the tag's coordinate system
     Pose3d robotPoseInTagSpace = tagPose.relativeTo(robotPoseRelativeToCamera);
 
-    // Extract translation and rotation components
-    double tx = robotPoseInTagSpace.getX(); // Translation X (meters)
-    double ty = robotPoseInTagSpace.getY(); // Translation Y (meters)
-    double tz = robotPoseInTagSpace.getZ(); // Translation Z (meters)
-
+    double tx = robotPoseInTagSpace.getX();
+    double ty = robotPoseInTagSpace.getY();
+    double tz = robotPoseInTagSpace.getZ();
     var rotation = robotPoseInTagSpace.getRotation();
+    double pitch = Math.toDegrees(rotation.getX());
+    double yaw = Math.toDegrees(rotation.getY());
+    double roll = Math.toDegrees(rotation.getZ());
 
-    double pitch = Math.toDegrees(rotation.getX()); // Pitch (degrees)
-    double yaw = Math.toDegrees(rotation.getY()); // Yaw (degrees)
-    double roll = Math.toDegrees(rotation.getZ()); // Roll (degrees)
-
-    Optional<double[]> RightTag = Optional.of(new double[] {tx, ty, tz, pitch, yaw, roll});
-
-    // Return the result as an array
-    // return new double[] {tx, ty, tz, pitch, yaw, roll};
-    return RightTag;
+    Optional<double[]> result = Optional.of(new double[] {tx, ty, tz, pitch, yaw, roll});
+    return result;
   }
 
   @Override
@@ -158,10 +124,10 @@ public class Vision extends SubsystemBase {
     }
 
     // Initialize logging values
-    List<Pose3d> allTagPoses = new LinkedList<>();
-    List<Pose3d> allRobotPoses = new LinkedList<>();
-    List<Pose3d> allRobotPosesAccepted = new LinkedList<>();
-    List<Pose3d> allRobotPosesRejected = new LinkedList<>();
+    List<Pose3d> allTagPoses = new ArrayList<>();
+    List<Pose3d> allRobotPoses = new ArrayList<>();
+    List<Pose3d> allRobotPosesAccepted = new ArrayList<>();
+    List<Pose3d> allRobotPosesRejected = new ArrayList<>();
 
     // Loop over cameras
     for (int cameraIndex = 0; cameraIndex < io.length; cameraIndex++) {
@@ -169,10 +135,10 @@ public class Vision extends SubsystemBase {
       disconnectedAlerts[cameraIndex].set(!inputs[cameraIndex].connected);
 
       // Initialize logging values
-      List<Pose3d> tagPoses = new LinkedList<>();
-      List<Pose3d> robotPoses = new LinkedList<>();
-      List<Pose3d> robotPosesAccepted = new LinkedList<>();
-      List<Pose3d> robotPosesRejected = new LinkedList<>();
+      List<Pose3d> tagPoses = new ArrayList<>();
+      List<Pose3d> robotPoses = new ArrayList<>();
+      List<Pose3d> robotPosesAccepted = new ArrayList<>();
+      List<Pose3d> robotPosesRejected = new ArrayList<>();
 
       // Add tag poses
       for (int tagId : inputs[cameraIndex].tagIds) {
@@ -223,7 +189,7 @@ public class Vision extends SubsystemBase {
             VecBuilder.fill(linearStdDev, linearStdDev, angularStdDev));
       }
 
-      // Log camera datadata
+      // Log camera data
       Logger.recordOutput(
           "Vision/Camera" + Integer.toString(cameraIndex) + "/TagPoses",
           tagPoses.toArray(new Pose3d[tagPoses.size()]));

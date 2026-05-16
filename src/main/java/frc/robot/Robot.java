@@ -15,9 +15,12 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.Constants.Mode;
 import frc.robot.util.BatteryLogger;
+import frc.robot.util.Helpers;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiConsumer;
+import org.ironmaple.simulation.SimulatedArena;
+import org.ironmaple.simulation.seasonspecific.rebuilt2026.Arena2026Rebuilt;
 import org.littletonrobotics.junction.AutoLog;
 import org.littletonrobotics.junction.LogFileUtil;
 import org.littletonrobotics.junction.LoggedRobot;
@@ -37,7 +40,6 @@ public class Robot extends LoggedRobot {
   private RobotContainer robotContainer;
   public static BatteryLogger batteryLogger;
   private final BatteryIOInputsAutoLogged batteryInputs = new BatteryIOInputsAutoLogged();
-
 
   public Robot() {
     // Record metadata
@@ -123,6 +125,10 @@ public class Robot extends LoggedRobot {
     batteryLogger.setRioCurrent(batteryInputs.rioCurrent);
     CommandScheduler.getInstance().run();
 
+    // Publish shift and time-to-next for dashboard
+    Logger.recordOutput("currentShift", Helpers.getShift());
+    Logger.recordOutput("timeToNextShift", Helpers.getTimeToNextAllianceShift());
+
     // Log battery usage after scheduler
     batteryLogger.periodicAfterScheduler();
 
@@ -182,13 +188,23 @@ public class Robot extends LoggedRobot {
 
   /** This function is called once when the robot is first started up. */
   @Override
-  public void simulationInit() {}
+  public void simulationInit() {
+    if (robotContainer.getDriveSimulation() != null) {
+      SimulatedArena.overrideInstance(new Arena2026Rebuilt(false));
+      SimulatedArena.getInstance().addDriveTrainSimulation(robotContainer.getDriveSimulation());
+      robotContainer.resetSimulationField();
+    }
+  }
 
   /** This function is called periodically whilst in simulation. */
   @Override
   public void simulationPeriodic() {
-    RoboRioSim.setVInVoltage(BatterySim.calculateDefaultBatteryLoadedVoltage(batteryLogger.getTotalCurrent()));  
-}
+    robotContainer.updateSimulation();
+    RoboRioSim.setVInVoltage(
+        BatterySim.calculateDefaultBatteryLoadedVoltage(
+            // Math.min(120, batteryLogger.getPreviousCurrent())));
+            batteryLogger.getPreviousCurrent()));
+  }
 
   public static boolean showHardwareAlerts() {
     return Constants.currentMode != Mode.SIM && Timer.getTimestamp() > 30.0;

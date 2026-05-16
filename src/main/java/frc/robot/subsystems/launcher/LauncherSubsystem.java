@@ -10,12 +10,12 @@ import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Robot;
+import frc.robot.util.Elastic;
 import org.littletonrobotics.junction.Logger;
 
 public class LauncherSubsystem extends SubsystemBase {
   private final LauncherIO io;
   private final LauncherIOInputsAutoLogged inputs = new LauncherIOInputsAutoLogged();
-
   private final Debouncer motorLeadConnectedDebouncer =
       new Debouncer(0.5, Debouncer.DebounceType.kFalling);
   private final Debouncer motorFollower0ConnectedDebouncer =
@@ -26,6 +26,10 @@ public class LauncherSubsystem extends SubsystemBase {
   private final Alert motorLeadDisconnected;
   private final Alert motorFollower0Disconnected;
   private final Alert motorFollower1Disconnected;
+
+  private boolean lastMotorLeadDisconnected = false;
+  private boolean lastMotorFollower0Disconnected = false;
+  private boolean lastMotorFollower1Disconnected = false;
 
   /** Creates a new LauncherSubsystem. */
   public LauncherSubsystem(LauncherIO io) {
@@ -44,14 +48,48 @@ public class LauncherSubsystem extends SubsystemBase {
     io.updateInputs(inputs);
     Logger.processInputs("Launcher", inputs);
 
-    motorLeadDisconnected.set(
-        Robot.showHardwareAlerts() && !motorLeadConnectedDebouncer.calculate(inputs.connected0));
-    motorFollower0Disconnected.set(
+    boolean motorLeadCurrentlyDisconnected =
+        Robot.showHardwareAlerts() && !motorLeadConnectedDebouncer.calculate(inputs.connected0);
+    boolean motorFollower0CurrentlyDisconnected =
         Robot.showHardwareAlerts()
-            && !motorFollower0ConnectedDebouncer.calculate(inputs.connected1));
-    motorFollower1Disconnected.set(
+            && !motorFollower0ConnectedDebouncer.calculate(inputs.connected1);
+    boolean motorFollower1CurrentlyDisconnected =
         Robot.showHardwareAlerts()
-            && !motorFollower1ConnectedDebouncer.calculate(inputs.connected2));
+            && !motorFollower1ConnectedDebouncer.calculate(inputs.connected2);
+
+    motorLeadDisconnected.set(motorLeadCurrentlyDisconnected);
+    motorFollower0Disconnected.set(motorFollower0CurrentlyDisconnected);
+    motorFollower1Disconnected.set(motorFollower1CurrentlyDisconnected);
+
+    // Send Elastic notifications on disconnect
+    if (motorLeadCurrentlyDisconnected && !lastMotorLeadDisconnected) {
+      Elastic.sendNotification(
+          new Elastic.Notification(
+              Elastic.NotificationLevel.ERROR,
+              "Launcher Alert",
+              "Flywheel Lead Motor Disconnected!",
+              4000));
+    }
+    if (motorFollower0CurrentlyDisconnected && !lastMotorFollower0Disconnected) {
+      Elastic.sendNotification(
+          new Elastic.Notification(
+              Elastic.NotificationLevel.ERROR,
+              "Launcher Alert",
+              "Flywheel Follower 0 Motor Disconnected!",
+              4000));
+    }
+    if (motorFollower1CurrentlyDisconnected && !lastMotorFollower1Disconnected) {
+      Elastic.sendNotification(
+          new Elastic.Notification(
+              Elastic.NotificationLevel.ERROR,
+              "Launcher Alert",
+              "Flywheel Follower 1 Motor Disconnected!",
+              4000));
+    }
+
+    lastMotorLeadDisconnected = motorLeadCurrentlyDisconnected;
+    lastMotorFollower0Disconnected = motorFollower0CurrentlyDisconnected;
+    lastMotorFollower1Disconnected = motorFollower1CurrentlyDisconnected;
 
     // Log battery usage
     if (Robot.batteryLogger != null) {

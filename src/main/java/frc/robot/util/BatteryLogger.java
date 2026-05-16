@@ -21,6 +21,8 @@ public class BatteryLogger {
   private double batteryVoltage = 12.6;
   private double rioCurrent = 0.0;
 
+  private double previousCurrent = 0.0;
+
   private Map<String, Double> subsystemCurrents = new HashMap<>();
   private Map<String, Double> subsystemPowers = new HashMap<>();
   private Map<String, Double> subsystemEnergies = new HashMap<>();
@@ -85,6 +87,8 @@ public class BatteryLogger {
           "BatteryLogger/Energy/" + entry.getKey(), joulesToWattHours(entry.getValue()));
     }
 
+    previousCurrent = totalCurrent;
+
     resetTotals();
   }
 
@@ -96,6 +100,10 @@ public class BatteryLogger {
 
   public double getTotalCurrent() {
     return totalCurrent;
+  }
+
+  public double getPreviousCurrent() {
+    return previousCurrent;
   }
 
   public double getTotalPower() {

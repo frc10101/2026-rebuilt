@@ -7,8 +7,15 @@
 
 package frc.robot;
 
+import static edu.wpi.first.units.Units.Meters;
+
 import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.commands.PathPlannerAuto;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
@@ -21,10 +28,35 @@ import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.GyroIO;
 import frc.robot.subsystems.drive.GyroIOPigeon2;
+import frc.robot.subsystems.drive.GyroIOSim;
 import frc.robot.subsystems.drive.ModuleIO;
 import frc.robot.subsystems.drive.ModuleIOSim;
 import frc.robot.subsystems.drive.ModuleIOTalonFX;
+import frc.robot.subsystems.feeder.FeederIOReplay;
+import frc.robot.subsystems.feeder.FeederIOSparkMax;
+import frc.robot.subsystems.feeder.FeederSubsystem;
+import frc.robot.subsystems.indexer.IndexerIOReplay;
+import frc.robot.subsystems.indexer.IndexerIOSparkMax;
+import frc.robot.subsystems.indexer.IndexerSubsystem;
+import frc.robot.subsystems.intake.IntakePivot.IntakePivotIOReplay;
+import frc.robot.subsystems.intake.IntakePivot.IntakePivotIOTalonFX;
+import frc.robot.subsystems.intake.IntakeRoller.IntakeRollerIOReplay;
+import frc.robot.subsystems.intake.IntakeRoller.IntakeRollerIOTalonFX;
+import frc.robot.subsystems.intake.IntakeSubsystem;
+import frc.robot.subsystems.launcher.LauncherIOReplay;
+import frc.robot.subsystems.launcher.LauncherIOTalonFX;
+import frc.robot.subsystems.launcher.LauncherSubsystem;
+import frc.robot.subsystems.vision.Vision;
+import frc.robot.subsystems.vision.VisionIO;
+import frc.robot.subsystems.vision.VisionIOPhotonVision;
+import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
 import frc.robot.util.Helpers;
+import frc.robot.util.Launcher.FuelPhysicsSim;
+import frc.robot.util.RobotBumpSim;
+import java.util.function.Supplier;
+import org.ironmaple.simulation.SimulatedArena;
+import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
+import org.ironmaple.simulation.drivesims.configs.DriveTrainSimulationConfig;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
@@ -37,6 +69,17 @@ import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 public class RobotContainer {
   // Subsystems
   private final Drive drive;
+  private final FeederSubsystem feeder;
+  private final IndexerSubsystem indexer;
+  private final IntakeSubsystem intake;
+  private final LauncherSubsystem launcher;
+  private final Vision vision;
+
+  private final SwerveDriveSimulation driveSimulation;
+  private final RobotBumpSim bumpSim;
+  private final FuelPhysicsSim ballSim;
+  private Pose3d simPose3d;
+  private Supplier<Pose3d> simPose3dSupplier;
 
   // Controller
   private final CommandXboxController driverOneController = new CommandXboxController(0);
@@ -184,17 +227,67 @@ public class RobotContainer {
         //         .alongWith(m_intake.goToIntakePosition())
         //         .andThen(Column.ResetVoltageRampDownLaunch())
         //         // .alongWith(new InstantCommand(launcher::setVelocity)));
+        driveSimulation = null;
+        bumpSim = null;
+        ballSim = null;
+        feeder = new FeederSubsystem(new FeederIOSparkMax(drive));
+        indexer = new IndexerSubsystem(new IndexerIOSparkMax(drive));
+        intake =
+            new IntakeSubsystem(new IntakePivotIOTalonFX(drive), new IntakeRollerIOTalonFX(drive));
+        launcher = new LauncherSubsystem(new LauncherIOTalonFX(drive, 0));
+        vision = new Vision(drive::addVisionMeasurement, VisionIOPhotonVision.createAllCameras());
         break;
 
       case SIM:
-        // Sim robot, instantiate physics sim IO implementations
+        // Sim robot, instantiate MapleSim IO implementations
+        DriveTrainSimulationConfig simConfig =
+            DriveTrainSimulationConfig.Default()
+                .withBumperSize(
+                    Meters.of(Constants.RobotConstants.BumperLength),
+                    Meters.of(Constants.RobotConstants.BumperWidth))
+                .withCustomModuleTranslations(
+                    new Translation2d[] {
+                      new Translation2d(
+                          TunerConstants.FrontLeft.LocationX, TunerConstants.FrontLeft.LocationY),
+                      new Translation2d(
+                          TunerConstants.FrontRight.LocationX, TunerConstants.FrontRight.LocationY),
+                      new Translation2d(
+                          TunerConstants.BackLeft.LocationX, TunerConstants.BackLeft.LocationY),
+                      new Translation2d(
+                          TunerConstants.BackRight.LocationX, TunerConstants.BackRight.LocationY)
+                    });
+        driveSimulation = new SwerveDriveSimulation(simConfig, new Pose2d());
+        bumpSim =
+            new RobotBumpSim(
+                new Translation2d[] {
+                  new Translation2d(
+                      TunerConstants.FrontLeft.LocationX, TunerConstants.FrontLeft.LocationY),
+                  new Translation2d(
+                      TunerConstants.FrontRight.LocationX, TunerConstants.FrontRight.LocationY),
+                  new Translation2d(
+                      TunerConstants.BackLeft.LocationX, TunerConstants.BackLeft.LocationY),
+                  new Translation2d(
+                      TunerConstants.BackRight.LocationX, TunerConstants.BackRight.LocationY)
+                });
+        ballSim = new FuelPhysicsSim("AdvantageKit/RealOutputs/FieldSimulation/Fuel");
         drive =
             new Drive(
-                new GyroIO() {},
-                new ModuleIOSim(TunerConstants.FrontLeft),
-                new ModuleIOSim(TunerConstants.FrontRight),
-                new ModuleIOSim(TunerConstants.BackLeft),
-                new ModuleIOSim(TunerConstants.BackRight));
+                new GyroIOSim(driveSimulation.getGyroSimulation()),
+                new ModuleIOSim(driveSimulation.getModules()[0]),
+                new ModuleIOSim(driveSimulation.getModules()[1]),
+                new ModuleIOSim(driveSimulation.getModules()[2]),
+                new ModuleIOSim(driveSimulation.getModules()[3]));
+        feeder = new FeederSubsystem(new FeederIOSparkMax(drive));
+        indexer = new IndexerSubsystem(new IndexerIOSparkMax(drive));
+        intake =
+            new IntakeSubsystem(new IntakePivotIOTalonFX(drive), new IntakeRollerIOTalonFX(drive));
+        launcher = new LauncherSubsystem(new LauncherIOTalonFX(drive, 0));
+        simPose3d = new Pose3d(driveSimulation.getSimulatedDriveTrainPose());
+        simPose3dSupplier = () -> simPose3d;
+        vision =
+            new Vision(
+                drive::addVisionMeasurement,
+                VisionIOPhotonVisionSim.createAllSimCameras(simPose3dSupplier));
         break;
 
       default:
@@ -206,6 +299,14 @@ public class RobotContainer {
                 new ModuleIO() {},
                 new ModuleIO() {},
                 new ModuleIO() {});
+        driveSimulation = null;
+        bumpSim = null;
+        ballSim = null;
+        feeder = new FeederSubsystem(new FeederIOReplay());
+        indexer = new IndexerSubsystem(new IndexerIOReplay());
+        intake = new IntakeSubsystem(new IntakePivotIOReplay(), new IntakeRollerIOReplay());
+        launcher = new LauncherSubsystem(new LauncherIOReplay());
+        vision = new Vision(drive::addVisionMeasurement, new VisionIO[] {});
         break;
     }
 
@@ -274,5 +375,45 @@ public class RobotContainer {
    */
   public Command getAutonomousCommand() {
     return autoChooser.get();
+  }
+
+  public SwerveDriveSimulation getDriveSimulation() {
+    return driveSimulation;
+  }
+
+  public void resetSimulationField() {
+    if (Constants.currentMode != Constants.Mode.SIM) return;
+
+    driveSimulation.setSimulationWorldPose(
+        new Pose2d(3.594, 2, new Rotation2d(Math.toRadians(180))));
+    drive.setPose(driveSimulation.getSimulatedDriveTrainPose());
+    SimulatedArena.getInstance().clearGamePieces();
+    ballSim.enable();
+    ballSim.placeFieldBalls();
+  }
+
+  public void updateSimulation() {
+    if (Constants.currentMode != Constants.Mode.SIM) return;
+    Pose2d simPose = driveSimulation.getSimulatedDriveTrainPose();
+
+    ChassisSpeeds fieldRelativeSpeeds =
+        driveSimulation.getDriveTrainSimulatedChassisSpeedsFieldRelative();
+
+    simPose3d = bumpSim.update(simPose, fieldRelativeSpeeds, 5);
+    ballSim.configureRobot(
+        driveSimulation.config.bumperWidthY.in(Meters),
+        driveSimulation.config.bumperWidthY.in(Meters),
+        0.305,
+        () -> driveSimulation.getSimulatedDriveTrainPose(),
+        () -> driveSimulation.getDriveTrainSimulatedChassisSpeedsFieldRelative());
+
+    if (bumpSim.isOnRamp()) {
+      driveSimulation.setSimulationWorldPose(bumpSim.getSimWorldPose(simPose));
+    }
+    ballSim.tick();
+    SimulatedArena.getInstance().simulationPeriodic();
+    ballSim.publishPositions();
+
+    Logger.recordOutput("FieldSimulation/RobotPosition", simPose3d);
   }
 }

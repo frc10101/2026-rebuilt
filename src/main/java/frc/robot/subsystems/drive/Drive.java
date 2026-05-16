@@ -187,6 +187,8 @@ public class Drive extends SubsystemBase {
     odometryLock.lock(); // Prevents odometry updates while reading data
     gyroIO.updateInputs(gyroInputs);
     Logger.processInputs("Drive/Gyro", gyroInputs);
+    Logger.recordOutput("Drive/PitchDeg", gyroInputs.pitchPosition.getDegrees());
+    Logger.recordOutput("Drive/RollDeg", gyroInputs.rollPosition.getDegrees());
     for (var module : modules) {
       module.periodic();
     }
@@ -241,6 +243,9 @@ public class Drive extends SubsystemBase {
       Logger.recordOutput("SwerveStates/M2TurnPos", modules[2].getState().angle.getRadians());
       Logger.recordOutput("SwerveStates/M3TurnPos", modules[3].getState().angle.getRadians());
     }
+
+    Logger.recordOutput("Odometry/PitchDeg", gyroInputs.pitchPosition.getDegrees());
+    Logger.recordOutput("Odometry/RollDeg", gyroInputs.rollPosition.getDegrees());
 
     // Update gyro alert
     gyroDisconnectedAlert.set(!gyroInputs.connected && Constants.currentMode != Mode.SIM);
