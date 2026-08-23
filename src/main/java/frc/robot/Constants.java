@@ -299,34 +299,43 @@ public final class Constants {
     /** Beltdexter Stall Current Limit */
     public static final Current currentLimit = Amps.of(40);
 
-    public static final AngularVelocity IntakeSpeed = RPM.of(1500);
+    public static final AngularVelocity IntakeSpeed = RPM.of(1000);
     public static final AngularVelocity OuttakeSpeed = RPM.of(-75);
     public static final AngularVelocity IdleSpinSpeed = RPM.of(500);
-    public static final AngularVelocity LaunchSpeed = RPM.of(2200);
+    public static final AngularVelocity LaunchSpeed = RPM.of(750);
 
     public final class Real {
-      public static final double kp = 0;
+      public static final double kp = 0.3;
       public static final double ki = 0.0;
-      public static final double kd = 0.0;
+      public static final double kd = 0.002;
       public static final AngularVelocity maxVelocity = DegreesPerSecond.of(90);
       public static final AngularAcceleration maxAcceleration = DegreesPerSecondPerSecond.of(45);
 
       // feedforward
+      // public static final double ks = 0.45971;
+      public static final double ks = 0.2;
+      // public static final double ka = 0.040546;
+      public static final double ka = 0.0;
+      // public static final double kv = 0.25543;
+      public static final double kv = 0.0;
       public static final double ks = 2.8752;
       public static final double ka = 0.0;
       public static final double kv = 0.46964;
     }
 
     public final class Sim {
-      public static final double kp = 0.0;
+      public static final double kp = 0.2;
       public static final double ki = 0.0;
       public static final double kd = 0.0;
       public static final AngularVelocity maxVelocity = DegreesPerSecond.of(90);
       public static final AngularAcceleration maxAcceleration = DegreesPerSecondPerSecond.of(45);
 
-      public static final double ks = 0.0;
-      public static final double ka = 0.0;
-      public static final double kv = 0.0;
+      // public static final double ks = 0.77793;
+      public static final double ks = 0.77793;
+      // public static final double ka = 0.097298;
+      public static final double ka = 0.097298;
+      // public static final double kv = 0.29211;
+      public static final double kv = 0.29211;
     }
   }
 
