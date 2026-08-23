@@ -66,7 +66,7 @@ public final class Constants {
     public static final int MOTOR_ID_FOLLOW1 = 22;
 
     // Closed-loop gains (real robot)
-    public static final double REAL_kP = 0.1; // 0.18216 or 0.45
+    public static final double REAL_kP = 0.1879; // 0.18216 or 0.45
     public static final double REAL_kI = 0.0; // 0.1
     public static final double REAL_kD = 0.0;
 
@@ -76,9 +76,9 @@ public final class Constants {
     public static final double SIM_kD = 0.0;
 
     // Feedforward (ks, kv, ka) used by SimpleMotorFeedforward
-    public static final double FFW_kS = 0.2196;
-    public static final double FFW_kV = 0.11953;
-    public static final double FFW_kA = 0.013135;
+    public static final double FFW_kS = 0.24566;
+    public static final double FFW_kV = 0.12251;
+    public static final double FFW_kA = 0.014885;
 
     // Motion constraints used in controllers (RPM, RPM/sec)
     public static final double MAX_VELOCITY_RPM = 6000.0;
@@ -132,7 +132,7 @@ public final class Constants {
             0.539, // exit height (m), floor to where the ball leaves the shooter
             0.1016, // flywheel diameter (m), measure with calipers
             1.83, // target height (m), from game manual
-            0.42, // slip factor (0=no grip, 1=perfect), tune this on the real robot
+            0.43, // slip factor (0=no grip, 1=perfect), tune this on the real robot
             60.0, // launch angle from horizontal, measure from CAD
             0.001, // sim timestep
             1200,
@@ -153,7 +153,7 @@ public final class Constants {
         public static final double kp = 100.0;
         public static final double ki = 0.0;
         public static final double kd = 0.0;
-        public static final AngularVelocity maxVelocity = DegreesPerSecond.of(180);
+        public static final AngularVelocity maxVelocity = DegreesPerSecond.of(120);
         public static final AngularAcceleration maxAcceleration = DegreesPerSecondPerSecond.of(360);
 
         public static final double ks = 0.0;
@@ -196,7 +196,7 @@ public final class Constants {
       public static final Angle startingPosition = Degrees.of(105);
       public static final Angle stowedPosition = Degrees.of(105);
       public static final Angle intakePosition = Degrees.of(0);
-      public static final Angle jitterPosition = Degrees.of(45);
+      public static final Angle jitterPosition = Degrees.of(30);
       public static final Distance armLength = Feet.of(1);
       public static final Mass mass = Pounds.of(8);
 
@@ -229,7 +229,7 @@ public final class Constants {
       // Roller speeds (duty cycle -1 to 1)
       // public static final double intakeSpeed = 0.65;
       // public static final double outtakeSpeed = 0.3;
-      public static final AngularVelocity intakeSpeed = RPM.of(-4000);
+      public static final AngularVelocity intakeSpeed = RPM.of(-3000);
       public static final AngularVelocity outtakeSpeed = RPM.of(500);
     }
   }
@@ -301,32 +301,41 @@ public final class Constants {
 
     public static final AngularVelocity IntakeSpeed = RPM.of(1000);
     public static final AngularVelocity OuttakeSpeed = RPM.of(-75);
-    public static final AngularVelocity IdleSpinSpeed = RPM.of(50);
-    public static final AngularVelocity LaunchSpeed = RPM.of(75);
+    public static final AngularVelocity IdleSpinSpeed = RPM.of(500);
+    public static final AngularVelocity LaunchSpeed = RPM.of(750);
 
     public final class Real {
-      public static final double kp = 0;
+      public static final double kp = 0.3;
       public static final double ki = 0.0;
-      public static final double kd = 0.0;
+      public static final double kd = 0.002;
       public static final AngularVelocity maxVelocity = DegreesPerSecond.of(90);
       public static final AngularAcceleration maxAcceleration = DegreesPerSecondPerSecond.of(45);
 
       // feedforward
+      // public static final double ks = 0.45971;
+      public static final double ks = 0.2;
+      // public static final double ka = 0.040546;
+      public static final double ka = 0.0;
+      // public static final double kv = 0.25543;
+      public static final double kv = 0.0;
       public static final double ks = 2.8752;
       public static final double ka = 0.0;
       public static final double kv = 0.46964;
     }
 
     public final class Sim {
-      public static final double kp = 0.0;
+      public static final double kp = 0.2;
       public static final double ki = 0.0;
       public static final double kd = 0.0;
       public static final AngularVelocity maxVelocity = DegreesPerSecond.of(90);
       public static final AngularAcceleration maxAcceleration = DegreesPerSecondPerSecond.of(45);
 
-      public static final double ks = 0.0;
-      public static final double ka = 0.0;
-      public static final double kv = 0.0;
+      // public static final double ks = 0.77793;
+      public static final double ks = 0.77793;
+      // public static final double ka = 0.097298;
+      public static final double ka = 0.097298;
+      // public static final double kv = 0.29211;
+      public static final double kv = 0.29211;
     }
   }
 
@@ -398,13 +407,13 @@ public final class Constants {
             Inches.of(-(9.25)),
             Inches.of(11.25),
             Inches.of(8.375),
-            new Rotation3d(Degrees.of(0), Degrees.of(-45), Degrees.of(180)));
+            new Rotation3d(Degrees.of(0), Degrees.of(0), Degrees.of(180)));
     public static final Transform3d robotToCamera3 =
         new Transform3d(
             Inches.of(-(9.25)),
             Inches.of(-11.25),
             Inches.of(8.375),
-            new Rotation3d(Degrees.of(0), Degrees.of(-45), Degrees.of(180)));
+            new Rotation3d(Degrees.of(0), Degrees.of(0), Degrees.of(180)));
 
     // SIM Camera Constants
     public static final int resWidth = 1280;
@@ -417,17 +426,17 @@ public final class Constants {
 
     // Standard deviation baselines, for 1 meter distance and 1 tag
     // (Adjusted automatically based on distance and # of tags)
-    public static final double linearStdDevBaseline = 0.02; // Meters
-    public static final double angularStdDevBaseline = 0.06; // Radians
+    public static final double linearStdDevBaseline = 0.00501; // Meters
+    public static final double angularStdDevBaseline = Math.toRadians(0.1743); // Radians
 
     // Standard deviation multipliers for each camera
     // (Adjust to trust some cameras more than others)
     public static final double[] cameraStdDevFactors =
         new double[] {
           1.0, // Camera 0
-          1.0, // Camera 1
-          1.0, // Camera 2
-          1.0 // Camera 3
+          3.5, // Camera 1
+          3.5, // Camera 2
+          7 // Camera 3
         };
 
     // Multipliers to apply for MegaTag 2 observations

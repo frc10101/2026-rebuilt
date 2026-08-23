@@ -30,6 +30,7 @@ import edu.wpi.first.units.measure.MutAngularVelocity;
 import edu.wpi.first.units.measure.MutVoltage;
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -61,7 +62,11 @@ public class Launcher extends SubsystemBase {
   public enum LauncherMode {
     IDLE,
     ALLIANCE_AUTO,
-    PASS
+    PASS,
+    NOT_IDLE,
+    WORLDS_AUTO_REV,
+    OVERRIDE_LAUNCH,
+    TARGET_LOCK
   }
 
   @AutoLog
@@ -285,14 +290,16 @@ public class Launcher extends SubsystemBase {
           if (Helpers.isPoseInAllianceZone(swerve.getPose())) {
             currentMode = LauncherMode.ALLIANCE_AUTO;
             var hubCenter = getAllianceHubCenter();
-            if (allianceFlip) {
-              hubCenter = getNotAllianceHubCenter();
-            }
+            // if (allianceFlip) {
+            //   hubCenter = getNotAllianceHubCenter();
+            // }
+
+            Logger.recordOutput("This is is the greatest sow", allianceFlip);
 
             Logger.recordOutput("Alliance Hub Center", hubCenter);
             Logger.recordOutput("Overide Run Alliance Auto Control", override);
             var shot = calculateShotToTarget(swerve, hubCenter);
-            if (shot == null) {
+            if (shot == null || !shot.isValid()) {
               applyIdleTarget();
               return;
             }
@@ -317,7 +324,7 @@ public class Launcher extends SubsystemBase {
             Logger.recordOutput("Alliance Hub Center", hubCenter);
             Logger.recordOutput("Overide Run Alliance Auto Control", override);
             var shot = calculateShotToTarget(swerve, hubCenter);
-            if (shot == null) {
+            if (shot == null || !shot.isValid()) {
               applyIdleTarget();
               return;
             }
@@ -334,9 +341,11 @@ public class Launcher extends SubsystemBase {
           currentMode = LauncherMode.PASS;
           Translation2d passTarget = getAlliancePassTarget(swerve);
           var shot = calculateShotToTarget(swerve, passTarget);
-          if (shot != null || override) {
-            applyTargetRpm(shot.rpm());
-            lastLaunchRPM = shot.rpm();
+          if ((shot != null && shot.isValid()) || override) {
+            if (shot != null && shot.isValid()) {
+              applyTargetRpm(shot.rpm());
+              lastLaunchRPM = shot.rpm();
+            }
             Logger.recordOutput("Shooter/PassTargetX", passTarget.getX());
             Logger.recordOutput("Shooter/PassTargetY", passTarget.getY());
             Logger.recordOutput("Overide Run Pass Control", override);
@@ -355,26 +364,39 @@ public class Launcher extends SubsystemBase {
   }
 
   public Rotation2d Launch(Drive swerve, boolean override) {
-    Logger.recordOutput("Override Launch Method", override);
-    ShotCalculator.LaunchParameters shot = calculateShotToTarget(swerve, getAllianceHubCenter());
-    /*if (shot != null) {
-      lastLaunchRPM = shot.rpm();
-      return shot.driveAngle();
+    ShotCalculator.LaunchParameters shot =
+        calculateShotToTarget(
+            swerve, getTargetPosition(swerve, swerve.getPose().getTranslation().getY()));
+
+    if (override) {
+      currentMode = LauncherMode.OVERRIDE_LAUNCH;
+      if (shot != null) {
+        lastLaunchRPM = shot.rpm();
+        applyTargetRpm(shot.rpm());
+        return shot.driveAngle();
+      }
+    } else {
+      currentMode = LauncherMode.NOT_IDLE;
+      if (shot != null && shot.isValid()) {
+        lastLaunchRPM = shot.rpm();
+        applyTargetRpm(shot.rpm());
+        return shot.driveAngle();
+      }
     }
-    */
 
-    if (shot.confidence() > 50) {}
-
-    // Fallback: If ShotCalculator fails, just aim at hub
-    Translation2d hubCenter = getAllianceHubCenter();
-    Translation2d robotPos = swerve.getPose().getTranslation();
-    Translation2d toHub = hubCenter.minus(robotPos);
-    return toHub.getAngle();
+    Translation2d target = getTargetPosition(swerve, swerve.getPose().getTranslation().getY());
+    Translation2d roboPos = swerve.getPose().getTranslation();
+    Translation2d toTarget = target.minus(roboPos);
+    return toTarget.getAngle();
   }
 
   private void applyIdleTarget() {
     currentMode = LauncherMode.IDLE;
     applyTargetRpm(LauncherConstants.FLYWHEEL_IDLE_RPM);
+  }
+
+  public void unIdleRobot() {
+    currentMode = LauncherMode.NOT_IDLE;
   }
 
   private void applyTargetRpm(double rpm) {
@@ -397,7 +419,16 @@ public class Launcher extends SubsystemBase {
             swerve.getPitch().getDegrees(),
             swerve.getRoll().getDegrees());
 
+    if (shotCalc == null) {
+      Logger.recordOutput("ShotCalc/Error", "shotCalc is null");
+      return ShotCalculator.LaunchParameters.INVALID;
+    }
     ShotCalculator.LaunchParameters shot = shotCalc.calculate(inputs);
+    if (shot == null) {
+      // Defensive: ShotCalculator should return INVALID rather than null, but guard anyway
+      Logger.recordOutput("ShotCalc/Error", "calculate returned null");
+      return ShotCalculator.LaunchParameters.INVALID;
+    }
     Logger.recordOutput("isValid", shot.isValid());
     Logger.recordOutput("Confidence", shot.confidence());
     return shot;
@@ -412,7 +443,7 @@ public class Launcher extends SubsystemBase {
         isRed
             ? fieldLength - LauncherConstants.PASS_TARGET_X_METERS
             : LauncherConstants.PASS_TARGET_X_METERS;
-    return new Translation2d(targetX, swerve.getPose().getY());
+    return new Translation2d(targetX, swerve.getPose().getTranslation().getY());
   }
 
   public Translation2d getAllianceHubCenter() {
@@ -457,5 +488,73 @@ public class Launcher extends SubsystemBase {
 
   public double getTargetLaunchRPM() {
     return lastLaunchRPM;
+  }
+
+  /*
+   * isPoseInAllinace
+   * hub center
+   * reference - autorevControl
+   *
+   */
+  public Translation2d getTargetPosition(Drive swerve, double robotY) {
+    double fieldHight =
+        AprilTagFieldLayout.loadField(AprilTagFields.k2026RebuiltWelded).getFieldWidth();
+    Translation2d targetPose;
+    double fieldLength =
+        AprilTagFieldLayout.loadField(AprilTagFields.k2026RebuiltWelded).getFieldLength();
+    double targetX = fieldLength - ((7.0 / 8.0) * fieldLength); // This defaults for blue
+    double targetY =
+        fieldHight - ((1.0 / 4.0) * fieldHight); // default to top of board or y > fieldlength / 2
+
+    // grab what alliance we are on to apply offsets to the x postion we select
+    var isBlue = DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue;
+    if (!isBlue) {
+      targetX = fieldLength - ((1.0 / 8.0) * fieldLength);
+    }
+
+    // see if we are in are alliance
+    // if yes give hub and leave
+    if (Helpers.isPoseInAllianceZone(swerve.getPose())) {
+      Logger.recordOutput("returning hub position for target", true);
+      return getAllianceHubCenter();
+    } else if (robotY <= fieldHight / 2.0) {
+      targetY = fieldHight - ((3.0 / 4.0) * fieldHight);
+    }
+    Logger.recordOutput("returning hub position for target", false);
+
+    targetPose = new Translation2d(targetX, targetY);
+    // Logger.recordOutput("Target Position", targetPose);
+
+    return targetPose;
+  }
+
+  public Command worldsAutoRev(Drive swerve, boolean override) {
+    return run(
+        () -> {
+          Logger.recordOutput("Overide Run Alliance Auto Control", override);
+          var shot =
+              calculateShotToTarget(
+                  swerve, getTargetPosition(swerve, swerve.getPose().getTranslation().getY()));
+
+          if (shot == null) {
+            applyIdleTarget();
+            return;
+          }
+
+          if (!override) {
+            if (Helpers.isPoseInAllianceZone(swerve.getPose()) && shot.confidence() > 0.49) {
+              currentMode = LauncherMode.WORLDS_AUTO_REV;
+              applyTargetRpm(shot.rpm());
+              return;
+            } else {
+              applyIdleTarget();
+              return;
+            }
+          } else {
+            currentMode = LauncherMode.OVERRIDE_LAUNCH;
+            applyTargetRpm(shot.rpm());
+            return;
+          }
+        });
   }
 }
