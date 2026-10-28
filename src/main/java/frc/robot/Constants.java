@@ -318,9 +318,10 @@ public final class Constants {
       public static final double ka = 0.0;
       // public static final double kv = 0.25543;
       public static final double kv = 0.0;
-      public static final double ks = 2.8752;
-      public static final double ka = 0.0;
-      public static final double kv = 0.46964;
+      // old bayou constants
+      // public static final double ks = 2.8752;
+      // public static final double ka = 0.0;
+      // public static final double kv = 0.46964;
     }
 
     public final class Sim {
