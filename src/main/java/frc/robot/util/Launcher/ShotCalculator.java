@@ -132,7 +132,7 @@ public class ShotCalculator {
 
     // How close/far you can score from (meters)
     public double minScoringDistance = 0.5;
-    public double maxScoringDistance = 5.0;
+    public double maxScoringDistance = 15.0;
 
     // Newton solver tuning
     public int maxIterations = 25;
